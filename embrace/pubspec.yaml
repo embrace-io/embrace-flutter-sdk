@@ -1,0 +1,27 @@
+name: embrace
+description: A comprehensive observability and monitoring platform for iOS and Android apps built with Flutter.
+version: 1.0.0
+homepage: https://embrace.io
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: embrace_android
+      ios:
+        default_package: embrace_ios
+dependencies:
+  embrace_android: "^1.0.0"
+  embrace_ios: "^1.0.0"
+  embrace_platform_interface: "^1.0.0"
+  flutter:
+    sdk: flutter
+  http: ^0.13.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^0.3.0
+  plugin_platform_interface: ^2.0.0
+  very_good_analysis: ^3.0.2

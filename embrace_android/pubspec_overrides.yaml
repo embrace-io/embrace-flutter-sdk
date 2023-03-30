@@ -1,0 +1,3 @@
+dependency_overrides:
+  embrace_platform_interface:
+    path: ../embrace_platform_interface

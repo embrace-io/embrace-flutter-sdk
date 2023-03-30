@@ -1,0 +1,170 @@
+import 'package:embrace/embrace.dart';
+import 'package:embrace_example/breadcrumbs.dart';
+import 'package:embrace_example/errors.dart';
+import 'package:embrace_example/isolates.dart';
+import 'package:embrace_example/logs.dart';
+import 'package:embrace_example/moments.dart';
+import 'package:embrace_example/navigation.dart';
+import 'package:embrace_example/network.dart';
+import 'package:embrace_example/session_properties.dart';
+import 'package:embrace_example/user.dart';
+import 'package:embrace_example/views.dart';
+import 'package:flutter/material.dart';
+
+Future<void> main() async {
+  await Embrace.instance.start(() => runApp(const EmbraceDemo()));
+}
+
+class EmbraceDemo extends StatelessWidget {
+  const EmbraceDemo({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(home: EmbraceMenu());
+  }
+}
+
+class EmbraceMenu extends StatefulWidget {
+  const EmbraceMenu({Key? key}) : super(key: key);
+
+  @override
+  State<EmbraceMenu> createState() => _EmbraceMenuState();
+}
+
+class _EmbraceMenuState extends State<EmbraceMenu> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Embrace Example App'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Center(
+          child: ListView(
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: Embrace.instance.endStartupMoment,
+                child: const Text('End Startup Moment'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<BreadcrumbDemo>(
+                      builder: (context) => const BreadcrumbDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Breadcrumbs'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<LogsDemo>(
+                      builder: (context) => const LogsDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Logs'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<MomentsDemo>(
+                      builder: (context) => const MomentsDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Moments'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<ViewsDemo>(
+                      builder: (context) => const ViewsDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Views'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<ErrorDemo>(
+                      builder: (context) => const EmbraceNavigationDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Navigation'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<UserDemo>(
+                      builder: (context) => const UserDemo(),
+                    ),
+                  );
+                },
+                child: const Text('User'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<SessionPropertiesDemo>(
+                      builder: (context) => const SessionPropertiesDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Session Properties'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<NetworkDemo>(
+                      builder: (context) => const NetworkDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Network'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<ErrorDemo>(
+                      builder: (context) => const ErrorDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Errors'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<ErrorDemo>(
+                      builder: (context) => const IsolatesDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Isolate Errors'),
+              ),
+              ElevatedButton(
+                onPressed: Embrace.instance.endSession,
+                child: const Text('endSession'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

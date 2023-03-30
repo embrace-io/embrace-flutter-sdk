@@ -1,0 +1,23 @@
+name: embrace_ios
+description: iOS implementation of the embrace plugin
+version: 1.0.0
+homepage: https://embrace.io
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+flutter:
+  plugin:
+    implements: embrace
+    platforms:
+      ios:
+        pluginClass: EmbracePlugin
+        dartPluginClass: EmbraceIOS
+dependencies:
+  embrace_platform_interface: '^1.0.0'
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.0
+  very_good_analysis: ^3.0.2

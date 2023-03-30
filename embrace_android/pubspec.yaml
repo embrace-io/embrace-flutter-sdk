@@ -1,0 +1,24 @@
+name: embrace_android
+description: Android implementation of the embrace plugin
+version: 1.0.0
+homepage: https://embrace.io
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+flutter:
+  plugin:
+    implements: embrace
+    platforms:
+      android:
+        package: io.embrace.flutter
+        pluginClass: EmbracePlugin
+        dartPluginClass: EmbraceAndroid
+dependencies:
+  embrace_platform_interface: '^1.0.0'
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.0
+  very_good_analysis: ^3.0.2
