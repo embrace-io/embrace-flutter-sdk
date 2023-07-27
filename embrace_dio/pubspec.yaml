@@ -1,6 +1,6 @@
 name: embrace_dio
 description: Dio network capture for the embrace plugin.
-version: 1.0.0
+version: 1.1.0
 homepage: https://embrace.io
 environment:
   sdk: ">=2.12.0 <3.0.0"

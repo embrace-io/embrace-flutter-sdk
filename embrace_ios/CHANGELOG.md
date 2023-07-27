@@ -1,3 +1,8 @@
+# 1.1.0
+
+* Updated Embrace Android SDK to 5.16.0
+* Updated Embrace iOS SDK to 5.17.1
+
 # 1.0.0
 
 * Added runtime type to error information
