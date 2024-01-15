@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/src/version.dart';
@@ -20,6 +18,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _attachSdkMethodName = 'attachToHostSdk';
   static const String _endStartupMomentMethodName = 'endStartupMoment';
   static const String _logBreadcrumbMethodName = 'logBreadcrumb';
+  static const String _logPushNotificationMethodName = 'logPushNotification';
   static const String _startMomentMethodName = 'startMoment';
   static const String _endMomentMethodName = 'endMoment';
   static const String _startViewMethodName = 'startView';
@@ -47,7 +46,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
       'removeSessionProperty';
   static const String _getSessionPropertiesMethodName = 'getSessionProperties';
   static const String _endSessionMethodName = 'endSession';
-  static const String _updateRemoteConfigMethodName = 'updateRemoteConfig';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -83,6 +81,16 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _valueArgName = 'value';
   static const String _permanentArgName = 'permanent';
   static const String _clearUserInfoArgName = 'clearUserInfo';
+  static const String _titleArgName = 'title';
+  static const String _bodyArgName = 'body';
+  static const String _subtitleArgName = 'subtitle';
+  static const String _badgeArgName = 'badge';
+  static const String _categoryArgName = 'category';
+  static const String _fromArgName = 'from';
+  static const String _messageIdArgName = 'messageId';
+  static const String _priorityArgName = 'priority';
+  static const String _hasNotificationArgName = 'hasNotification';
+  static const String _hasDataArgName = 'hasData';
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -152,6 +160,34 @@ class MethodChannelEmbrace extends EmbracePlatform {
     throwIfNotStarted();
     methodChannel
         .invokeMethod(_logBreadcrumbMethodName, {_messageArgName: message});
+  }
+
+  @override
+  void logPushNotification({
+    required String? title,
+    required String? body,
+    required String? subtitle,
+    required int? badge,
+    required String? category,
+    required String? from,
+    required String? messageId,
+    required int? priority,
+    required bool hasNotification,
+    required bool hasData,
+  }) {
+    throwIfNotStarted();
+    methodChannel.invokeMethod(_logPushNotificationMethodName, {
+      _titleArgName: title,
+      _bodyArgName: body,
+      _subtitleArgName: subtitle,
+      _badgeArgName: badge,
+      _categoryArgName: category,
+      _fromArgName: from,
+      _messageIdArgName: messageId,
+      _priorityArgName: priority,
+      _hasNotificationArgName: hasNotification,
+      _hasDataArgName: hasData
+    });
   }
 
   @override
@@ -457,30 +493,12 @@ class MethodChannelEmbrace extends EmbracePlatform {
   @visibleForTesting
   Future<dynamic> handleMethodCall(MethodCall call) async {
     switch (call.method) {
-      case _updateRemoteConfigMethodName:
-        _handleUpdateRemoteConfigCall(call);
-        break;
-
       default:
         logInternalError(
           'Embrace MethodChannel received unknown MethodCall from host SDK.',
           call.method,
         );
         break;
-    }
-  }
-
-  void _handleUpdateRemoteConfigCall(MethodCall call) {
-    try {
-      final json = call.arguments as String;
-      final newConfig = jsonDecode(json) as Map<String, dynamic>;
-      setRemoteConfig(newConfig);
-    } catch (e) {
-      logInternalError(
-        'Failed to parse remote config passed by host SDK',
-        e.toString(),
-      );
-      setRemoteConfig(const {});
     }
   }
 }

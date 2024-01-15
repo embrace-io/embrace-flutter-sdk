@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
 import 'package:embrace_platform_interface/src/version.dart';
@@ -1112,76 +1110,6 @@ void main() {
               },
             ),
           ),
-        );
-      });
-
-      group('handleUpdateRemoteConfigCall', () {
-        const methodName = 'updateRemoteConfig';
-        const testKey = '__testKey__';
-        const testValue = '__testValue__';
-        const validJson = '{ "$testKey": "$testValue" }';
-        const invalidJson = 'this_is_not_json';
-
-        test('sets remoteConfig when called with valid json argument',
-            () async {
-          final originalConfig = methodChannelEmbrace.remoteConfig;
-
-          expect(originalConfig.containsKey(testKey), isFalse);
-
-          await methodChannelEmbrace
-              .handleMethodCall(const MethodCall(methodName, validJson));
-
-          final newConfig = methodChannelEmbrace.remoteConfig;
-          expect(newConfig.containsKey(testKey), isTrue);
-          expect(newConfig[testKey], testValue);
-        });
-
-        test('logs internal error when called with invalid json argument',
-            () async {
-          const expectedErrorMessage =
-              'Failed to parse remote config passed by host SDK';
-
-          var exceptionMessage = '';
-
-          try {
-            jsonDecode(invalidJson) as Map<String, dynamic>;
-          } catch (e) {
-            exceptionMessage = e.toString();
-          }
-
-          await methodChannelEmbrace
-              .handleMethodCall(const MethodCall(methodName, invalidJson));
-
-          expect(
-            log,
-            contains(
-              isMethodCall(
-                'logInternalError',
-                arguments: {
-                  'message': expectedErrorMessage,
-                  'details': exceptionMessage,
-                },
-              ),
-            ),
-          );
-        });
-
-        test(
-          'clears existing config when called with invalid json argument',
-          () async {
-            await methodChannelEmbrace
-                .handleMethodCall(const MethodCall(methodName, validJson));
-
-            final newConfig = methodChannelEmbrace.remoteConfig;
-            expect(newConfig.containsKey(testKey), isTrue);
-            expect(newConfig[testKey], testValue);
-
-            await methodChannelEmbrace
-                .handleMethodCall(const MethodCall(methodName, invalidJson));
-
-            final clearedConfig = methodChannelEmbrace.remoteConfig;
-            expect(clearedConfig.length, 0);
-          },
         );
       });
     });

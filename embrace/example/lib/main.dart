@@ -6,6 +6,7 @@ import 'package:embrace_example/logs.dart';
 import 'package:embrace_example/moments.dart';
 import 'package:embrace_example/navigation.dart';
 import 'package:embrace_example/network.dart';
+import 'package:embrace_example/push_notifications.dart';
 import 'package:embrace_example/session_properties.dart';
 import 'package:embrace_example/user.dart';
 import 'package:embrace_example/views.dart';
@@ -57,6 +58,17 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
                   );
                 },
                 child: const Text('Breadcrumbs'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<PushNotificationsDemo>(
+                      builder: (context) => const PushNotificationsDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Push Notifications'),
               ),
               ElevatedButton(
                 onPressed: () {

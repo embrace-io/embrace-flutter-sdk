@@ -174,6 +174,38 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  void logPushNotification(
+    String? title,
+    String? body, {
+    String? subtitle,
+    int? badge,
+    String? category,
+    String? from,
+    String? messageId,
+    int? priority,
+    bool hasNotification = false,
+    bool hasData = false,
+  }) {
+    _runCatching(
+      'logPushNotification',
+      () => {
+        _platform.logPushNotification(
+          title: title,
+          body: body,
+          subtitle: subtitle,
+          badge: badge,
+          category: category,
+          from: from,
+          messageId: messageId,
+          priority: priority,
+          hasNotification: hasNotification,
+          hasData: hasData,
+        )
+      },
+    );
+  }
+
+  @override
   void startMoment(
     String name, {
     String? identifier,

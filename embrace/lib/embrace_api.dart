@@ -43,6 +43,24 @@ abstract class EmbraceApi {
   /// shown on the timeline.
   void logBreadcrumb(String message);
 
+  /// Manually logs a push notification as a breadcrumb
+  ///
+  /// The parameters [subtitle], [badge] and [category] are exclusive to iOS
+  /// notifications, while the parameters [from], [messageId], [priority],
+  /// [hasNotification] and [hasData] are exclusive to Android notifications
+  void logPushNotification(
+    String? title,
+    String? body, {
+    String? subtitle,
+    int? badge,
+    String? category,
+    String? from,
+    String? messageId,
+    int priority = 0,
+    bool hasNotification = false,
+    bool hasData = false,
+  });
+
   /// Remotely logs a message at INFO level
   void logInfo(String message, {Map<String, String>? properties});
 

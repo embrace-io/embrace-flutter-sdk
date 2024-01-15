@@ -53,11 +53,11 @@ internal object EmbraceConstants {
     internal const val LOG_NETWORK_REQUEST_METHOD_NAME : String = "logNetworkRequest"
     internal const val LOG_INTERNAL_ERROR_METHOD_NAME : String = "logInternalError"
     internal const val LOG_DART_ERROR_METHOD_NAME : String = "logDartError"
+    internal const val LOG_PUSH_NOTIFICATION_METHOD_NAME : String = "logPushNotification"
     internal const val ADD_SESSION_PROPERTY_METHOD_NAME : String = "addSessionProperty"
     internal const val REMOVE_SESSION_PROPERTY_METHOD_NAME : String = "removeSessionProperty"
     internal const val GET_SESSION_PROPERTIES_METHOD_NAME : String = "getSessionProperties"
     internal const val END_SESSION_METHOD_NAME : String = "endSession"
-    internal const val UPDATE_REMOTE_CONFIG_METHOD_NAME : String = "updateRemoteConfig"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -91,10 +91,17 @@ internal object EmbraceConstants {
     internal const val VALUE_ARG_NAME : String = "value"
     internal const val PERMANENT_ARG_NAME : String = "permanent"
     internal const val CLEAR_USER_INFO_ARG_NAME : String = "clearUserInfo"
+    internal const val PUSH_TITLE_ARG_NAME : String = "title"
+    internal const val PUSH_BODY_ARG_NAME : String = "body"
+    internal const val PUSH_FROM_ARG_NAME : String = "from"
+    internal const val PUSH_MESSAGE_ID_ARG_NAME : String = "messageId"
+    internal const val PUSH_PRIORITY_ARG_NAME : String = "priority"
+    internal const val PUSH_HAS_NOTIFICATION_ARG_NAME : String = "hasNotification"
+    internal const val PUSH_HAS_DATA_ARG_NAME : String = "hasData"
 }
 
 /** EmbracePlugin */
-public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCallback {
+public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -144,6 +151,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCal
                 EmbraceConstants.END_SESSION_METHOD_NAME -> handleEndSessionCall(call, result)
                 EmbraceConstants.LOG_INTERNAL_ERROR_METHOD_NAME -> handleLogInternalErrorCall(call, result)
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
+                EmbraceConstants.LOG_PUSH_NOTIFICATION_METHOD_NAME -> handleLogPushNotificationCall(call, result)
 
                 else -> {
                     result.notImplemented()
@@ -182,6 +190,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCal
         return this.getArgumentOrDefault<Map<String, Any>>(argName, emptyMap<String, Any>())
     }
 
+    /// Returns the argument if it exists, otherwise returns 0
+    private fun MethodCall.getIntArgument(argName: String) : Int {
+        return this.getArgumentOrDefault<Int>(argName, 0)
+    }
+
     private fun handleAttachSdkCall(call: MethodCall, result: Result) : Unit {
         val started = Embrace.getInstance().isStarted()
 
@@ -189,8 +202,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCal
             val enableIntegrationTesting = call.getBooleanArgument(EmbraceConstants.ENABLE_INTEGRATION_TESTING_ARG_NAME)
             Embrace.getInstance().start(context, enableIntegrationTesting, AppFramework.FLUTTER)
         }
-
-        Embrace.getInstance().initUnityConnection(this)
 
         val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
         Embrace.getInstance().setEmbraceFlutterSdkVersion(embraceFlutterSdkVersion)
@@ -216,6 +227,17 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCal
         Embrace.getInstance().logBreadcrumb(message)
         result.success(null)
         return
+    }
+
+    private fun handleLogPushNotificationCall(call: MethodCall, result: Result) {
+        val title = call.getStringArgument(EmbraceConstants.PUSH_TITLE_ARG_NAME)
+        val body = call.getStringArgument(EmbraceConstants.PUSH_BODY_ARG_NAME)
+        val from = call.getStringArgument(EmbraceConstants.PUSH_FROM_ARG_NAME)
+        val id = call.getStringArgument(EmbraceConstants.PUSH_MESSAGE_ID_ARG_NAME)
+        val notificationPriority = call.getIntArgument(EmbraceConstants.PUSH_PRIORITY_ARG_NAME)
+        val hasNotification = call.getBooleanArgument(EmbraceConstants.PUSH_HAS_NOTIFICATION_ARG_NAME)
+        val hasData = call.getBooleanArgument(EmbraceConstants.PUSH_HAS_DATA_ARG_NAME)
+        Embrace.getInstance().logPushNotification(title, body, from, id, notificationPriority, 0, hasNotification, hasData)
     }
 
     private fun handleLogInfoCall(call: MethodCall, result: Result) : Unit {
@@ -462,13 +484,5 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler, AndroidToUnityCal
         }
         result.success(null)
         return
-    }
-
-    public override fun updateRemoteConfig(json: String?) {
-        if (json == null) {
-            return
-        }
-
-        channel.invokeMethod(EmbraceConstants.UPDATE_REMOTE_CONFIG_METHOD_NAME, json)
     }
 }

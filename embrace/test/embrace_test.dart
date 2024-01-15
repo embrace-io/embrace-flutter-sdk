@@ -216,7 +216,7 @@ void main() {
 
     group('logBreadcrumb', () {
       const message = '__message__';
-      test('logs an error when platform implementation exists', () {
+      test('logs a breadcrumb when platform implementation exists', () {
         Embrace.instance.logBreadcrumb(message);
         verify(() => embracePlatform.logBreadcrumb(message)).called(1);
       });
@@ -230,6 +230,114 @@ void main() {
 
         verify(
           () => embracePlatform.logInternalError('logBreadcrumb', errorMessage),
+        ).called(1);
+      });
+    });
+
+    group('logPushNotification', () {
+      const title = '__title__';
+      const body = '__body__';
+      test('logs a push notification with default parameters', () {
+        Embrace.instance.logPushNotification(title, body);
+        verify(
+          () => embracePlatform.logPushNotification(
+            title: title,
+            body: body,
+            subtitle: null,
+            badge: null,
+            category: null,
+            from: null,
+            messageId: null,
+            priority: null,
+            hasNotification: false,
+            hasData: false,
+          ),
+        ).called(1);
+      });
+
+      test('logs a push notification with iOS parameters', () {
+        const subtitle = '__subtitle';
+        const badge = 0;
+        const category = '__category__';
+
+        Embrace.instance.logPushNotification(
+          title,
+          body,
+          subtitle: subtitle,
+          badge: badge,
+          category: category,
+        );
+        verify(
+          () => embracePlatform.logPushNotification(
+            title: title,
+            body: body,
+            subtitle: subtitle,
+            badge: badge,
+            category: category,
+            from: null,
+            messageId: null,
+            priority: null,
+            hasNotification: false,
+            hasData: false,
+          ),
+        ).called(1);
+      });
+
+      test('logs a push notification with Android parameters', () {
+        const from = '__from__';
+        const messageId = '__id__';
+        const priority = 2;
+        const hasNotification = true;
+        const hasData = true;
+        Embrace.instance.logPushNotification(
+          title,
+          body,
+          from: from,
+          messageId: messageId,
+          priority: priority,
+          hasNotification: hasNotification,
+          hasData: hasData,
+        );
+        verify(
+          () => embracePlatform.logPushNotification(
+            title: title,
+            body: body,
+            subtitle: null,
+            badge: null,
+            category: null,
+            from: from,
+            messageId: messageId,
+            priority: 2,
+            hasNotification: true,
+            hasData: true,
+          ),
+        ).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(
+          () => embracePlatform.logPushNotification(
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            subtitle: any(named: 'subtitle'),
+            badge: any(named: 'badge'),
+            category: any(named: 'category'),
+            from: any(named: 'from'),
+            messageId: any(named: 'messageId'),
+            priority: any(named: 'priority'),
+            hasNotification: any(named: 'hasNotification'),
+            hasData: any(named: 'hasData'),
+          ),
+        ).thenThrow(MockError());
+        Embrace.instance.logPushNotification(title, body);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'logPushNotification',
+            any(),
+          ),
         ).called(1);
       });
     });

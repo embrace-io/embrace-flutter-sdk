@@ -32,29 +32,6 @@ abstract class EmbracePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  /// Map representing the remote config provided by the platform SDK.
-  ///
-  /// The remote config is fetched asynchronously when the Embrace SDK is
-  /// started and may be updated at runtime. Use the [remoteConfigUpdates]
-  /// stream to listen for updates.
-  Map<String, dynamic> get remoteConfig => _remoteConfig;
-  Map<String, dynamic> _remoteConfig = {};
-
-  /// A stream of updates to the remote config provided by the platform SDK.
-  Stream<Map<String, dynamic>> get remoteConfigUpdates =>
-      _remoteConfigUpdates.stream;
-  final _remoteConfigUpdates =
-      StreamController<Map<String, dynamic>>.broadcast(sync: true);
-
-  /// Sets the value of [remoteConfig].
-  ///
-  /// Calling this function will emit a synchronous event in the
-  /// [remoteConfigUpdates] stream.
-  void setRemoteConfig(Map<String, dynamic> newConfig) {
-    _remoteConfig = newConfig;
-    _remoteConfigUpdates.add(_remoteConfig);
-  }
-
   /// Whether the SDK has been started.
   bool get isStarted =>
       throw UnimplementedError('isStarted has not been implemented.');
@@ -72,6 +49,22 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Logs a breadcrumb.
   void logBreadcrumb(String message) {
     throw UnimplementedError('logBreadcrumb(String) has not been implemented');
+  }
+
+  /// Logs a breadcrumb that indicates that the app received a push notification
+  void logPushNotification({
+    required String? title,
+    required String? body,
+    required String? subtitle,
+    required int? badge,
+    required String? category,
+    required String? from,
+    required String? messageId,
+    required int? priority,
+    required bool hasNotification,
+    required bool hasData,
+  }) {
+    throw UnimplementedError('logInternalError() has not been implemented');
   }
 
   /// Log [message] and optional [properties] using the info log level.

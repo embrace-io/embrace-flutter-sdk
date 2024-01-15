@@ -9,6 +9,7 @@ static NSString *const MethodChannelId = @"embrace";
 static NSString *const AttachSdkMethodName = @"attachToHostSdk";
 static NSString *const EndStartupMomentMethodName = @"endStartupMoment";
 static NSString *const LogBreadcrumbMethodName = @"logBreadcrumb";
+static NSString *const LogPushNotificationMethodName = @"logPushNotification";
 static NSString *const LogInfoMethodName = @"logInfo";
 static NSString *const LogWarningMethodName = @"logWarning";
 static NSString *const LogErrorMethodName = @"logError";
@@ -71,6 +72,11 @@ static NSString *const KeyArgName = @"key";
 static NSString *const ValueArgName = @"value";
 static NSString *const PermanentArgName = @"permanent";
 static NSString *const ClearUserInfoArgName = @"clearUserInfo";
+static NSString *const TitleArgName = @"title";
+static NSString *const BodyArgName = @"body";
+static NSString *const SubtitleArgName = @"subtitle";
+static NSString *const BadgeArgName = @"badge";
+static NSString *const CategoryArgName = @"category";
 
 static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 
@@ -125,6 +131,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleEndStartupMomentCall: call withResult: result];
     } else if ([LogBreadcrumbMethodName isEqualToString: call.method]) {
         [self handleLogBreadcrumbCall: call withResult: result];
+    } else if ([LogPushNotificationMethodName isEqualToString: call.method]) {
+        [self handleLogPushNotificationCall: call withResult: result];
     } else if ([LogInfoMethodName isEqualToString: call.method]) {
         [self handleLogInfoCall: call withResult: result];
     } else if ([LogWarningMethodName isEqualToString: call.method]) {
@@ -214,6 +222,30 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 
 - (void)handleLogBreadcrumbCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     [[Embrace sharedInstance] logBreadcrumbWithMessage: call.arguments[MessageArgName]];
+    result(nil);
+}
+
+- (void)handleLogPushNotificationCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+    NSString* title = [EmbracePlugin getOptionalNSString:call.arguments forKey:TitleArgName];
+    NSString* body = [EmbracePlugin getOptionalNSString:call.arguments forKey:BodyArgName];
+    NSString* subtitle = [EmbracePlugin getOptionalNSString:call.arguments forKey:SubtitleArgName];
+    NSNumber* badge = [EmbracePlugin getOptionalNSNumber:call.arguments forKey:BadgeArgName];
+    NSString* category = [EmbracePlugin getOptionalNSString:call.arguments forKey:CategoryArgName];
+    
+    NSMutableDictionary *alertData = [NSMutableDictionary dictionary];
+    alertData[@"title"] = title;
+    alertData[@"subtitle"] = subtitle;
+    alertData[@"body"] = body;
+    
+    NSMutableDictionary *apsData = [NSMutableDictionary dictionary];
+    apsData[@"alert"] = alertData;
+    apsData[@"badge"] = badge;
+    apsData[@"category"] = category;
+    NSDictionary *pushData = @{
+        @"aps": apsData
+    };
+    [[Embrace sharedInstance] applicationDidReceiveNotification:pushData];
+     
     result(nil);
 }
 

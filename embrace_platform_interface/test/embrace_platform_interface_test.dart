@@ -36,53 +36,6 @@ void main() {
       );
     });
 
-    test('setRemoteConfig assigns argument to remoteConfig property', () async {
-      const testConfig = <String, dynamic>{'__TestKey__': '__TestValue__'};
-
-      expect(embracePlatform.remoteConfig, isNot(testConfig));
-      embracePlatform.setRemoteConfig(testConfig);
-      expect(embracePlatform.remoteConfig, testConfig);
-    });
-
-    test(
-        'remoteConfigUpdates stream emits new config when '
-        'setRemoteConfig is invoked', () {
-      const testConfig = <String, dynamic>{'__TestKey__': '__TestValue__'};
-
-      var calls = 0;
-
-      void callback(Map<String, dynamic> config) {
-        expect(config, testConfig);
-        calls++;
-      }
-
-      embracePlatform.remoteConfigUpdates.listen(callback);
-      embracePlatform.setRemoteConfig(testConfig);
-      expect(calls, 1);
-    });
-
-    test('onRemoteConfigUpdated supports multiple listeners', () {
-      const testConfig = <String, dynamic>{'__TestKey__': '__TestValue__'};
-
-      var callsA = 0;
-      void callbackA(Map<String, dynamic> config) {
-        expect(config, testConfig);
-        callsA++;
-      }
-
-      var callsB = 0;
-      void callbackB(Map<String, dynamic> config) {
-        expect(config, testConfig);
-        callsB++;
-      }
-
-      embracePlatform.remoteConfigUpdates.listen(callbackA);
-      embracePlatform.remoteConfigUpdates.listen(callbackB);
-      embracePlatform.setRemoteConfig(testConfig);
-      expect(callsA, 1);
-      expect(callsB, 1);
-    });
-
     test('isStarted throws an UnimplementedError', () {
       expect(
         () => embracePlatform.isStarted,

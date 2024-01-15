@@ -108,7 +108,7 @@ buildscript {
         google()
     }
     dependencies {
-       classpath 'io.embrace:embrace-swazzler:5.16.0'
+       classpath 'io.embrace:embrace-swazzler:5.17.1'
     }
 ```
 
