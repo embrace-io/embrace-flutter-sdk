@@ -22,6 +22,7 @@ declare -r EMBRACE_ANDROID_PUBSPEC_PATH='embrace_android/pubspec.yaml'
 declare -r EMBRACE_IOS_PUBSPEC_PATH='embrace_ios/pubspec.yaml'
 declare -r EMBRACE_DIO_PUBSPEC_PATH='embrace_dio/pubspec.yaml'
 
+declare -r EMBRACE_DEPENDENCY_NAME='.dependencies.embrace'
 declare -r PLATFORM_INTERFACE_DEPENDENCY_NAME='.dependencies.embrace_platform_interface'
 declare -r ANDROID_DEPENDENCY_NAME='.dependencies.embrace_android'
 declare -r IOS_DEPENDENCY_NAME='.dependencies.embrace_ios'
@@ -36,7 +37,7 @@ set_dependency_version () {
     local pubspec_path=$1
     local dependency_name=$2
 
-    yq -e "$dependency_name = \"^$new_version\"" -i $pubspec_path 
+    yq -e "$dependency_name = \"$new_version\"" -i $pubspec_path 
 }
 
 set_package_version $EMBRACE_PUBSPEC_PATH 
@@ -50,6 +51,8 @@ set_dependency_version $EMBRACE_PUBSPEC_PATH $ANDROID_DEPENDENCY_NAME
 set_dependency_version $EMBRACE_PUBSPEC_PATH $IOS_DEPENDENCY_NAME
 set_dependency_version $EMBRACE_ANDROID_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
 set_dependency_version $EMBRACE_IOS_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
+set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $EMBRACE_DEPENDENCY_NAME
+set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
 
 # Delete generated version script and regenerate
 cd embrace_platform_interface

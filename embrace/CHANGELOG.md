@@ -1,3 +1,8 @@
+# 1.2.1
+
+* Make the internal dependencies between Embrace packages fixed.
+* Updated Embrace Android SDK to 5.18.0
+
 # 1.2.0
 
 * Added a method to manually log push notifications
