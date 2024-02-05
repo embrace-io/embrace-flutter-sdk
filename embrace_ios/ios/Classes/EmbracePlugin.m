@@ -8,7 +8,7 @@ static NSString *const MethodChannelId = @"embrace";
 // Method Names
 static NSString *const AttachSdkMethodName = @"attachToHostSdk";
 static NSString *const EndStartupMomentMethodName = @"endStartupMoment";
-static NSString *const LogBreadcrumbMethodName = @"logBreadcrumb";
+static NSString *const AddBreadcrumbMethodName = @"addBreadcrumb";
 static NSString *const LogPushNotificationMethodName = @"logPushNotification";
 static NSString *const LogInfoMethodName = @"logInfo";
 static NSString *const LogWarningMethodName = @"logWarning";
@@ -25,7 +25,7 @@ static NSString *const SetUserIdentifierMethodName = @"setUserIdentifier";
 static NSString *const SetUserNameMethodName = @"setUserName";
 static NSString *const SetUserEmailMethodName = @"setUserEmail";
 static NSString *const SetUserAsPayerMethodName = @"setUserAsPayer";
-static NSString *const SetUserPersonaMethodName = @"setUserPersona";
+static NSString *const AddUserPersonaMethodName = @"addUserPersona";
 static NSString *const ClearUserIdentifierMethodName = @"clearUserIdentifier";
 static NSString *const ClearUserNameMethodName = @"clearUserName";
 static NSString *const ClearUserEmailMethodName = @"clearUserEmail";
@@ -40,6 +40,7 @@ static NSString *const RemoveSessionPropertyMethodName = @"removeSessionProperty
 static NSString *const GetSessionPropertiesMethodName = @"getSessionProperties";
 static NSString *const EndSessionMethodName = @"endSession";
 static NSString *const GetLastRunEndStateMethodName = @"getLastRunEndState";
+static NSString *const GetCurrentSessionIdMethodName = @"getCurrentSessionId";
 
 
 // Parameter Names
@@ -135,8 +136,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleAttachSdkCall:call withResult:result];
     } else if ([EndStartupMomentMethodName isEqualToString: call.method]) {
         [self handleEndStartupMomentCall: call withResult: result];
-    } else if ([LogBreadcrumbMethodName isEqualToString: call.method]) {
-        [self handleLogBreadcrumbCall: call withResult: result];
+    } else if ([AddBreadcrumbMethodName isEqualToString: call.method]) {
+        [self handleAddBreadcrumbCall: call withResult: result];
     } else if ([LogPushNotificationMethodName isEqualToString: call.method]) {
         [self handleLogPushNotificationCall: call withResult: result];
     } else if ([LogInfoMethodName isEqualToString: call.method]) {
@@ -179,8 +180,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleSetUserAsPayerCall: call withResult: result];
     } else if ([ClearUserAsPayerMethodName isEqualToString: call.method]) {
         [self handleClearUserAsPayerCall: call withResult: result];
-    } else if ([SetUserPersonaMethodName isEqualToString: call.method]) {
-        [self handleSetUserPersonaCall: call withResult: result];
+    } else if ([AddUserPersonaMethodName isEqualToString: call.method]) {
+        [self handleAddUserPersonaCall: call withResult: result];
     } else if ([ClearUserPersonaMethodName isEqualToString: call.method]) {
         [self handleClearUserPersonaCall: call withResult: result];
     } else if ([ClearAllUserPersonasMethodName isEqualToString: call.method]) {
@@ -199,6 +200,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleLogDartErrorCall: call withResult: result];
     } else if ([GetLastRunEndStateMethodName isEqualToString: call.method]) {
         [self handleGetLastRunEndStateCall: call withResult: result];
+    } else if ([GetCurrentSessionIdMethodName isEqualToString: call.method]) {
+        [self handleGetCurrentSessionIdCall: call withResult: result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -228,7 +231,7 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
     result(nil);
 }
 
-- (void)handleLogBreadcrumbCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+- (void)handleAddBreadcrumbCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     [[Embrace sharedInstance] logBreadcrumbWithMessage: call.arguments[MessageArgName]];
     result(nil);
 }
@@ -387,7 +390,7 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
     result(nil);
 }
 
-- (void)handleSetUserPersonaCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+- (void)handleAddUserPersonaCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* persona = [EmbracePlugin getOptionalNSString:call.arguments forKey:UserPersonaArgName];
     [[Embrace sharedInstance] setUserPersona:persona];
     result(nil);
@@ -468,6 +471,11 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleGetLastRunEndStateCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     EMBLastRunEndState lastState = [[Embrace sharedInstance] lastRunEndState];
     result([NSNumber numberWithInteger:lastState]);
+}
+
+- (void)handleGetCurrentSessionIdCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+    NSString* sessionId = [[Embrace sharedInstance] getCurrentSessionId];
+    result(sessionId);
 }
 
 - (void)handleNativeError:(FlutterMethodCall*)call withResult:(FlutterResult)result {

@@ -57,6 +57,7 @@ class EmbraceInterceptor extends Interceptor {
           }
         }
       }
+      // ignore: deprecated_member_use
       Embrace.instance.logNetworkRequest(
         url: url,
         method: method,
@@ -84,6 +85,7 @@ class EmbraceInterceptor extends Interceptor {
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
 
+      // ignore: deprecated_member_use
       Embrace.instance.logNetworkRequest(
         url: url,
         method: method,

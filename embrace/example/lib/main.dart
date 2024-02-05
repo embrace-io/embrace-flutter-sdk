@@ -1,5 +1,6 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace_example/breadcrumbs.dart';
+import 'package:embrace_example/current_session.dart';
 import 'package:embrace_example/errors.dart';
 import 'package:embrace_example/isolates.dart';
 import 'package:embrace_example/last_run_end_state.dart';
@@ -46,7 +47,7 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
           child: ListView(
             children: <Widget>[
               ElevatedButton(
-                onPressed: Embrace.instance.endStartupMoment,
+                onPressed: Embrace.instance.endAppStartup,
                 child: const Text('End Startup Moment'),
               ),
               ElevatedButton(
@@ -163,7 +164,7 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute<ErrorDemo>(
+                    MaterialPageRoute<IsolatesDemo>(
                       builder: (context) => const IsolatesDemo(),
                     ),
                   );
@@ -174,7 +175,7 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute<ErrorDemo>(
+                    MaterialPageRoute<LastRunEndStateDemo>(
                       builder: (context) => const LastRunEndStateDemo(),
                     ),
                   );
@@ -182,8 +183,15 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
                 child: const Text('Last session end state'),
               ),
               ElevatedButton(
-                onPressed: Embrace.instance.endSession,
-                child: const Text('endSession'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<CurrentSessionDemo>(
+                      builder: (context) => const CurrentSessionDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Current session ID / End session'),
               ),
             ],
           ),

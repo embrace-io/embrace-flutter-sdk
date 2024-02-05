@@ -129,7 +129,7 @@ void main() {
           log,
           contains(
             isMethodCall(
-              'logBreadcrumb',
+              'addBreadcrumb',
               arguments: {'message': message},
             ),
           ),
@@ -139,6 +139,33 @@ void main() {
       test('throws StateError if not started', () {
         expect(
           () => methodChannelEmbrace.logBreadcrumb(message),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('addBreadcrumb', () {
+      const message = '__message__';
+      test('invokes addBreadcrumb method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.addBreadcrumb(message);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addBreadcrumb',
+              arguments: {'message': message},
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.addBreadcrumb(message),
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);
@@ -793,18 +820,18 @@ void main() {
       });
     });
 
-    group('setUserPersona', () {
+    group('addUserPersona', () {
       const persona = '__persona__';
-      test('invokes setUserPersona method in the method channel', () async {
+      test('invokes addUserPersona method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
-        methodChannelEmbrace.setUserPersona(persona);
+        methodChannelEmbrace.addUserPersona(persona);
         expect(
           log,
           contains(
             isMethodCall(
-              'setUserPersona',
+              'addUserPersona',
               arguments: {'persona': persona},
             ),
           ),
@@ -813,7 +840,7 @@ void main() {
 
       test('throws StateError if not started', () {
         expect(
-          () => methodChannelEmbrace.setUserPersona(persona),
+          () => methodChannelEmbrace.addUserPersona(persona),
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);

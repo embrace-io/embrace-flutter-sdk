@@ -82,8 +82,8 @@ class _UserDemoState extends State<UserDemo> {
               children: <Widget>[
                 ElevatedButton(
                   onPressed: () =>
-                      Embrace.instance.setUserPersona(_controller.text),
-                  child: const Text('Set Persona'),
+                      Embrace.instance.addUserPersona(_controller.text),
+                  child: const Text('Add Persona'),
                 ),
                 ElevatedButton(
                   onPressed: () =>

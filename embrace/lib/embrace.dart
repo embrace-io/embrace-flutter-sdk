@@ -50,9 +50,9 @@ class Embrace implements EmbraceFlutterApi {
   /// ```dart
   /// ElevatedButton(
   ///   onPressed: () {
-  ///     Embrace.instance.logBreadcrumb('Tapped button');
+  ///     Embrace.instance.addBreadcrumb('Tapped button');
   ///   },
-  ///   child: const Text('Log breadcrumb'),
+  ///   child: const Text('Add breadcrumb'),
   /// ),
   /// ```
   ///
@@ -85,19 +85,66 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  @Deprecated(
+      'Use endAppStartup() instead. This API will be removed in a future '
+      'major version release.')
   void endStartupMoment({Map<String, String>? properties}) {
     _runCatching(
-      'endStartupMoment',
+      'endAppStartup',
       () => _platform.endAppStartup(properties),
     );
   }
 
   @override
-  void logBreadcrumb(String message) {
+  void endAppStartup({Map<String, String>? properties}) {
     _runCatching(
-      'logBreadcrumb',
-      () => _platform.logBreadcrumb(message),
+      'endAppStartup',
+      () => _platform.endAppStartup(properties),
     );
+  }
+
+  @override
+  @Deprecated(
+      'Use addBreadcrumb() instead. This API will be removed in a future '
+      'major version release.')
+  void logBreadcrumb(String message) {
+    addBreadcrumb(message);
+  }
+
+  @override
+  void addBreadcrumb(String message) {
+    _runCatching(
+      'addBreadcrumb',
+      () => _platform.addBreadcrumb(message),
+    );
+  }
+
+  @override
+  void logMessage(
+    String message,
+    Severity severity, {
+    Map<String, String>? properties,
+    bool allowScreenshot = false,
+  }) {
+    switch (severity) {
+      case Severity.info:
+        logInfo(message, properties: properties);
+        break;
+      case Severity.warning:
+        logWarning(
+          message,
+          properties: properties,
+          allowScreenshot: allowScreenshot,
+        );
+        break;
+      case Severity.error:
+        logError(
+          message,
+          properties: properties,
+          allowScreenshot: allowScreenshot,
+        );
+        break;
+    }
   }
 
   @override
@@ -140,6 +187,8 @@ class Embrace implements EmbraceFlutterApi {
     );
   }
 
+  @Deprecated('Use recordNetworkRequest() instead. This API will be removed in '
+      'a future version.')
   @override
   void logNetworkRequest({
     required String url,
@@ -165,6 +214,22 @@ class Embrace implements EmbraceFlutterApi {
         error: error,
         traceId: traceId,
       ),
+    );
+  }
+
+  @override
+  void recordNetworkRequest(EmbraceNetworkRequest request) {
+    // ignore: deprecated_member_use_from_same_package
+    logNetworkRequest(
+      url: request.url,
+      method: request.httpMethod,
+      startTime: request.startTime,
+      endTime: request.endTime,
+      bytesSent: request.bytesSent,
+      bytesReceived: request.bytesReceived,
+      statusCode: request.statusCode,
+      error: request.errorDetails,
+      traceId: request.traceId,
     );
   }
 
@@ -309,10 +374,18 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  @Deprecated(
+      'Use addUserPersona() instead. This API will be removed in a future '
+      'major version release.')
   void setUserPersona(String persona) {
+    addUserPersona(persona);
+  }
+
+  @override
+  void addUserPersona(String persona) {
     _runCatching(
-      'setUserPersona',
-      () => _platform.setUserPersona(persona),
+      'addUserPersona',
+      () => _platform.addUserPersona(persona),
     );
   }
 
@@ -399,6 +472,15 @@ class Embrace implements EmbraceFlutterApi {
       'getLastRunEndState',
       () => _platform.getLastRunEndState(),
       defaultValue: LastRunEndState.invalid,
+    );
+  }
+
+  @override
+  Future<String?> getCurrentSessionId() async {
+    return _runCatchingAndReturn<String?>(
+      'getCurrentSessionId',
+      () => _platform.getCurrentSessionId(),
+      defaultValue: null,
     );
   }
 }

@@ -29,8 +29,8 @@ class _BreadcrumbDemoState extends State<BreadcrumbDemo> {
               controller: _controller,
             ),
             ElevatedButton(
-              onPressed: () => Embrace.instance.logBreadcrumb(_controller.text),
-              child: const Text('Log Breadcrumb'),
+              onPressed: () => Embrace.instance.addBreadcrumb(_controller.text),
+              child: const Text('Add Breadcrumb'),
             ),
           ],
         ),

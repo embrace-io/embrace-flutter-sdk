@@ -18,7 +18,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   // Method Names
   static const String _attachSdkMethodName = 'attachToHostSdk';
   static const String _endStartupMomentMethodName = 'endStartupMoment';
-  static const String _logBreadcrumbMethodName = 'logBreadcrumb';
+  static const String _addBreadcrumbMethodName = 'addBreadcrumb';
   static const String _logPushNotificationMethodName = 'logPushNotification';
   static const String _startMomentMethodName = 'startMoment';
   static const String _endMomentMethodName = 'endMoment';
@@ -32,7 +32,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _setUserNameMethodName = 'setUserName';
   static const String _setUserEmailMethodName = 'setUserEmail';
   static const String _setUserAsPayerMethodName = 'setUserAsPayer';
-  static const String _setUserPersonaMethodName = 'setUserPersona';
+  static const String _addUserPersonaMethodName = 'addUserPersona';
   static const String _clearUserIdentifierMethodName = 'clearUserIdentifier';
   static const String _clearUserNameMethodName = 'clearUserName';
   static const String _clearUserEmailMethodName = 'clearUserEmail';
@@ -48,6 +48,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _getSessionPropertiesMethodName = 'getSessionProperties';
   static const String _endSessionMethodName = 'endSession';
   static const String _getLastRunEndStateMethodName = 'getLastRunEndState';
+  static const String _getCurrentSessionIdMethodName = 'getCurrentSessionId';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -162,7 +163,14 @@ class MethodChannelEmbrace extends EmbracePlatform {
   void logBreadcrumb(String message) {
     throwIfNotStarted();
     methodChannel
-        .invokeMethod(_logBreadcrumbMethodName, {_messageArgName: message});
+        .invokeMethod(_addBreadcrumbMethodName, {_messageArgName: message});
+  }
+
+  @override
+  void addBreadcrumb(String message) {
+    throwIfNotStarted();
+    methodChannel
+        .invokeMethod(_addBreadcrumbMethodName, {_messageArgName: message});
   }
 
   @override
@@ -382,10 +390,10 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  void setUserPersona(String persona) {
+  void addUserPersona(String persona) {
     throwIfNotStarted();
     methodChannel.invokeMethod(
-      _setUserPersonaMethodName,
+      _addUserPersonaMethodName,
       {_userPersonaArgName: persona},
     );
   }
@@ -497,6 +505,11 @@ class MethodChannelEmbrace extends EmbracePlatform {
       default:
         return LastRunEndState.invalid;
     }
+  }
+
+  @override
+  Future<String?> getCurrentSessionId() async {
+    return methodChannel.invokeMethod<String?>(_getCurrentSessionIdMethodName);
   }
   // lib/method_channel_embrace.dart: 364, 373, 378, 380, 390
 

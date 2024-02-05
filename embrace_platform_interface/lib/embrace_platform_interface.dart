@@ -52,6 +52,11 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('logBreadcrumb(String) has not been implemented');
   }
 
+  /// Adds a breadcrumb.
+  void addBreadcrumb(String message) {
+    throw UnimplementedError('addBreadcrumb(String) has not been implemented');
+  }
+
   /// Logs a breadcrumb that indicates that the app received a push notification
   void logPushNotification({
     required String? title,
@@ -215,9 +220,9 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('clearUserAsPayer() has not been implemented');
   }
 
-  /// Sets the current user persona to the provided [persona].
-  void setUserPersona(String persona) {
-    throw UnimplementedError('setUserPersona(String) has not been implemented');
+  /// Adds the current user persona to the provided [persona].
+  void addUserPersona(String persona) {
+    throw UnimplementedError('addUserPersona(String) has not been implemented');
   }
 
   /// Clears the current user [persona].
@@ -293,5 +298,10 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Returns the end state of the previous run of the application.
   Future<LastRunEndState> getLastRunEndState() {
     throw UnimplementedError('getLastRunEndState() has not been implemented');
+  }
+
+  /// Returns the id of the current session.
+  Future<String?> getCurrentSessionId() {
+    throw UnimplementedError('getCurrentSessionId() has not been implemented');
   }
 }

@@ -210,7 +210,7 @@ import 'package:mocktail/mocktail.dart';
 class MockEmbrace extends Mock implements Embrace {}
 
 void main() {
-  testWidgets('button press logs breadcrumb in Embrace', (tester) async {
+  testWidgets('button press add breadcrumb in Embrace', (tester) async {
     final mockEmbrace = MockEmbrace();
     debugEmbraceOverride = mockEmbrace;
 
@@ -218,7 +218,7 @@ void main() {
       MaterialApp(
         home: ElevatedButton(
           onPressed: () {
-            Embrace.instance.logBreadcrumb('Button pressed');
+            Embrace.instance.addBreadcrumb('Button pressed');
           },
           child: const Text('Press Me!'),
         ),
@@ -227,7 +227,7 @@ void main() {
 
     await tester.tap(find.text('Press Me!'));
 
-    verify(() => mockEmbrace.logBreadcrumb('Button pressed')).called(1);
+    verify(() => mockEmbrace.addBreadcrumb('Button pressed')).called(1);
   });
 }
 ```

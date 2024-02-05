@@ -45,6 +45,7 @@ class EmbraceHttpClient extends BaseClient {
       final end = DateTime.now();
       final isSuccess = (response.statusCode ~/ 100) == 2;
 
+      // ignore: deprecated_member_use_from_same_package
       Embrace.instance.logNetworkRequest(
         url: request.url.toString(),
         method: method,
@@ -58,6 +59,7 @@ class EmbraceHttpClient extends BaseClient {
       return response;
     } on ClientException catch (e) {
       final end = DateTime.now();
+      // ignore: deprecated_member_use_from_same_package
       Embrace.instance.logNetworkRequest(
         url: request.url.toString(),
         method: method,

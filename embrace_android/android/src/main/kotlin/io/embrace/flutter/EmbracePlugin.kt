@@ -10,7 +10,6 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
-import io.embrace.android.embracesdk.AndroidToUnityCallback
 import io.embrace.android.embracesdk.Embrace
 import io.embrace.android.embracesdk.Embrace.AppFramework
 import io.embrace.android.embracesdk.EmbraceSamples
@@ -26,7 +25,7 @@ internal object EmbraceConstants {
     // Method Names
     internal const val ATTACH_SDK_METHOD_NAME : String = "attachToHostSdk"
     internal const val END_STARTUP_MOMENT_METHOD_NAME : String = "endStartupMoment"
-    internal const val LOG_BREADCRUMB_METHOD_NAME : String = "logBreadcrumb"
+    internal const val ADD_BREADCRUMB_METHOD_NAME : String = "addBreadcrumb"
     internal const val LOG_INFO_METHOD_NAME : String = "logInfo"
     internal const val LOG_WARNING_METHOD_NAME : String = "logWarning"
     internal const val LOG_ERROR_METHOD_NAME : String = "logError"
@@ -43,7 +42,7 @@ internal object EmbraceConstants {
     internal const val SET_USER_NAME_METHOD_NAME : String = "setUserName"
     internal const val SET_USER_EMAIL_METHOD_NAME : String = "setUserEmail"
     internal const val SET_USER_AS_PAYER_METHOD_NAME : String = "setUserAsPayer"
-    internal const val SET_USER_PERSONA_METHOD_NAME : String = "setUserPersona"
+    internal const val ADD_USER_PERSONA_METHOD_NAME : String = "addUserPersona"
     internal const val CLEAR_USER_IDENTIFIER_METHOD_NAME : String = "clearUserIdentifier"
     internal const val CLEAR_USER_NAME_METHOD_NAME : String = "clearUserName"
     internal const val CLEAR_USER_EMAIL_METHOD_NAME : String = "clearUserEmail"
@@ -59,6 +58,7 @@ internal object EmbraceConstants {
     internal const val GET_SESSION_PROPERTIES_METHOD_NAME : String = "getSessionProperties"
     internal const val END_SESSION_METHOD_NAME : String = "endSession"
     internal const val GET_LAST_RUN_END_STATE_METHOD_NAME : String = "getLastRunEndState"
+    internal const val GET_CURRENT_SESSION_ID_METHOD_NAME : String = "getCurrentSessionId"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -122,7 +122,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             when (call.method) {
                 EmbraceConstants.ATTACH_SDK_METHOD_NAME -> handleAttachSdkCall(call, result)
                 EmbraceConstants.END_STARTUP_MOMENT_METHOD_NAME -> handleEndStartupMomentCall(call, result)
-                EmbraceConstants.LOG_BREADCRUMB_METHOD_NAME -> handleLogBreadcrumbCall(call, result)
+                EmbraceConstants.ADD_BREADCRUMB_METHOD_NAME -> handleAddBreadcrumbCall(call, result)
                 EmbraceConstants.LOG_INFO_METHOD_NAME -> handleLogInfoCall(call, result)
                 EmbraceConstants.LOG_WARNING_METHOD_NAME -> handleLogWarningCall(call, result)
                 EmbraceConstants.LOG_ERROR_METHOD_NAME -> handleLogErrorCall(call, result)
@@ -144,7 +144,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.CLEAR_USER_EMAIL_METHOD_NAME -> handleClearUserEmailCall(call, result)
                 EmbraceConstants.SET_USER_AS_PAYER_METHOD_NAME -> handleSetUserAsPayerCall(call, result)
                 EmbraceConstants.CLEAR_USER_AS_PAYER_METHOD_NAME -> handleClearUserAsPayerCall(call, result)
-                EmbraceConstants.SET_USER_PERSONA_METHOD_NAME -> handleSetUserPersonaCall(call, result)
+                EmbraceConstants.ADD_USER_PERSONA_METHOD_NAME -> handleAddUserPersonaCall(call, result)
                 EmbraceConstants.CLEAR_USER_PERSONA_METHOD_NAME -> handleClearUserPersonaCall(call, result)
                 EmbraceConstants.CLEAR_ALL_USER_PERSONAS_METHOD_NAME -> handleClearAllUserPersonasCall(call, result)
                 EmbraceConstants.ADD_SESSION_PROPERTY_METHOD_NAME -> handleAddSessionPropertyCall(call, result)
@@ -155,6 +155,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
                 EmbraceConstants.LOG_PUSH_NOTIFICATION_METHOD_NAME -> handleLogPushNotificationCall(call, result)
                 EmbraceConstants.GET_LAST_RUN_END_STATE_METHOD_NAME -> handleGetLastRunEndStateCall(call, result)
+                EmbraceConstants.GET_CURRENT_SESSION_ID_METHOD_NAME -> handleGetCurrentSessionIdCall(call, result)
 
                 else -> {
                     result.notImplemented()
@@ -225,7 +226,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return
     }
 
-    private fun handleLogBreadcrumbCall(call: MethodCall, result: Result) : Unit {
+    private fun handleAddBreadcrumbCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
         Embrace.getInstance().logBreadcrumb(message)
         result.success(null)
@@ -416,7 +417,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return
     }
 
-    private fun handleSetUserPersonaCall(call: MethodCall, result: Result) : Unit {
+    private fun handleAddUserPersonaCall(call: MethodCall, result: Result) : Unit {
         val persona = call.getStringArgument(EmbraceConstants.USER_PERSONA_ARG_NAME)
         Embrace.getInstance().setUserPersona(persona)
         result.success(null)
@@ -500,6 +501,17 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             result.success(lastState)
         } catch (nsm: NoSuchMethodError) {
             // The method was implemented in Embrace Android SDK 5.21.0
+            result.notImplemented()
+        }
+        return
+    }
+
+    private fun handleGetCurrentSessionIdCall(call: MethodCall, result: Result) {
+        try {
+            val currentSessionId = Embrace.getInstance().currentSessionId
+            result.success(currentSessionId)
+        } catch (nsm: NoSuchMethodError) {
+            // The method was implemented in Embrace Android SDK 5.24.0
             result.notImplemented()
         }
         return

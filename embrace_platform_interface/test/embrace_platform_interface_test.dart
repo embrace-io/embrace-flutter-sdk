@@ -64,6 +64,13 @@ void main() {
       );
     });
 
+    test('addBreadcrumb throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.addBreadcrumb('__message__ '),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
     test('logInfo throws an UnimplementedError', () {
       expect(
         () => embracePlatform.logInfo('__message__ ', {}),
@@ -238,9 +245,9 @@ void main() {
       );
     });
 
-    test('setUserPersona throws an UnimplementedError', () {
+    test('addUserPersona throws an UnimplementedError', () {
       expect(
-        () => embracePlatform.setUserPersona('__persona__'),
+        () => embracePlatform.addUserPersona('__persona__'),
         throwsA(isA<UnimplementedError>()),
       );
     });

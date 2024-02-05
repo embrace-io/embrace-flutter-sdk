@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:embrace/embrace.dart';
+import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -192,10 +193,10 @@ void main() {
       });
     });
 
-    group('endStartupMoment', () {
+    group('endAppStartup', () {
       const properties = {'key': 'value'};
       test('logs an error when platform implementation exists', () {
-        Embrace.instance.endStartupMoment(properties: properties);
+        Embrace.instance.endAppStartup(properties: properties);
         verify(() => embracePlatform.endAppStartup(properties)).called(1);
       });
 
@@ -204,11 +205,11 @@ void main() {
           'throws an error', () {
         when(() => embracePlatform.endAppStartup(properties))
             .thenThrow(MockError());
-        Embrace.instance.endStartupMoment(properties: properties);
+        Embrace.instance.endAppStartup(properties: properties);
 
         verify(
           () => embracePlatform.logInternalError(
-            'endStartupMoment',
+            'endAppStartup',
             errorMessage,
           ),
         ).called(1);
@@ -217,20 +218,42 @@ void main() {
 
     group('logBreadcrumb', () {
       const message = '__message__';
-      test('logs a breadcrumb when platform implementation exists', () {
+      test('adds a breadcrumb when platform implementation exists', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.logBreadcrumb(message);
-        verify(() => embracePlatform.logBreadcrumb(message)).called(1);
+        verify(() => embracePlatform.addBreadcrumb(message)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.logBreadcrumb(message))
+        when(() => embracePlatform.addBreadcrumb(message))
             .thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.logBreadcrumb(message);
 
         verify(
-          () => embracePlatform.logInternalError('logBreadcrumb', errorMessage),
+          () => embracePlatform.logInternalError('addBreadcrumb', errorMessage),
+        ).called(1);
+      });
+    });
+
+    group('addBreadcrumb', () {
+      const message = '__message__';
+      test('adds a breadcrumb when platform implementation exists', () {
+        Embrace.instance.addBreadcrumb(message);
+        verify(() => embracePlatform.addBreadcrumb(message)).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.addBreadcrumb(message))
+            .thenThrow(MockError());
+        Embrace.instance.addBreadcrumb(message);
+
+        verify(
+          () => embracePlatform.logInternalError('addBreadcrumb', errorMessage),
         ).called(1);
       });
     });
@@ -338,6 +361,46 @@ void main() {
           () => embracePlatform.logInternalError(
             'logPushNotification',
             any(),
+          ),
+        ).called(1);
+      });
+    });
+
+    group('logMessage', () {
+      const message = '__message__';
+      const properties = {'key': 'value'};
+      test('log info message', () {
+        Embrace.instance.logMessage(
+          message,
+          Severity.info,
+          properties: properties,
+        );
+        verify(() => embracePlatform.logInfo(message, properties)).called(1);
+      });
+
+      test('log warning message', () {
+        Embrace.instance
+            .logMessage(message, Severity.warning, properties: properties);
+        verify(
+          () => embracePlatform.logWarning(
+            message,
+            properties,
+            allowScreenshot: false,
+          ),
+        ).called(1);
+      });
+
+      test('log error message', () {
+        Embrace.instance.logMessage(
+          message,
+          Severity.error,
+          properties: properties,
+        );
+        verify(
+          () => embracePlatform.logError(
+            message,
+            properties,
+            allowScreenshot: false,
           ),
         ).called(1);
       });
@@ -464,6 +527,7 @@ void main() {
       test(
           'logs the specified network request when '
           'platform implementation exists', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.logNetworkRequest(
           url: url,
           method: method,
@@ -506,6 +570,7 @@ void main() {
             traceId: traceId,
           ),
         ).thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.logNetworkRequest(
           url: url,
           method: method,
@@ -517,6 +582,100 @@ void main() {
           error: error,
           traceId: traceId,
         );
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'logNetworkRequest',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('recordNetworkRequest', () {
+      const url = '__url__';
+      const method = HttpMethod.get;
+      const startTime = 123;
+      const endTime = 321;
+      const bytesSent = 222;
+      const bytesReceived = 333;
+      const statusCode = 200;
+      const error = '__error__';
+      const traceId = '__traceId__';
+      test('record completed request', () {
+        final request = EmbraceNetworkRequest.fromCompletedRequest(
+          url: url,
+          httpMethod: method,
+          startTime: startTime,
+          endTime: endTime,
+          bytesSent: bytesSent,
+          bytesReceived: bytesReceived,
+          statusCode: statusCode,
+        );
+        Embrace.instance.recordNetworkRequest(request);
+        verify(
+          () => embracePlatform.logNetworkRequest(
+            url: url,
+            method: method,
+            startTime: startTime,
+            endTime: endTime,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            statusCode: statusCode,
+          ),
+        ).called(1);
+      });
+
+      test('record incomplete request', () {
+        final request = EmbraceNetworkRequest.fromIncompleteRequest(
+          url: url,
+          httpMethod: method,
+          startTime: startTime,
+          endTime: endTime,
+          errorDetails: error,
+          traceId: traceId,
+        );
+        Embrace.instance.recordNetworkRequest(request);
+        verify(
+          () => embracePlatform.logNetworkRequest(
+            url: url,
+            method: method,
+            startTime: startTime,
+            endTime: endTime,
+            bytesSent: -1,
+            bytesReceived: -1,
+            statusCode: -1,
+            error: error,
+            traceId: traceId,
+          ),
+        ).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(
+          () => embracePlatform.logNetworkRequest(
+            url: url,
+            method: method,
+            startTime: startTime,
+            endTime: endTime,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            statusCode: statusCode,
+          ),
+        ).thenThrow(MockError());
+
+        final request = EmbraceNetworkRequest.fromCompletedRequest(
+          url: url,
+          httpMethod: method,
+          startTime: startTime,
+          endTime: endTime,
+          bytesSent: bytesSent,
+          bytesReceived: bytesReceived,
+          statusCode: statusCode,
+        );
+        Embrace.instance.recordNetworkRequest(request);
 
         verify(
           () => embracePlatform.logInternalError(
@@ -897,23 +1056,48 @@ void main() {
       });
     });
 
-    group('setUserPersona', () {
+    group('addUserPersona', () {
       const persona = '__persona__';
       test('sets the user persona when platform implementation exists', () {
-        Embrace.instance.setUserPersona(persona);
-        verify(() => embracePlatform.setUserPersona(persona)).called(1);
+        Embrace.instance.addUserPersona(persona);
+        verify(() => embracePlatform.addUserPersona(persona)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.setUserPersona(persona))
+        when(() => embracePlatform.addUserPersona(persona))
             .thenThrow(MockError());
+        Embrace.instance.addUserPersona(persona);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'addUserPersona',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('setUserPersona', () {
+      const persona = '__persona__';
+      test('sets the user persona when platform implementation exists', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.setUserPersona(persona);
+        verify(() => embracePlatform.addUserPersona(persona)).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.addUserPersona(persona))
+            .thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.setUserPersona(persona);
 
         verify(
           () => embracePlatform.logInternalError(
-            'setUserPersona',
+            'addUserPersona',
             errorMessage,
           ),
         ).called(1);
@@ -1113,6 +1297,33 @@ void main() {
         verify(
           () => embracePlatform.logInternalError(
             'getLastRunEndState',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+    group('getCurrentSessionId', () {
+      test('returns current session ID when platform implementation exists',
+          () {
+        final id = Embrace.instance.getCurrentSessionId();
+        verify(
+          () => embracePlatform.getCurrentSessionId(),
+        ).called(1);
+
+        expect(id, isA<Future<String?>>());
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.getCurrentSessionId())
+            .thenThrow(MockError());
+
+        Embrace.instance.getCurrentSessionId();
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'getCurrentSessionId',
             errorMessage,
           ),
         ).called(1);
