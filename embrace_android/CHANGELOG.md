@@ -1,3 +1,9 @@
+# 1.4.0
+
+* Added logHandledDartError() method to record exceptions that have been handled.
+* Updated Embrace Android SDK to 5.22.0
+* Updated Embrace iOS SDK to 5.21.1
+
 # 1.3.0
 
 * Added getLastRunEndState() method to retrieve an enum indicating a crash or clean exit on the previous run of the app.

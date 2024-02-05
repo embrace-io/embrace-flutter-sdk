@@ -285,6 +285,7 @@ abstract class EmbracePlatform extends PlatformInterface {
     String? context,
     String? library, {
     String? errorType,
+    bool wasHandled = false,
   }) {
     throw UnimplementedError('logDartError() has not been implemented');
   }

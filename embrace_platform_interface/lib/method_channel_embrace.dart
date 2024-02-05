@@ -79,6 +79,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _errorContextArgName = 'context';
   static const String _errorLibraryArgName = 'library';
   static const String _errorTypeArgName = 'type';
+  static const String _errorWasHandledArgName = 'wasHandled';
   static const String _keyArgName = 'key';
   static const String _valueArgName = 'value';
   static const String _permanentArgName = 'permanent';
@@ -456,6 +457,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     String? context,
     String? library, {
     String? errorType,
+    bool wasHandled = false,
   }) {
     // return silently instead of throwing a StateError - as throwing an
     // exception during exception handling would likely cause an error loop.
@@ -472,6 +474,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
           _errorContextArgName: context,
           _errorLibraryArgName: library,
           _errorTypeArgName: errorType,
+          _errorWasHandledArgName: wasHandled,
         },
       );
     } catch (e) {

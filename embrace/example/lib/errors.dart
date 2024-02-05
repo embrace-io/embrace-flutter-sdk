@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_samples.dart';
 import 'package:flutter/material.dart';
 
@@ -72,6 +73,17 @@ class ErrorDemo extends StatelessWidget {
               const ElevatedButton(
                 onPressed: EmbraceSamples.triggerMethodChannelError,
                 child: Text('Method channel error'),
+              ),
+
+              ElevatedButton(
+                onPressed: () {
+                  try {
+                    throw Exception('Handled exception');
+                  } catch (exc, stack) {
+                    Embrace.instance.logHandledDartError(exc, stack);
+                  }
+                },
+                child: const Text('Record handled exception'),
               ),
 
               // for other common render errors, see:

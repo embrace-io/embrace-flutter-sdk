@@ -372,8 +372,25 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   void logDartError(Object error, StackTrace stack) {
-    EmbracePlatform.instance
-        .logDartError(stack.toString(), error.toString(), null, null);
+    EmbracePlatform.instance.logDartError(
+      stack.toString(),
+      error.toString(),
+      null,
+      null,
+      errorType: error.runtimeType.toString(),
+    );
+  }
+
+  @override
+  void logHandledDartError(Object error, StackTrace stack) {
+    EmbracePlatform.instance.logDartError(
+      stack.toString(),
+      error.toString(),
+      null,
+      null,
+      errorType: error.runtimeType.toString(),
+      wasHandled: true,
+    );
   }
 
   @override

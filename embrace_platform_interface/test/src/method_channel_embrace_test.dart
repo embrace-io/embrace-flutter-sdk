@@ -1045,7 +1045,8 @@ void main() {
                 'message': message,
                 'context': context,
                 'library': library,
-                'type': null
+                'type': null,
+                'wasHandled': false,
               },
             ),
           ),
@@ -1062,6 +1063,7 @@ void main() {
           context,
           library,
           errorType: type,
+          wasHandled: true,
         );
         expect(
           log,
@@ -1073,7 +1075,8 @@ void main() {
                 'message': message,
                 'context': context,
                 'library': library,
-                'type': type
+                'type': type,
+                'wasHandled': true,
               },
             ),
           ),

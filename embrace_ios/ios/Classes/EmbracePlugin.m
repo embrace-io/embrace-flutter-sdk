@@ -69,6 +69,7 @@ static NSString *const ErrorMessageArgName = @"message";
 static NSString *const ErrorContextArgName = @"context";
 static NSString *const ErrorLibraryArgName = @"library";
 static NSString *const ErrorTypeArgName = @"type";
+static NSString *const ErrorWasHandledArgName = @"wasHandled";
 static NSString *const KeyArgName = @"key";
 static NSString *const ValueArgName = @"value";
 static NSString *const PermanentArgName = @"permanent";
@@ -442,19 +443,25 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleLogDartErrorCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* stack = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorStackArgName];
     NSString* message = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorMessageArgName];
-    NSString* context = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorContextArgName withDefault:@""];
-    NSString* library = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorLibraryArgName withDefault:@""];
+    NSString* context = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorContextArgName];
+    NSString* library = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorLibraryArgName];
     NSString* type = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorTypeArgName];
+    BOOL wasHandled = [EmbracePlugin getOptionalBool:call.arguments forKey:ErrorWasHandledArgName withDefaultValue:false];
 
-    [[EMBFlutterEmbrace sharedInstance] logMessage:message
-                                      withSeverity:EMBSeverityError
-                                        properties:nil
-                                    takeScreenshot:NO
-                                 flutterStackTrace:stack
-                                    flutterContext:context
-                                    flutterLibrary:library
-                                  flutterErrorType:type
-                                        wasHandled:NO];
+    if (wasHandled) {
+        [[EMBFlutterEmbrace sharedInstance] logHandledExceptionWithName:type
+                                                                message:message
+                                                             stackTrace:stack
+                                                                context:context
+                                                                library:library];
+    } else {
+        [[EMBFlutterEmbrace sharedInstance] logUnhandledExceptionWithName:type
+                                                                  message:message
+                                                               stackTrace:stack
+                                                                  context:context
+                                                                  library:library];
+    }
+    
     result(nil);
 }
 

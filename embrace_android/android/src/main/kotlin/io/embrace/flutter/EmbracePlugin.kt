@@ -88,6 +88,7 @@ internal object EmbraceConstants {
     internal const val ERROR_CONTEXT_ARG_NAME : String = "context"
     internal const val ERROR_LIBRARY_ARG_NAME : String = "library"
     internal const val ERROR_TYPE_ARG_NAME : String = "type"
+    internal const val ERROR_WAS_HANDLED_ARG_NAME : String = "wasHandled"
     internal const val KEY_ARG_NAME : String = "key"
     internal const val VALUE_ARG_NAME : String = "value"
     internal const val PERMANENT_ARG_NAME : String = "permanent"
@@ -478,10 +479,15 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val context = call.getStringArgument(EmbraceConstants.ERROR_CONTEXT_ARG_NAME)
         val library = call.getStringArgument(EmbraceConstants.ERROR_LIBRARY_ARG_NAME)
         val type = call.getStringArgument(EmbraceConstants.ERROR_TYPE_ARG_NAME)
+        val wasHandled = call.getBooleanArgument(EmbraceConstants.ERROR_WAS_HANDLED_ARG_NAME)
         try {
-            Embrace.getInstance().logDartErrorWithType(stack, message, context, library, type)
+            if (wasHandled) {
+                Embrace.getInstance().logHandledDartError(stack, type, message, context, library)
+            } else {
+                Embrace.getInstance().logUnhandledDartError(stack, type, message, context, library)
+            }
         } catch (nsm: NoSuchMethodError) {
-            // If the underlying Embrace Android SDK < 5.14.2, then use the older method
+            // If the underlying Embrace Android SDK < 5.22.0, then use the older method
             Embrace.getInstance().logDartError(stack, message, context, library)
         }
         result.success(null)

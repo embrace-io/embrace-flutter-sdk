@@ -527,6 +527,61 @@ void main() {
       });
     });
 
+    group('logDartError', () {
+      var stackStr = '';
+      test(
+          'starts the specified moment when '
+          'platform implementation exists', () {
+        try {
+          throw Exception('Test exception');
+        } catch (error, stack) {
+          stackStr = stack.toString();
+          Embrace.instance.logDartError(
+            error,
+            stack,
+          );
+        }
+        verify(
+          () => embracePlatform.logDartError(
+            stackStr,
+            'Exception: Test exception',
+            null,
+            null,
+            errorType: '_Exception',
+            // ignore: avoid_redundant_argument_values
+            wasHandled: false,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('logHandledDartError', () {
+      var stackStr = '';
+      test(
+          'starts the specified moment when '
+          'platform implementation exists', () {
+        try {
+          throw Exception('Test exception');
+        } catch (error, stack) {
+          stackStr = stack.toString();
+          Embrace.instance.logHandledDartError(
+            error,
+            stack,
+          );
+        }
+        verify(
+          () => embracePlatform.logDartError(
+            stackStr,
+            'Exception: Test exception',
+            null,
+            null,
+            errorType: '_Exception',
+            wasHandled: true,
+          ),
+        ).called(1);
+      });
+    });
+
     group('startMoment', () {
       const momentName = '__momentName__';
       const identifier = '__identifier__';

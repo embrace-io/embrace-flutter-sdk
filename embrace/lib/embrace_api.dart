@@ -29,6 +29,11 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
   /// or Dart errors originating from the root isolate - Embrace automatically
   /// captures these errors already.
   void logDartError(Object error, StackTrace stack);
+
+  /// Manually logs a handled Dart error or exception to Embrace. This is
+  /// equivalent to [logDartError] but records the error as handled. Handled
+  /// errors do not count towards calculation of error-free sessions.
+  void logHandledDartError(Object error, StackTrace stack);
 }
 
 /// Declares the functions that consist of Embrace's public API. You should
