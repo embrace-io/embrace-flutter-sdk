@@ -2,6 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:embrace_example/breadcrumbs.dart';
 import 'package:embrace_example/errors.dart';
 import 'package:embrace_example/isolates.dart';
+import 'package:embrace_example/last_run_end_state.dart';
 import 'package:embrace_example/logs.dart';
 import 'package:embrace_example/moments.dart';
 import 'package:embrace_example/navigation.dart';
@@ -168,6 +169,17 @@ class _EmbraceMenuState extends State<EmbraceMenu> {
                   );
                 },
                 child: const Text('Isolate Errors'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<ErrorDemo>(
+                      builder: (context) => const LastRunEndStateDemo(),
+                    ),
+                  );
+                },
+                child: const Text('Last session end state'),
               ),
               ElevatedButton(
                 onPressed: Embrace.instance.endSession,

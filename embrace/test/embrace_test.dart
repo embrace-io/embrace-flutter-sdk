@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:embrace/embrace.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -1035,6 +1036,31 @@ void main() {
 
         final actualPlatformName = await Embrace.instance.getDeviceId();
         expect(actualPlatformName, equals(platformName));
+      });
+    });
+
+    group('getLastRunEndState', () {
+      test('getLastRunEndState when platform implementation exists', () {
+        Embrace.instance.getLastRunEndState();
+        verify(
+          () => embracePlatform.getLastRunEndState(),
+        ).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.getLastRunEndState()).thenThrow(MockError());
+        final state = Embrace.instance.getLastRunEndState();
+
+        expect(state, isA<Future<LastRunEndState>>());
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'getLastRunEndState',
+            errorMessage,
+          ),
+        ).called(1);
       });
     });
   });

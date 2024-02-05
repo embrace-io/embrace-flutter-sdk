@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -286,5 +287,10 @@ abstract class EmbracePlatform extends PlatformInterface {
     String? errorType,
   }) {
     throw UnimplementedError('logDartError() has not been implemented');
+  }
+
+  /// Returns the end state of the previous run of the application.
+  Future<LastRunEndState> getLastRunEndState() {
+    throw UnimplementedError('getLastRunEndState() has not been implemented');
   }
 }

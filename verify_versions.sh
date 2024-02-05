@@ -40,7 +40,7 @@ verify_dependency () {
     local target_version=$(yq -e '.version' $target_pubspec)
     local dependency_version=$(yq -e $dependency_name $dependency_pubspec)
 
-    if [ $target_version != $dependency_version ]
+    if [[ $dependency_version != '>='$target_version* ]]
     then
         echo "$dependency_pubspec dependency on $dependency_name ($dependency_version) does not match $target_pubspec version ($target_version)"
         let "error_count+=1"
@@ -71,8 +71,6 @@ verify_dependency $EMBRACE_PUBSPEC_PATH $ANDROID_DEPENDENCY_NAME $EMBRACE_ANDROI
 verify_dependency $EMBRACE_PUBSPEC_PATH $IOS_DEPENDENCY_NAME $EMBRACE_IOS_PUBSPEC_PATH
 verify_dependency $EMBRACE_ANDROID_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 verify_dependency $EMBRACE_IOS_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
-verify_dependency $EMBRACE_DIO_PUBSPEC_PATH $EMBRACE_DEPENDENCY_NAME $EMBRACE_PUBSPEC_PATH
-verify_dependency $EMBRACE_DIO_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 
 # Verify version in generated script is the same
 declare -r GENERATED_VERSION_SCRIPT_PATH=embrace_platform_interface/lib/src/version.dart

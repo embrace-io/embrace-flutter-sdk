@@ -309,5 +309,12 @@ void main() {
         throwsA(isA<UnimplementedError>()),
       );
     });
+
+    test('getLastRunEndState throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.getLastRunEndState(),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
   });
 }

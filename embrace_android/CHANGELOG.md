@@ -1,3 +1,11 @@
+# 1.3.0
+
+* Added getLastRunEndState() method to retrieve an enum indicating a crash or clean exit on the previous run of the app.
+* Export the expected Embrace Android SDK version as a gradle property.
+* Fix for some dart errors not showing on iOS when reported through logDartError().
+* Updated Embrace Android SDK to 5.21.0
+* Updated Embrace iOS SDK to 5.21.0
+
 # 1.2.1
 
 * Make the internal dependencies between Embrace packages fixed.

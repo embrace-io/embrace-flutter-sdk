@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
@@ -87,7 +88,7 @@ class Embrace implements EmbraceFlutterApi {
   void endStartupMoment({Map<String, String>? properties}) {
     _runCatching(
       'endStartupMoment',
-      () => {_platform.endAppStartup(properties)},
+      () => _platform.endAppStartup(properties),
     );
   }
 
@@ -95,7 +96,7 @@ class Embrace implements EmbraceFlutterApi {
   void logBreadcrumb(String message) {
     _runCatching(
       'logBreadcrumb',
-      () => {_platform.logBreadcrumb(message)},
+      () => _platform.logBreadcrumb(message),
     );
   }
 
@@ -103,7 +104,7 @@ class Embrace implements EmbraceFlutterApi {
   void logInfo(String message, {Map<String, String>? properties}) {
     _runCatching(
       'logInfo',
-      () => {_platform.logInfo(message, properties)},
+      () => _platform.logInfo(message, properties),
     );
   }
 
@@ -115,13 +116,11 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'logWarning',
-      () => {
-        _platform.logWarning(
-          message,
-          properties,
-          allowScreenshot: allowScreenshot,
-        )
-      },
+      () => _platform.logWarning(
+        message,
+        properties,
+        allowScreenshot: allowScreenshot,
+      ),
     );
   }
 
@@ -133,13 +132,11 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'logError',
-      () => {
-        _platform.logError(
-          message,
-          properties,
-          allowScreenshot: allowScreenshot,
-        )
-      },
+      () => _platform.logError(
+        message,
+        properties,
+        allowScreenshot: allowScreenshot,
+      ),
     );
   }
 
@@ -157,19 +154,17 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'logNetworkRequest',
-      () => {
-        _platform.logNetworkRequest(
-          url: url,
-          method: method,
-          startTime: startTime,
-          endTime: endTime,
-          bytesSent: bytesSent,
-          bytesReceived: bytesReceived,
-          statusCode: statusCode,
-          error: error,
-          traceId: traceId,
-        )
-      },
+      () => _platform.logNetworkRequest(
+        url: url,
+        method: method,
+        startTime: startTime,
+        endTime: endTime,
+        bytesSent: bytesSent,
+        bytesReceived: bytesReceived,
+        statusCode: statusCode,
+        error: error,
+        traceId: traceId,
+      ),
     );
   }
 
@@ -188,20 +183,18 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'logPushNotification',
-      () => {
-        _platform.logPushNotification(
-          title: title,
-          body: body,
-          subtitle: subtitle,
-          badge: badge,
-          category: category,
-          from: from,
-          messageId: messageId,
-          priority: priority,
-          hasNotification: hasNotification,
-          hasData: hasData,
-        )
-      },
+      () => _platform.logPushNotification(
+        title: title,
+        body: body,
+        subtitle: subtitle,
+        badge: badge,
+        category: category,
+        from: from,
+        messageId: messageId,
+        priority: priority,
+        hasNotification: hasNotification,
+        hasData: hasData,
+      ),
     );
   }
 
@@ -214,14 +207,12 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'startMoment',
-      () => {
-        _platform.startMoment(
-          name,
-          identifier,
-          properties,
-          allowScreenshot: allowScreenshot,
-        )
-      },
+      () => _platform.startMoment(
+        name,
+        identifier,
+        properties,
+        allowScreenshot: allowScreenshot,
+      ),
     );
   }
 
@@ -233,7 +224,7 @@ class Embrace implements EmbraceFlutterApi {
   }) {
     _runCatching(
       'endMoment',
-      () => {_platform.endMoment(name, identifier, properties)},
+      () => _platform.endMoment(name, identifier, properties),
     );
   }
 
@@ -241,7 +232,7 @@ class Embrace implements EmbraceFlutterApi {
   void startView(String name) {
     _runCatching(
       'startView',
-      () => {_platform.startView(name)},
+      () => _platform.startView(name),
     );
   }
 
@@ -249,7 +240,7 @@ class Embrace implements EmbraceFlutterApi {
   void endView(String name) {
     _runCatching(
       'endView',
-      () => {_platform.endView(name)},
+      () => _platform.endView(name),
     );
   }
 
@@ -257,7 +248,7 @@ class Embrace implements EmbraceFlutterApi {
   void setUserIdentifier(String id) {
     _runCatching(
       'setUserIdentifier',
-      () => {_platform.setUserIdentifier(id)},
+      () => _platform.setUserIdentifier(id),
     );
   }
 
@@ -265,7 +256,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearUserIdentifier() {
     _runCatching(
       'clearUserIdentifier',
-      () => {_platform.clearUserIdentifier()},
+      () => _platform.clearUserIdentifier(),
     );
   }
 
@@ -273,7 +264,7 @@ class Embrace implements EmbraceFlutterApi {
   void setUserName(String name) {
     _runCatching(
       'setUserName',
-      () => {_platform.setUserName(name)},
+      () => _platform.setUserName(name),
     );
   }
 
@@ -281,7 +272,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearUserName() {
     _runCatching(
       'clearUserName',
-      () => {_platform.clearUserName()},
+      () => _platform.clearUserName(),
     );
   }
 
@@ -289,7 +280,7 @@ class Embrace implements EmbraceFlutterApi {
   void setUserEmail(String email) {
     _runCatching(
       'setUserEmail',
-      () => {_platform.setUserEmail(email)},
+      () => _platform.setUserEmail(email),
     );
   }
 
@@ -297,7 +288,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearUserEmail() {
     _runCatching(
       'clearUserEmail',
-      () => {_platform.clearUserEmail()},
+      () => _platform.clearUserEmail(),
     );
   }
 
@@ -305,7 +296,7 @@ class Embrace implements EmbraceFlutterApi {
   void setUserAsPayer() {
     _runCatching(
       'setUserAsPayer',
-      () => {_platform.setUserAsPayer()},
+      () => _platform.setUserAsPayer(),
     );
   }
 
@@ -313,7 +304,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearUserAsPayer() {
     _runCatching(
       'clearUserAsPayer',
-      () => {_platform.clearUserAsPayer()},
+      () => _platform.clearUserAsPayer(),
     );
   }
 
@@ -321,7 +312,7 @@ class Embrace implements EmbraceFlutterApi {
   void setUserPersona(String persona) {
     _runCatching(
       'setUserPersona',
-      () => {_platform.setUserPersona(persona)},
+      () => _platform.setUserPersona(persona),
     );
   }
 
@@ -329,7 +320,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearUserPersona(String persona) {
     _runCatching(
       'clearUserPersona',
-      () => {_platform.clearUserPersona(persona)},
+      () => _platform.clearUserPersona(persona),
     );
   }
 
@@ -337,7 +328,7 @@ class Embrace implements EmbraceFlutterApi {
   void clearAllUserPersonas() {
     _runCatching(
       'clearAllUserPersonas',
-      () => {_platform.clearAllUserPersonas()},
+      () => _platform.clearAllUserPersonas(),
     );
   }
 
@@ -345,7 +336,7 @@ class Embrace implements EmbraceFlutterApi {
   void addSessionProperty(String key, String value, {bool permanent = false}) {
     _runCatching(
       'addSessionProperty',
-      () => {_platform.addSessionProperty(key, value, permanent: permanent)},
+      () => _platform.addSessionProperty(key, value, permanent: permanent),
     );
   }
 
@@ -353,7 +344,7 @@ class Embrace implements EmbraceFlutterApi {
   void removeSessionProperty(String key) {
     _runCatching(
       'removeSessionProperty',
-      () => {_platform.removeSessionProperty(key)},
+      () => _platform.removeSessionProperty(key),
     );
   }
 
@@ -383,6 +374,15 @@ class Embrace implements EmbraceFlutterApi {
   void logDartError(Object error, StackTrace stack) {
     EmbracePlatform.instance
         .logDartError(stack.toString(), error.toString(), null, null);
+  }
+
+  @override
+  Future<LastRunEndState> getLastRunEndState() async {
+    return _runCatchingAndReturn<LastRunEndState>(
+      'getLastRunEndState',
+      () => _platform.getLastRunEndState(),
+      defaultValue: LastRunEndState.invalid,
+    );
   }
 }
 

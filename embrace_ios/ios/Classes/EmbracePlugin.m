@@ -39,6 +39,7 @@ static NSString *const AddSessionPropertyMethodName = @"addSessionProperty";
 static NSString *const RemoveSessionPropertyMethodName = @"removeSessionProperty";
 static NSString *const GetSessionPropertiesMethodName = @"getSessionProperties";
 static NSString *const EndSessionMethodName = @"endSession";
+static NSString *const GetLastRunEndStateMethodName = @"getLastRunEndState";
 
 
 // Parameter Names
@@ -89,10 +90,14 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 }
 
 + (NSString*)getOptionalNSString:(NSDictionary*)dictionary forKey:(NSString*)key {
+    return [self getOptionalNSString:dictionary forKey:key withDefault:nil];
+}
+
++ (NSString*)getOptionalNSString:(NSDictionary*)dictionary forKey:(NSString*)key withDefault:(NSString*)defaultValue {
     NSString* result = dictionary[key];
     if ([result isEqual:[NSNull null]])
     {
-        return nil;
+        return defaultValue;
     }
     return result;
 }
@@ -191,6 +196,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleLogInternalErrorCall: call withResult: result];
     } else if ([LogDartErrorMethodName isEqualToString: call.method]) {
         [self handleLogDartErrorCall: call withResult: result];
+    } else if ([GetLastRunEndStateMethodName isEqualToString: call.method]) {
+        [self handleGetLastRunEndStateCall: call withResult: result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -435,8 +442,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleLogDartErrorCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* stack = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorStackArgName];
     NSString* message = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorMessageArgName];
-    NSString* context = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorContextArgName];
-    NSString* library = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorLibraryArgName];
+    NSString* context = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorContextArgName withDefault:@""];
+    NSString* library = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorLibraryArgName withDefault:@""];
     NSString* type = [EmbracePlugin getOptionalNSString:call.arguments forKey:ErrorTypeArgName];
 
     [[EMBFlutterEmbrace sharedInstance] logMessage:message
@@ -449,6 +456,11 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
                                   flutterErrorType:type
                                         wasHandled:NO];
     result(nil);
+}
+
+- (void)handleGetLastRunEndStateCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+    EMBLastRunEndState lastState = [[Embrace sharedInstance] lastRunEndState];
+    result([NSNumber numberWithInteger:lastState]);
 }
 
 - (void)handleNativeError:(FlutterMethodCall*)call withResult:(FlutterResult)result {

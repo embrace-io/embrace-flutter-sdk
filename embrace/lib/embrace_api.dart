@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 
 /// Declares the functions that consist of Embrace's public API - specifically
 /// those that are only declared on Flutter. You should not use
@@ -207,4 +208,8 @@ abstract class EmbraceApi {
 
   /// Get the Embrace user identifier assigned to the device.
   Future<String?> getDeviceId();
+
+  /// Get the exit status (crash or clean exit) of the last time the
+  /// application was run.
+  Future<LastRunEndState> getLastRunEndState();
 }

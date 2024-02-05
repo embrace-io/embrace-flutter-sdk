@@ -1,5 +1,6 @@
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/src/version.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +47,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       'removeSessionProperty';
   static const String _getSessionPropertiesMethodName = 'getSessionProperties';
   static const String _endSessionMethodName = 'endSession';
+  static const String _getLastRunEndStateMethodName = 'getLastRunEndState';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -477,6 +479,20 @@ class MethodChannelEmbrace extends EmbracePlatform {
       if (kDebugMode) {
         print('Failed to send error to Embrace: $e');
       }
+    }
+  }
+
+  @override
+  Future<LastRunEndState> getLastRunEndState() async {
+    final lastRunEndState =
+        await methodChannel.invokeMethod<int>(_getLastRunEndStateMethodName);
+    switch (lastRunEndState) {
+      case 1:
+        return LastRunEndState.crash;
+      case 2:
+        return LastRunEndState.cleanExit;
+      default:
+        return LastRunEndState.invalid;
     }
   }
   // lib/method_channel_embrace.dart: 364, 373, 378, 380, 390

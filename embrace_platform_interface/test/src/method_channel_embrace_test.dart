@@ -1,4 +1,5 @@
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
 import 'package:embrace_platform_interface/src/version.dart';
 import 'package:flutter/services.dart';
@@ -1077,6 +1078,26 @@ void main() {
             ),
           ),
         );
+      });
+    });
+
+    group('getLastRunEndState', () {
+      test('invokes getLastRunEndState method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.getLastRunEndState();
+        expect(
+          log,
+          contains(
+            isMethodCall('getLastRunEndState', arguments: null),
+          ),
+        );
+      });
+
+      test('do not throw an error if not started', () async {
+        final state = await methodChannelEmbrace.getLastRunEndState();
+        expect(state, equals(LastRunEndState.invalid));
       });
     });
 

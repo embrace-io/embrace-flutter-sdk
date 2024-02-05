@@ -75,7 +75,7 @@ class EmbraceInterceptor extends Interceptor {
   }
 
   @override
-  // ignore: avoid_void_async, strict_raw_type
+  // ignore: avoid_void_async, strict_raw_type, deprecated_member_use
   void onError(DioError err, ErrorInterceptorHandler handler) async {
     try {
       final request = err.requestOptions;

@@ -1,7 +1,5 @@
 # embrace_android
 
-> This is a development version of the Embrace SDK for Flutter and is not intended for general use.
-
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 
 The Android implementation of `embrace`.

@@ -1,7 +1,5 @@
 # embrace_platform_interface
 
-> This is a development version of the Embrace SDK for Flutter and is not intended for general use.
-
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 
 A common platform interface for the `embrace` plugin.

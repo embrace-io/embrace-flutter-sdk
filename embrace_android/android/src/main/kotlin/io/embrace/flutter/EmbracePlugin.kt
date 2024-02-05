@@ -58,6 +58,7 @@ internal object EmbraceConstants {
     internal const val REMOVE_SESSION_PROPERTY_METHOD_NAME : String = "removeSessionProperty"
     internal const val GET_SESSION_PROPERTIES_METHOD_NAME : String = "getSessionProperties"
     internal const val END_SESSION_METHOD_NAME : String = "endSession"
+    internal const val GET_LAST_RUN_END_STATE_METHOD_NAME : String = "getLastRunEndState"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -152,6 +153,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.LOG_INTERNAL_ERROR_METHOD_NAME -> handleLogInternalErrorCall(call, result)
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
                 EmbraceConstants.LOG_PUSH_NOTIFICATION_METHOD_NAME -> handleLogPushNotificationCall(call, result)
+                EmbraceConstants.GET_LAST_RUN_END_STATE_METHOD_NAME -> handleGetLastRunEndStateCall(call, result)
 
                 else -> {
                     result.notImplemented()
@@ -483,6 +485,17 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             Embrace.getInstance().logDartError(stack, message, context, library)
         }
         result.success(null)
+        return
+    }
+
+    private fun handleGetLastRunEndStateCall(call: MethodCall, result: Result) : Unit {
+        try {
+            val lastState = Embrace.getInstance().lastRunEndState.value
+            result.success(lastState)
+        } catch (nsm: NoSuchMethodError) {
+            // The method was implemented in Embrace Android SDK 5.21.0
+            result.notImplemented()
+        }
         return
     }
 }

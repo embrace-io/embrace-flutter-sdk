@@ -49,7 +49,7 @@ You can test changes local changes to the iOS SDK by updating the Flutter projec
 
 0. Bump the Android/iOS dependencies to the latest available stable versions
 1. Bump the SDK version according to semver, with `./set_version.sh <your-version-here> && ./verify_versions.sh`
-2. Update the Android SDK version in the [README](README.md) integration instructions
+2. Update the Android SDK version in `embrace_android/android/gradle.properties`
 3. Update the changelog of all 4 packages with a description of what changed
 4. Run the example app on Android + iOS (in release mode) and confirm that a session is captured & appears in the dashboard with useful info
 5. Create a PR with all these changes
