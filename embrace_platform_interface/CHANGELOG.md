@@ -1,3 +1,10 @@
+# 2.0.0
+
+* Removed deprecated functions.
+* Added support for AGP 8.
+* Updated Embrace Android SDK to 6.4.0. Updated the minimum Android version supported to 21.
+* Updated Embrace iOS SDK to 5.25.0.
+
 # 1.5.0
 
 * Added getCurrentSessionId() method to get the ID of the current session.

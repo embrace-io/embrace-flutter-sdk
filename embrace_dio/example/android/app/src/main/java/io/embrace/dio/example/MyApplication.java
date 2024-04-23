@@ -1,10 +1,9 @@
 package io.embrace.dio.example;
 
-import android.app.Application;
-import androidx.multidex.MultiDexApplication;
 import io.embrace.android.embracesdk.Embrace;
+import io.flutter.app.FlutterApplication;
 
-public final class MyApplication extends MultiDexApplication {
+public final class MyApplication extends FlutterApplication {
     @Override
     public void onCreate() {
         super.onCreate();

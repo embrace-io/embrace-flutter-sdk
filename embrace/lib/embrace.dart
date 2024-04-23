@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
-import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/widgets.dart';
 
@@ -85,30 +84,11 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
-  @Deprecated(
-      'Use endAppStartup() instead. This API will be removed in a future '
-      'major version release.')
-  void endStartupMoment({Map<String, String>? properties}) {
-    _runCatching(
-      'endAppStartup',
-      () => _platform.endAppStartup(properties),
-    );
-  }
-
-  @override
   void endAppStartup({Map<String, String>? properties}) {
     _runCatching(
       'endAppStartup',
       () => _platform.endAppStartup(properties),
     );
-  }
-
-  @override
-  @Deprecated(
-      'Use addBreadcrumb() instead. This API will be removed in a future '
-      'major version release.')
-  void logBreadcrumb(String message) {
-    addBreadcrumb(message);
   }
 
   @override
@@ -124,7 +104,6 @@ class Embrace implements EmbraceFlutterApi {
     String message,
     Severity severity, {
     Map<String, String>? properties,
-    bool allowScreenshot = false,
   }) {
     switch (severity) {
       case Severity.info:
@@ -134,14 +113,12 @@ class Embrace implements EmbraceFlutterApi {
         logWarning(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshot,
         );
         break;
       case Severity.error:
         logError(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshot,
         );
         break;
     }
@@ -159,14 +136,12 @@ class Embrace implements EmbraceFlutterApi {
   void logWarning(
     String message, {
     Map<String, String>? properties,
-    bool allowScreenshot = false,
   }) {
     _runCatching(
       'logWarning',
       () => _platform.logWarning(
         message,
         properties,
-        allowScreenshot: allowScreenshot,
       ),
     );
   }
@@ -175,61 +150,31 @@ class Embrace implements EmbraceFlutterApi {
   void logError(
     String message, {
     Map<String, String>? properties,
-    bool allowScreenshot = false,
   }) {
     _runCatching(
       'logError',
       () => _platform.logError(
         message,
         properties,
-        allowScreenshot: allowScreenshot,
-      ),
-    );
-  }
-
-  @Deprecated('Use recordNetworkRequest() instead. This API will be removed in '
-      'a future version.')
-  @override
-  void logNetworkRequest({
-    required String url,
-    required HttpMethod method,
-    required int startTime,
-    required int endTime,
-    required int bytesSent,
-    required int bytesReceived,
-    required int statusCode,
-    String? error,
-    String? traceId,
-  }) {
-    _runCatching(
-      'logNetworkRequest',
-      () => _platform.logNetworkRequest(
-        url: url,
-        method: method,
-        startTime: startTime,
-        endTime: endTime,
-        bytesSent: bytesSent,
-        bytesReceived: bytesReceived,
-        statusCode: statusCode,
-        error: error,
-        traceId: traceId,
       ),
     );
   }
 
   @override
   void recordNetworkRequest(EmbraceNetworkRequest request) {
-    // ignore: deprecated_member_use_from_same_package
-    logNetworkRequest(
-      url: request.url,
-      method: request.httpMethod,
-      startTime: request.startTime,
-      endTime: request.endTime,
-      bytesSent: request.bytesSent,
-      bytesReceived: request.bytesReceived,
-      statusCode: request.statusCode,
-      error: request.errorDetails,
-      traceId: request.traceId,
+    _runCatching(
+      'recordNetworkRequest',
+      () => _platform.logNetworkRequest(
+        url: request.url,
+        method: request.httpMethod,
+        startTime: request.startTime,
+        endTime: request.endTime,
+        bytesSent: request.bytesSent,
+        bytesReceived: request.bytesReceived,
+        statusCode: request.statusCode,
+        error: request.errorDetails,
+        traceId: request.traceId,
+      ),
     );
   }
 
@@ -267,7 +212,6 @@ class Embrace implements EmbraceFlutterApi {
   void startMoment(
     String name, {
     String? identifier,
-    bool allowScreenshot = false,
     Map<String, String>? properties,
   }) {
     _runCatching(
@@ -276,7 +220,6 @@ class Embrace implements EmbraceFlutterApi {
         name,
         identifier,
         properties,
-        allowScreenshot: allowScreenshot,
       ),
     );
   }
@@ -371,14 +314,6 @@ class Embrace implements EmbraceFlutterApi {
       'clearUserAsPayer',
       () => _platform.clearUserAsPayer(),
     );
-  }
-
-  @override
-  @Deprecated(
-      'Use addUserPersona() instead. This API will be removed in a future '
-      'major version release.')
-  void setUserPersona(String persona) {
-    addUserPersona(persona);
   }
 
   @override

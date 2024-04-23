@@ -17,7 +17,10 @@ void main() {
 
     setUp(() async {
       methodChannelEmbrace = MethodChannelEmbrace(
-        platform: FakePlatform(version: dartVersion),
+        platform: FakePlatform(
+          version: dartVersion,
+          operatingSystem: Platform.android,
+        ),
       )..methodChannel.setMockMethodCallHandler((MethodCall methodCall) async {
           log.add(methodCall);
           switch (methodCall.method) {
@@ -25,6 +28,8 @@ void main() {
               return kDeviceId;
             case 'attachToHostSdk':
               return true;
+            case 'getSdkVersion':
+              return '6.3.0';
             default:
               return null;
           }
@@ -203,7 +208,6 @@ void main() {
     group('logWarning', () {
       const properties = {'key': 'value'};
       const message = '__message__';
-      const allowScreenshot = true;
       test('invokes logWarning method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
@@ -211,7 +215,6 @@ void main() {
         methodChannelEmbrace.logWarning(
           message,
           properties,
-          allowScreenshot: allowScreenshot,
         );
         expect(
           log,
@@ -221,7 +224,6 @@ void main() {
               arguments: {
                 'message': message,
                 'properties': properties,
-                'allowScreenshot': true
               },
             ),
           ),
@@ -233,7 +235,6 @@ void main() {
           () => methodChannelEmbrace.logWarning(
             message,
             properties,
-            allowScreenshot: allowScreenshot,
           ),
           throwsA(isA<StateError>()),
         );
@@ -252,7 +253,6 @@ void main() {
     group('logError', () {
       const properties = {'key': 'value'};
       const message = '__message__';
-      const allowScreenshot = true;
       test('invokes logError method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
@@ -260,7 +260,6 @@ void main() {
         methodChannelEmbrace.logError(
           message,
           properties,
-          allowScreenshot: allowScreenshot,
         );
         expect(
           log,
@@ -270,7 +269,6 @@ void main() {
               arguments: {
                 'message': message,
                 'properties': properties,
-                'allowScreenshot': true
               },
             ),
           ),
@@ -282,7 +280,6 @@ void main() {
           () => methodChannelEmbrace.logError(
             message,
             properties,
-            allowScreenshot: allowScreenshot,
           ),
           throwsA(isA<StateError>()),
         );
@@ -407,7 +404,6 @@ void main() {
       const name = '__name__';
       const identifier = '__identifier__';
       const properties = {'key': 'value'};
-      const allowScreenshot = true;
       test('invokes startMoment method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
@@ -416,7 +412,6 @@ void main() {
           name,
           identifier,
           properties,
-          allowScreenshot: allowScreenshot,
         );
         expect(
           log,
@@ -426,7 +421,6 @@ void main() {
               arguments: {
                 'name': name,
                 'identifier': identifier,
-                'allowScreenshot': allowScreenshot,
                 'properties': properties,
               },
             ),
@@ -440,7 +434,6 @@ void main() {
             name,
             identifier,
             properties,
-            allowScreenshot: allowScreenshot,
           ),
           throwsA(isA<StateError>()),
         );

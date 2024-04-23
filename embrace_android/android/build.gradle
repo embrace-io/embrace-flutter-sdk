@@ -27,6 +27,11 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 31
 
+    if (project.android.hasProperty("namespace")) {
+        namespace = "io.embrace.flutter"
+    }
+
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -44,12 +49,12 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    implementation "io.embrace:embrace-android-sdk:$emb_android_sdk"
+    compileOnly "io.embrace:embrace-android-sdk:$emb_android_sdk"
 }

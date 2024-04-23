@@ -216,28 +216,6 @@ void main() {
       });
     });
 
-    group('logBreadcrumb', () {
-      const message = '__message__';
-      test('adds a breadcrumb when platform implementation exists', () {
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.logBreadcrumb(message);
-        verify(() => embracePlatform.addBreadcrumb(message)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.addBreadcrumb(message))
-            .thenThrow(MockError());
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.logBreadcrumb(message);
-
-        verify(
-          () => embracePlatform.logInternalError('addBreadcrumb', errorMessage),
-        ).called(1);
-      });
-    });
-
     group('addBreadcrumb', () {
       const message = '__message__';
       test('adds a breadcrumb when platform implementation exists', () {
@@ -385,7 +363,6 @@ void main() {
           () => embracePlatform.logWarning(
             message,
             properties,
-            allowScreenshot: false,
           ),
         ).called(1);
       });
@@ -400,7 +377,6 @@ void main() {
           () => embracePlatform.logError(
             message,
             properties,
-            allowScreenshot: false,
           ),
         ).called(1);
       });
@@ -429,18 +405,15 @@ void main() {
     group('logWarning', () {
       const message = '__message__';
       const properties = {'key': 'value'};
-      const allowScreenshots = true;
       test('logs a warning when platform implementation exists', () {
         Embrace.instance.logWarning(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
         verify(
           () => embracePlatform.logWarning(
             message,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).called(1);
       });
@@ -452,13 +425,11 @@ void main() {
           () => embracePlatform.logWarning(
             message,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).thenThrow(MockError());
         Embrace.instance.logWarning(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
 
         verify(
@@ -473,18 +444,15 @@ void main() {
     group('logError', () {
       const message = '__message__';
       const properties = {'key': 'value'};
-      const allowScreenshots = true;
       test('logs an error when platform implementation exists', () {
         Embrace.instance.logError(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
         verify(
           () => embracePlatform.logError(
             message,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).called(1);
       });
@@ -496,96 +464,16 @@ void main() {
           () => embracePlatform.logError(
             message,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).thenThrow(MockError());
         Embrace.instance.logError(
           message,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
 
         verify(
           () => embracePlatform.logInternalError(
             'logError',
-            errorMessage,
-          ),
-        ).called(1);
-      });
-    });
-
-    group('logNetworkRequest', () {
-      const url = '__url__';
-      const method = HttpMethod.get;
-      const startTime = 123;
-      const endTime = 321;
-      const bytesSent = 222;
-      const bytesReceived = 333;
-      const statusCode = 200;
-      const error = '__error__';
-      const traceId = '__traceId__';
-      test(
-          'logs the specified network request when '
-          'platform implementation exists', () {
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.logNetworkRequest(
-          url: url,
-          method: method,
-          startTime: startTime,
-          endTime: endTime,
-          bytesSent: bytesSent,
-          bytesReceived: bytesReceived,
-          statusCode: statusCode,
-          error: error,
-          traceId: traceId,
-        );
-        verify(
-          () => embracePlatform.logNetworkRequest(
-            url: url,
-            method: method,
-            startTime: startTime,
-            endTime: endTime,
-            bytesSent: bytesSent,
-            bytesReceived: bytesReceived,
-            statusCode: statusCode,
-            error: error,
-            traceId: traceId,
-          ),
-        ).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(
-          () => embracePlatform.logNetworkRequest(
-            url: url,
-            method: method,
-            startTime: startTime,
-            endTime: endTime,
-            bytesSent: bytesSent,
-            bytesReceived: bytesReceived,
-            statusCode: statusCode,
-            error: error,
-            traceId: traceId,
-          ),
-        ).thenThrow(MockError());
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.logNetworkRequest(
-          url: url,
-          method: method,
-          startTime: startTime,
-          endTime: endTime,
-          bytesSent: bytesSent,
-          bytesReceived: bytesReceived,
-          statusCode: statusCode,
-          error: error,
-          traceId: traceId,
-        );
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'logNetworkRequest',
             errorMessage,
           ),
         ).called(1);
@@ -679,7 +567,7 @@ void main() {
 
         verify(
           () => embracePlatform.logInternalError(
-            'logNetworkRequest',
+            'recordNetworkRequest',
             errorMessage,
           ),
         ).called(1);
@@ -745,7 +633,6 @@ void main() {
       const momentName = '__momentName__';
       const identifier = '__identifier__';
       const properties = {'key': 'value'};
-      const allowScreenshots = true;
       test(
           'starts the specified moment when '
           'platform implementation exists', () {
@@ -753,14 +640,12 @@ void main() {
           momentName,
           identifier: identifier,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
         verify(
           () => embracePlatform.startMoment(
             momentName,
             identifier,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).called(1);
       });
@@ -773,14 +658,12 @@ void main() {
             momentName,
             identifier,
             properties,
-            allowScreenshot: allowScreenshots,
           ),
         ).thenThrow(MockError());
         Embrace.instance.startMoment(
           momentName,
           identifier: identifier,
           properties: properties,
-          allowScreenshot: allowScreenshots,
         );
 
         verify(
@@ -1069,31 +952,6 @@ void main() {
         when(() => embracePlatform.addUserPersona(persona))
             .thenThrow(MockError());
         Embrace.instance.addUserPersona(persona);
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'addUserPersona',
-            errorMessage,
-          ),
-        ).called(1);
-      });
-    });
-
-    group('setUserPersona', () {
-      const persona = '__persona__';
-      test('sets the user persona when platform implementation exists', () {
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.setUserPersona(persona);
-        verify(() => embracePlatform.addUserPersona(persona)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.addUserPersona(persona))
-            .thenThrow(MockError());
-        // ignore: deprecated_member_use_from_same_package
-        Embrace.instance.setUserPersona(persona);
 
         verify(
           () => embracePlatform.logInternalError(

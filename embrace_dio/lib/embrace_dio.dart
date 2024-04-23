@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
+import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 
@@ -57,15 +58,16 @@ class EmbraceInterceptor extends Interceptor {
           }
         }
       }
-      // ignore: deprecated_member_use
-      Embrace.instance.logNetworkRequest(
-        url: url,
-        method: method,
-        startTime: startTime,
-        endTime: endTime,
-        bytesSent: bytesSent,
-        bytesReceived: bytesReceived,
-        statusCode: response.statusCode ?? 0,
+      Embrace.instance.recordNetworkRequest(
+        EmbraceNetworkRequest.fromCompletedRequest(
+          url: url,
+          httpMethod: method,
+          startTime: startTime,
+          endTime: endTime,
+          bytesSent: bytesSent,
+          bytesReceived: bytesReceived,
+          statusCode: response.statusCode ?? 0,
+        ),
       );
     } catch (e) {
       EmbracePlatform.instance
@@ -85,16 +87,14 @@ class EmbraceInterceptor extends Interceptor {
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
 
-      // ignore: deprecated_member_use
-      Embrace.instance.logNetworkRequest(
-        url: url,
-        method: method,
-        startTime: startTime,
-        endTime: endTime,
-        bytesSent: 0,
-        bytesReceived: 0,
-        statusCode: err.response?.statusCode ?? 0,
-        error: err.message,
+      Embrace.instance.recordNetworkRequest(
+        EmbraceNetworkRequest.fromIncompleteRequest(
+          url: url,
+          httpMethod: method,
+          startTime: startTime,
+          endTime: endTime,
+          errorDetails: err.message?.toString() ?? '',
+        ),
       );
     } catch (e) {
       EmbracePlatform.instance

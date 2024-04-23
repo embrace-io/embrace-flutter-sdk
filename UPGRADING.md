@@ -1,5 +1,22 @@
 # Upgrade guide
 
+# Upgrading from 1.5.0 to 2.0.0
+
+The methods mark as deprecated in 1.5.0 have been removed from this release.
+
+Please make sure not to have a hardcoded version of the Android SDK in the build.gradle file of your Android project. The correct way to include the Embrace Android SDK is using the `emb_android_sdk` like this:
+
+```
+buildscript {
+
+    dependencies {
+        classpath "io.embrace:embrace-swazzler:${findProject(':embrace_android').properties['emb_android_sdk']}"
+    }
+}
+```
+
+Please refer to the [Android setup guide](http://https://embrace.io/docs/flutter/integration/add-embrace-sdk/#android-setup) for further information.
+
 # Upgrading from 1.4.0 to 1.5.0
 
 Version 1.5.0 of the Embrace Flutter SDK renames some functions. This has been done to reduce

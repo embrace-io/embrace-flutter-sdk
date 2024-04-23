@@ -45,15 +45,6 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
 /// as new functions may be added in future. Use the Embrace class instead.
 abstract class EmbraceApi
     implements LogsApi, MomentsApi, NetworkRequestApi, SessionApi, UserApi {
-  /// Logs a breadcrumb.
-  ///
-  /// Breadcrumbs track a user's journey through the application and will be
-  /// shown on the timeline.
-  @Deprecated(
-      'Use addBreadcrumb() instead. This API will be removed in a future '
-      'major version release.')
-  void logBreadcrumb(String message);
-
   /// Adds a breadcrumb.
   ///
   /// Breadcrumbs track a user's journey through the application and will be
@@ -115,14 +106,12 @@ abstract class LogsApi {
   void logWarning(
     String message, {
     Map<String, String>? properties,
-    bool allowScreenshot = false,
   });
 
   /// Remotely logs a message at ERROR level
   void logError(
     String message, {
     Map<String, String>? properties,
-    bool allowScreenshot = false,
   });
 
   /// Remotely logs a message at the given severity level
@@ -141,30 +130,19 @@ abstract class MomentsApi {
   ///
   /// Moments are used for encapsulating particular activities within the app,
   /// such as the user adding an item to their shopping cart. The length of time
-  /// a moment takes to execute is recorded, and a screenshot can be taken if a
-  /// moment is 'late'.
+  /// a moment takes to execute is recorded.
   void startMoment(
     String name, {
     String? identifier,
-    bool allowScreenshot = false,
     Map<String, String>? properties,
   });
 
   /// Signals the end of a moment with the specified [name] and [identifier].
-  ///
-  /// The duration of the moment is computed, and a screenshot taken
-  /// (if enabled) if the moment was late.
   void endMoment(
     String name, {
     String? identifier,
     Map<String, String>? properties,
   });
-
-  /// Signals that the app has completed startup.
-  @Deprecated(
-      'Use endAppStartup() instead. This API will be removed in a future '
-      'major version release.')
-  void endStartupMoment({Map<String, String>? properties});
 
   /// Signals that the app has completed startup.
   void endAppStartup({Map<String, String>? properties});
@@ -286,30 +264,6 @@ class EmbraceNetworkRequest {
 /// instead.
 // ignore: one_member_abstracts
 abstract class NetworkRequestApi {
-  /// Log a network request.
-  ///
-  /// Use the [error] parameter to pass the reason phrase or exception message
-  /// for requests that are not successful.
-  ///
-  /// [startTime] and [endTime] should be Unix timestamps, or the
-  /// number of milliseconds since 1970-01-01T00:00:00Z (UTC),
-  /// e.g. `DateTime.now.millisecondsSinceEpoch`.
-  @Deprecated(
-    'Use recordNetworkRequest() instead. This API will be removed '
-    'in a future major version release.',
-  )
-  void logNetworkRequest({
-    required String url,
-    required HttpMethod method,
-    required int startTime,
-    required int endTime,
-    required int bytesSent,
-    required int bytesReceived,
-    required int statusCode,
-    String? error,
-    String? traceId,
-  });
-
   /// Records a network request to Embrace.
   void recordNetworkRequest(EmbraceNetworkRequest request);
 }
@@ -391,14 +345,6 @@ abstract class UserApi {
   /// This would typically be called if a user is no longer paying for
   /// the service and has reverted back to a basic user.
   void clearUserAsPayer();
-
-  /// Sets a custom user persona.
-  ///
-  /// A persona is a trait associated with a given user.
-  @Deprecated(
-      'Use addUserPersona() instead. This API will be removed in a future '
-      'major version release.')
-  void setUserPersona(String persona);
 
   /// Adds a custom user persona.
   ///

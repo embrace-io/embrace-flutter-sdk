@@ -1,6 +1,6 @@
 # Embrace SDK for Flutter
 
-In addition to installing the SDK, you'll need to create an Embrace login to see data in our [dashboard](https://embrace.io/). 
+In addition to installing the SDK, you'll need to create an Embrace login to see data in our [dashboard](https://dash.embrace.io/). 
 
 # Integration
 

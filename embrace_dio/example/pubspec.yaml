@@ -1,6 +1,6 @@
 name: embrace_dio_example
 description: Demonstrates how to use the embrace_dio package with the embrace plugin.
-version: 1.0.0
+version: 2.0.0
 publish_to: none
 
 environment:
@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   dio: ">=4.0.0 <6.0.0"
-  embrace: ^1.0.0
+  embrace: ^2.0.0
   embrace_dio:
     # When depending on this package from a real application you should use:
     #   embrace_dio: ^x.y.z

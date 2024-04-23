@@ -41,14 +41,13 @@ static NSString *const GetSessionPropertiesMethodName = @"getSessionProperties";
 static NSString *const EndSessionMethodName = @"endSession";
 static NSString *const GetLastRunEndStateMethodName = @"getLastRunEndState";
 static NSString *const GetCurrentSessionIdMethodName = @"getCurrentSessionId";
-
+static NSString *const GetSdkVersionMethodName = @"getSdkVersion";
 
 // Parameter Names
 static NSString *const PropertiesArgName = @"properties";
 static NSString *const NameArgName = @"name";
 static NSString *const MessageArgName = @"message";
 static NSString *const IdentifierArgName = @"identifier";
-static NSString *const AllowScreenshotArgName = @"allowScreenshot";
 static NSString *const UserIdentifierArgName = @"identifier";
 static NSString *const UserNameArgName = @"name";
 static NSString *const UserEmailArgName = @"email";
@@ -202,6 +201,8 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
         [self handleGetLastRunEndStateCall: call withResult: result];
     } else if ([GetCurrentSessionIdMethodName isEqualToString: call.method]) {
         [self handleGetCurrentSessionIdCall: call withResult: result];
+    } else if ([GetSdkVersionMethodName isEqualToString: call.method]) {
+        [self handleGetSdkVersionCall: call withResult: result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -270,17 +271,15 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleLogWarningCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* message = [EmbracePlugin getOptionalNSString:call.arguments forKey:MessageArgName];
     NSDictionary* properties = [EmbracePlugin getOptionalNSDictionary: call.arguments forKey: PropertiesArgName];
-    BOOL takeScreenshot = [call.arguments[AllowScreenshotArgName] boolValue];
     
-    [[Embrace sharedInstance] logMessage: message withSeverity: EMBSeverityWarning properties: properties takeScreenshot: takeScreenshot];
+    [[Embrace sharedInstance] logMessage: message withSeverity: EMBSeverityWarning properties: properties];
 }
 
 - (void)handleLogErrorCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* message = [EmbracePlugin getOptionalNSString:call.arguments forKey:MessageArgName];
     NSDictionary* properties = [EmbracePlugin getOptionalNSDictionary: call.arguments forKey: PropertiesArgName];
-    BOOL takeScreenshot = [call.arguments[AllowScreenshotArgName] boolValue];
     
-    [[Embrace sharedInstance] logMessage: message withSeverity: EMBSeverityError properties: properties takeScreenshot: takeScreenshot];
+    [[Embrace sharedInstance] logMessage: message withSeverity: EMBSeverityError properties: properties];
 }
 
 - (void)handleLogNetworkRequestCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
@@ -323,12 +322,10 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleStartMomentCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* name = call.arguments[NameArgName];
     NSString* identifier = [EmbracePlugin getOptionalNSString:call.arguments forKey:IdentifierArgName];
-    BOOL allowScreenshot = [call.arguments[AllowScreenshotArgName] boolValue];
     NSDictionary* properties = [EmbracePlugin getOptionalNSDictionary: call.arguments forKey:PropertiesArgName];
     
     [[Embrace sharedInstance] startMomentWithName: name
                                        identifier: identifier
-                                  allowScreenshot: allowScreenshot
                                        properties: properties];
     result(nil);
 }
@@ -476,6 +473,12 @@ static NSString *const NetworkErrorUserInfoKey = @"userinfo";
 - (void)handleGetCurrentSessionIdCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
     NSString* sessionId = [[Embrace sharedInstance] getCurrentSessionId];
     result(sessionId);
+}
+
+- (void)handleGetSdkVersionCall:(FlutterMethodCall*)call withResult:(FlutterResult)result {
+    // There is currently no way to get the version of the iOS SDK at runtime, it
+    // will be implmented in EMB-13383.
+    result(nil);
 }
 
 - (void)handleNativeError:(FlutterMethodCall*)call withResult:(FlutterResult)result {

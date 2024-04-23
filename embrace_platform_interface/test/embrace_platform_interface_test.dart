@@ -83,7 +83,6 @@ void main() {
         () => embracePlatform.logWarning(
           '__message__ ',
           {},
-          allowScreenshot: true,
         ),
         throwsA(isA<UnimplementedError>()),
       );
@@ -94,7 +93,6 @@ void main() {
         () => embracePlatform.logError(
           '__message__ ',
           {},
-          allowScreenshot: true,
         ),
         throwsA(isA<UnimplementedError>()),
       );
@@ -137,7 +135,6 @@ void main() {
           '__name__',
           '__identifier__',
           {},
-          allowScreenshot: true,
         ),
         throwsA(isA<UnimplementedError>()),
       );

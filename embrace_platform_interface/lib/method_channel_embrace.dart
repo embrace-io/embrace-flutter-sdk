@@ -1,10 +1,10 @@
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/src/sdk_version.dart';
 import 'package:embrace_platform_interface/src/version.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
 import 'package:platform/platform.dart';
 
 /// An implementation of [EmbracePlatform] that uses method channels.
@@ -55,7 +55,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _messageArgName = 'message';
   static const String _nameArgName = 'name';
   static const String _identifierArgName = 'identifier';
-  static const String _allowScreenshotArgName = 'allowScreenshot';
   static const String _userIdArgName = 'identifier';
   static const String _userNameArgName = 'name';
   static const String _userEmailArgName = 'email';
@@ -96,6 +95,10 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _hasNotificationArgName = 'hasNotification';
   static const String _hasDataArgName = 'hasData';
 
+  /// Minimum Embrace Android SDK version compatible with this version of
+  /// the Embrace Flutter SDK
+  static const String minimumAndroidVersion = '6.3.0';
+
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel(_methodChannelName);
@@ -122,6 +125,28 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
     methodChannel.setMethodCallHandler(handleMethodCall);
 
+    // Check android version
+    if (kDebugMode && _platform.isAndroid) {
+      final nativeAndroidVersionStr = await _getNativeSdkVersion();
+      if (nativeAndroidVersionStr != null) {
+        final nativeVersion = SdkVersion(nativeAndroidVersionStr);
+        if (nativeVersion.isLowerThan(minimumAndroidVersion)) {
+          if (kDebugMode) {
+            print('WARNING: You are using Embrace Android SDK '
+                '$nativeAndroidVersionStr which is lower than the minimum '
+                '$minimumAndroidVersion. '
+                'See https://embrace.io/docs/flutter/integration/add-embrace-sdk/#android-setup '
+                'for more information.');
+          }
+          logWarning(
+            'Embrace Android SDK version ($nativeAndroidVersionStr) is lower '
+            'than required minimum $minimumAndroidVersion.',
+            null,
+          );
+        }
+      }
+    }
+
     final success = await methodChannel.invokeMethod<bool?>(
           _attachSdkMethodName,
           {
@@ -134,12 +159,14 @@ class MethodChannelEmbrace extends EmbracePlatform {
     if (!success) {
       if (kDebugMode) {
         print(
-          'The Embrace SDK was not started in Android/iOS native code. '
-          'This likely indicates a problem with your integration. We '
-          'recommend reviewing your Application/AppDelegate classes to ensure '
-          'Embrace.start is called for each native SDK. The Flutter SDK will '
-          'attempt to initialize the native SDK regardless but your '
-          'experience may be degraded by initializing late.',
+          'The Embrace SDK was not started in Android/iOS native code '
+          'and it will be initialized by the Flutter SDK. We '
+          'recommend adding native initialization to report more accurate '
+          'start up times (see '
+          'https://embrace.io/docs/flutter/integration/session-reporting/#add-the-android-sdk-start-call '
+          'for Android and '
+          'https://embrace.io/docs/flutter/integration/session-reporting/#add-the-ios-sdk-start-call '
+          'for iOS).',
         );
       }
     } else {
@@ -211,30 +238,23 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  void logWarning(
-    String message,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+  void logWarning(String message, Map<String, String>? properties) {
     throwIfNotStarted();
     methodChannel.invokeMethod(_logWarningMethodName, {
       _messageArgName: message,
       _propertiesArgName: properties,
-      _allowScreenshotArgName: allowScreenshot,
     });
   }
 
   @override
   void logError(
     String message,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+    Map<String, String>? properties,
+  ) {
     throwIfNotStarted();
     methodChannel.invokeMethod(_logErrorMethodName, {
       _messageArgName: message,
       _propertiesArgName: properties,
-      _allowScreenshotArgName: allowScreenshot,
     });
   }
 
@@ -281,14 +301,12 @@ class MethodChannelEmbrace extends EmbracePlatform {
   void startMoment(
     String name,
     String? identifier,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+    Map<String, String>? properties,
+  ) {
     throwIfNotStarted();
     methodChannel.invokeMethod(_startMomentMethodName, {
       _nameArgName: name,
       _identifierArgName: identifier,
-      _allowScreenshotArgName: allowScreenshot,
       _propertiesArgName: properties
     });
   }
@@ -532,5 +550,12 @@ class MethodChannelEmbrace extends EmbracePlatform {
         );
         break;
     }
+  }
+
+  /// Gets the semver version of the underlying native Embrace SDK
+  Future<String?> _getNativeSdkVersion() async {
+    return methodChannel.invokeMethod<String?>(
+      'getSdkVersion',
+    );
   }
 }

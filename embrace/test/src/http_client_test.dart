@@ -110,9 +110,9 @@ void main() {
           method: any(named: 'method'),
           startTime: any(named: 'startTime'),
           endTime: any(named: 'endTime'),
-          bytesSent: any(named: 'bytesSent'),
-          bytesReceived: 0,
-          statusCode: 0,
+          bytesSent: -1,
+          bytesReceived: -1,
+          statusCode: -1,
           error: errorMessage,
         ),
       ).called(1);

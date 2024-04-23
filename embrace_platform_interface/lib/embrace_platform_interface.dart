@@ -83,9 +83,8 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Log [message] and optional [properties] using the warning log level.
   void logWarning(
     String message,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+    Map<String, String>? properties,
+  ) {
     throw UnimplementedError(
       'logWarning(String, Map<String, String>, bool) has not been implemented',
     );
@@ -94,9 +93,8 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Log [message] and optional [properties] using the error log level.
   void logError(
     String message,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+    Map<String, String>? properties,
+  ) {
     throw UnimplementedError(
       'logError(String, Map<string, String>, bool) has not been implemented',
     );
@@ -134,9 +132,8 @@ abstract class EmbracePlatform extends PlatformInterface {
   void startMoment(
     String name,
     String? identifier,
-    Map<String, String>? properties, {
-    required bool allowScreenshot,
-  }) {
+    Map<String, String>? properties,
+  ) {
     throw UnimplementedError('startMoment(String) has not been implemented');
   }
 

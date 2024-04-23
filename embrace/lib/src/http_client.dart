@@ -1,4 +1,5 @@
 import 'package:embrace/embrace.dart';
+import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:http/http.dart';
 
@@ -43,32 +44,30 @@ class EmbraceHttpClient extends BaseClient {
     try {
       final response = await _internalClient.send(request);
       final end = DateTime.now();
-      final isSuccess = (response.statusCode ~/ 100) == 2;
 
-      // ignore: deprecated_member_use_from_same_package
-      Embrace.instance.logNetworkRequest(
-        url: request.url.toString(),
-        method: method,
-        startTime: start.millisecondsSinceEpoch,
-        endTime: end.millisecondsSinceEpoch,
-        bytesSent: request.contentLength ?? 0,
-        bytesReceived: response.contentLength ?? 0,
-        statusCode: response.statusCode,
-        error: isSuccess ? null : response.reasonPhrase,
+      Embrace.instance.recordNetworkRequest(
+        EmbraceNetworkRequest.fromCompletedRequest(
+          url: request.url.toString(),
+          httpMethod: method,
+          startTime: start.millisecondsSinceEpoch,
+          endTime: end.millisecondsSinceEpoch,
+          bytesSent: request.contentLength ?? 0,
+          bytesReceived: response.contentLength ?? 0,
+          statusCode: response.statusCode,
+        ),
       );
       return response;
     } on ClientException catch (e) {
       final end = DateTime.now();
-      // ignore: deprecated_member_use_from_same_package
-      Embrace.instance.logNetworkRequest(
-        url: request.url.toString(),
-        method: method,
-        startTime: start.millisecondsSinceEpoch,
-        endTime: end.millisecondsSinceEpoch,
-        bytesSent: request.contentLength ?? 0,
-        bytesReceived: 0,
-        statusCode: 0,
-        error: e.message,
+
+      Embrace.instance.recordNetworkRequest(
+        EmbraceNetworkRequest.fromIncompleteRequest(
+          url: request.url.toString(),
+          httpMethod: method,
+          startTime: start.millisecondsSinceEpoch,
+          endTime: end.millisecondsSinceEpoch,
+          errorDetails: e.message,
+        ),
       );
       rethrow;
     }

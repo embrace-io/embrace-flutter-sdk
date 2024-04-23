@@ -1,0 +1,9 @@
+dependency_overrides:
+  embrace:
+    path: ../../embrace
+  embrace_android:
+    path: ../../embrace_android
+  embrace_ios:
+    path: ../../embrace_ios
+  embrace_platform_interface:
+    path: ../../embrace_platform_interface

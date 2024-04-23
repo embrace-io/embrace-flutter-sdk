@@ -95,9 +95,9 @@ void main() {
         method: httpMethod,
         startTime: any(named: 'startTime', that: _isRecentTimestamp),
         endTime: any(named: 'endTime', that: _isRecentTimestamp),
-        bytesSent: 0,
-        bytesReceived: 0,
-        statusCode: 0,
+        bytesSent: -1,
+        bytesReceived: -1,
+        statusCode: -1,
         error: any(named: 'error'),
       ),
     ).called(1);

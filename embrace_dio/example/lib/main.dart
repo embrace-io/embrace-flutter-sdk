@@ -1,3 +1,5 @@
+// ignore_for_file: inference_failure_on_function_invocation
+
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace_dio/embrace_dio.dart';
@@ -61,6 +63,14 @@ class _EmbraceDioMenuState extends State<EmbraceDioMenu> {
                 onPressed: () => sendAndLogRequest(HttpMethod.delete),
                 child: const Text('Delete'),
               ),
+              ElevatedButton(
+                onPressed: error404Request,
+                child: const Text('Error: 404'),
+              ),
+              ElevatedButton(
+                onPressed: invalidDomainRequest,
+                child: const Text('Error: Invalid domain'),
+              ),
             ],
           ),
         ),
@@ -95,5 +105,13 @@ class _EmbraceDioMenuState extends State<EmbraceDioMenu> {
         await _dio.get('https://httpbin.org/get');
         break;
     }
+  }
+
+  Future<void> error404Request() async {
+    await _dio.get('https://httpbin.org/status/404');
+  }
+
+  Future<void> invalidDomainRequest() async {
+    await _dio.get('https://httpbin.invalid');
   }
 }
