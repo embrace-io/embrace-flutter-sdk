@@ -12,6 +12,12 @@ Embrace turns complex mobile data into action. By collecting comprehensive sessi
 
 Drive your aspirations of high-velocity teams and optimal user experiences via the only mobile-first data platform.
 
-## Support and contributing
+## Support & Contributions
+Embrace does not currently accept pull requests from external contributors. If you have a feature suggestion or have spotted something that doesn't look right please reach out in our [Community Slack](https://join.slack.com/t/embraceio-community/shared_invite/zt-ywr4jhzp-DLROX0ndN9a0soHMf6Ksow) for direct, faster assistance.
 
-Embrace does not currently accept pull requests from external contributors. If you have a feature suggestion or have spotted something that doesn't look right, please contact us via flutter@embrace.io and we'll get right back to you.
+## License
+[![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-orange)](./LICENSE.txt)
+
+The Embrace Flutter SDK is published under the Apache-2.0 license.
+
+
