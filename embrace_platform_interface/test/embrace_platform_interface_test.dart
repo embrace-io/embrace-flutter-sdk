@@ -50,13 +50,6 @@ void main() {
       );
     });
 
-    test('endAppStartup throws an UnimplementedError', () {
-      expect(
-        () => embracePlatform.endAppStartup({}),
-        throwsA(isA<UnimplementedError>()),
-      );
-    });
-
     test('logBreadcrumb throws an UnimplementedError', () {
       expect(
         () => embracePlatform.logBreadcrumb('__message__ '),
@@ -110,6 +103,7 @@ void main() {
           statusCode: 200,
           error: '__error__',
           traceId: '__trace__',
+          w3cTraceparent: '__traceParent__',
         ),
         throwsA(isA<UnimplementedError>()),
       );
@@ -125,28 +119,6 @@ void main() {
     test('endView throws an UnimplementedError', () {
       expect(
         () => embracePlatform.endView('__name__'),
-        throwsA(isA<UnimplementedError>()),
-      );
-    });
-
-    test('startMoment throws an UnimplementedError', () {
-      expect(
-        () => embracePlatform.startMoment(
-          '__name__',
-          '__identifier__',
-          {},
-        ),
-        throwsA(isA<UnimplementedError>()),
-      );
-    });
-
-    test('endMoment throws an UnimplementedError', () {
-      expect(
-        () => embracePlatform.endMoment(
-          '__name__',
-          '__identifier__',
-          {},
-        ),
         throwsA(isA<UnimplementedError>()),
       );
     });
@@ -281,13 +253,6 @@ void main() {
       );
     });
 
-    test('getSessionProperties throws an UnimplementedError', () {
-      expect(
-        () => embracePlatform.getSessionProperties(),
-        throwsA(isA<UnimplementedError>()),
-      );
-    });
-
     test('endSession throws an UnimplementedError', () {
       expect(
         () => embracePlatform.endSession(),
@@ -317,6 +282,45 @@ void main() {
     test('getLastRunEndState throws an UnimplementedError', () {
       expect(
         () => embracePlatform.getLastRunEndState(),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('startSpan throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.startSpan('__name__'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('stopSpan throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.stopSpan('__spanId__'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('addSpanEvent throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.addSpanEvent('__spanId__', '__name__'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('addSpanAttribute throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.addSpanAttribute(
+          '__spanId__',
+          '__key__',
+          '__value__',
+        ),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('recordCompletedSpan throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.recordCompletedSpan('__name__', 0, 0),
         throwsA(isA<UnimplementedError>()),
       );
     });

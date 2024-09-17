@@ -91,12 +91,6 @@ Create the Embrace-Info.plist configuration file. You can find your 5-character 
 </plist>
 ```
 
-End the startup moment as close to the point that your UI is ready for use by adding the following to `AppDelegate.m`:
-
-```objective-c
-[[Embrace sharedInstance] endAppStartup];
-```
-
 ## Android setup
 
 In the root-level `build.gradle` Gradle file, add:

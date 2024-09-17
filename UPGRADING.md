@@ -1,5 +1,11 @@
 # Upgrade guide
 
+# Upgrading from 2.x to 3.x
+
+The Moments API has been removed. Please use the [Tracing API](https://embrace.io/docs/flutter/features/tracing/) instead.
+
+The Android and iOS SDKs have been updated to the latest major version. If you have written Android/iOS code as part of your integration you may need to perform additional migrations. Please see the [Android](https://embrace.io/docs/android/upgrading/) and [iOS](https://embrace.io/docs/ios/open-source/upgrade-guide/) upgrading guides for further information.
+
 # Upgrading from 1.5.0 to 2.0.0
 
 The methods mark as deprecated in 1.5.0 have been removed from this release.

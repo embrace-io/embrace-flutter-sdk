@@ -5,6 +5,27 @@ import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+///
+///Categorize the broad reason a Span completed unsuccessfully.
+///
+enum ErrorCode {
+  ///
+  /// An application failure caused the Span to terminate
+  ///
+  failure,
+
+  ///
+  /// The operation tracked by the Span was terminated because the user
+  /// abandoned and canceled it before it can complete successfully.
+  ///
+  abandon,
+
+  ///
+  /// The reason for the unsuccessful termination is unknown
+  ///
+  unknown
+}
+
 /// The interface that implementations of embrace must implement.
 ///
 /// Platform implementations should extend this class
@@ -40,11 +61,6 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Starts the Embrace SDK.
   Future<bool> attachToHostSdk({required bool enableIntegrationTesting}) {
     throw UnimplementedError('attachToHostSdk() has not been implemented.');
-  }
-
-  /// Signifies that application startup has ended.
-  void endAppStartup(Map<String, String>? properties) {
-    throw UnimplementedError('endAppStartup() has not been implemented.');
   }
 
   /// Logs a breadcrumb.
@@ -114,8 +130,19 @@ abstract class EmbracePlatform extends PlatformInterface {
     required int statusCode,
     String? error,
     String? traceId,
+    String? w3cTraceparent,
   }) {
     throw UnimplementedError('logNetworkRequest has not been implemented');
+  }
+
+  /// Generates a W3C Traceparent.
+  Future<String?> generateW3cTraceparent(
+    String? traceId,
+    String? spanId,
+  ) {
+    throw UnimplementedError(
+      'generateW3cTraceparent() has not been implemented',
+    );
   }
 
   /// Signifies that a view has been mounted.
@@ -126,24 +153,6 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Signifies that a view has been unmounted.
   void endView(String name) {
     throw UnimplementedError('endView(String) has not been implemented');
-  }
-
-  /// Start a moment with the provided [name] and optional [identifier].
-  void startMoment(
-    String name,
-    String? identifier,
-    Map<String, String>? properties,
-  ) {
-    throw UnimplementedError('startMoment(String) has not been implemented');
-  }
-
-  /// End a moment with the provided [name] and optional [identifier].
-  void endMoment(
-    String name,
-    String? identifier,
-    Map<String, String>? properties,
-  ) {
-    throw UnimplementedError('endMoment(String) has not been implemented');
   }
 
   /// Query the current device identifier.
@@ -254,15 +263,6 @@ abstract class EmbracePlatform extends PlatformInterface {
     );
   }
 
-  /// Returns all properties for the current session.
-  ///
-  /// Modifications to the returned map will not be applied to the session. To
-  /// modify the session properties, use [addSessionProperty] and
-  /// [removeSessionProperty].
-  Future<Map<String, String>> getSessionProperties() {
-    throw UnimplementedError('getSessionProperties() has not been implemented');
-  }
-
   /// Manually forces the end of the current session and starts a new session.
   ///
   /// Only call this method if you have an application that will stay in the
@@ -290,6 +290,54 @@ abstract class EmbracePlatform extends PlatformInterface {
     bool wasHandled = false,
   }) {
     throw UnimplementedError('logDartError() has not been implemented');
+  }
+
+  /// Create and start a new span. Returns the spanId of the new span
+  /// if both operations are successful, and null if either fails.
+  Future<String?> startSpan(
+    String name, {
+    String? parentSpanId,
+    int? startTimeMs,
+  }) {
+    throw UnimplementedError('startSpan() has not been implemented');
+  }
+
+  /// Stop an active span. Returns true if the span is stopped after the
+  /// method returns and false otherwise.
+  Future<bool> stopSpan(String spanId, {ErrorCode? errorCode, int? endTimeMs}) {
+    throw UnimplementedError('stopSpan() has not been implemented');
+  }
+
+  /// Create and add a Span Event with the given parameters to an active
+  /// span with the given [spanId]. Returns false if the event
+  /// cannot be added.
+  Future<bool> addSpanEvent(
+    String spanId,
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  }) {
+    throw UnimplementedError('addSpanEvent() has not been implemented');
+  }
+
+  /// Add an attribute to an active span with the given [spanId].
+  /// Returns true if the attribute is added and false otherwise.
+  Future<bool> addSpanAttribute(String spanId, String key, String value) {
+    throw UnimplementedError('addSpanAttribute() has not been implemented');
+  }
+
+  /// Record a completed span with the given parameters.
+  /// Returns true if the span is recorded and false otherwise.
+  Future<bool> recordCompletedSpan(
+    String name,
+    int startTimeMs,
+    int endTimeMs, {
+    ErrorCode? errorCode,
+    String? parentSpanId,
+    Map<String, String>? attributes,
+    List<Map<String, dynamic>>? events,
+  }) {
+    throw UnimplementedError('recordCompletedSpan() has not been implemented');
   }
 
   /// Returns the end state of the previous run of the application.

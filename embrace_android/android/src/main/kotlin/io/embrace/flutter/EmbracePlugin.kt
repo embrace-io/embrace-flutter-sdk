@@ -19,19 +19,17 @@ import android.os.Handler
 import android.os.Looper
 import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
+import io.embrace.android.embracesdk.spans.ErrorCode
 
 internal object EmbraceConstants {
     internal const val METHOD_CHANNEL_ID : String = "embrace"
 
     // Method Names
     internal const val ATTACH_SDK_METHOD_NAME : String = "attachToHostSdk"
-    internal const val END_STARTUP_MOMENT_METHOD_NAME : String = "endStartupMoment"
     internal const val ADD_BREADCRUMB_METHOD_NAME : String = "addBreadcrumb"
     internal const val LOG_INFO_METHOD_NAME : String = "logInfo"
     internal const val LOG_WARNING_METHOD_NAME : String = "logWarning"
     internal const val LOG_ERROR_METHOD_NAME : String = "logError"
-    internal const val START_MOMENT_METHOD_NAME : String = "startMoment"
-    internal const val END_MOMENT_METHOD_NAME : String = "endMoment"
     internal const val START_VIEW_METHOD_NAME : String = "startView"
     internal const val END_VIEW_METHOD_NAME : String = "endView"
     internal const val GET_DEVICE_ID_METHOD_NAME : String = "getDeviceId"
@@ -51,16 +49,21 @@ internal object EmbraceConstants {
     internal const val CLEAR_USER_PERSONA_METHOD_NAME : String = "clearUserPersona"
     internal const val CLEAR_ALL_USER_PERSONAS_METHOD_NAME : String = "clearAllUserPersonas"
     internal const val LOG_NETWORK_REQUEST_METHOD_NAME : String = "logNetworkRequest"
+    internal const val GENERATE_W3C_TRACEPARENT_METHOD_NAME : String = "generateW3cTraceparent"
     internal const val LOG_INTERNAL_ERROR_METHOD_NAME : String = "logInternalError"
     internal const val LOG_DART_ERROR_METHOD_NAME : String = "logDartError"
     internal const val LOG_PUSH_NOTIFICATION_METHOD_NAME : String = "logPushNotification"
     internal const val ADD_SESSION_PROPERTY_METHOD_NAME : String = "addSessionProperty"
     internal const val REMOVE_SESSION_PROPERTY_METHOD_NAME : String = "removeSessionProperty"
-    internal const val GET_SESSION_PROPERTIES_METHOD_NAME : String = "getSessionProperties"
     internal const val END_SESSION_METHOD_NAME : String = "endSession"
     internal const val GET_LAST_RUN_END_STATE_METHOD_NAME : String = "getLastRunEndState"
     internal const val GET_CURRENT_SESSION_ID_METHOD_NAME : String = "getCurrentSessionId"
     internal const val GET_SDK_VERSION_METHOD_NAME : String = "getSdkVersion"
+    internal const val START_SPAN_METHOD_NAME : String = "startSpan"
+    internal const val STOP_SPAN_METHOD_NAME : String = "stopSpan"
+    internal const val ADD_SPAN_EVENT_METHOD_NAME : String = "addSpanEvent"
+    internal const val ADD_SPAN_ATTRIBUTE_METHOD_NAME : String = "addSpanAttribute"
+    internal const val RECORD_COMPLETED_SPAN_METHOD_NAME : String = "recordCompletedSpan"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -81,6 +84,7 @@ internal object EmbraceConstants {
     internal const val STATUS_CODE_ARG_NAME : String = "statusCode"
     internal const val ERROR_ARG_NAME : String = "error"
     internal const val TRACE_ID_ARG_NAME : String = "traceId"
+    internal const val W3C_TRACEPARENT_ARG_NAME : String = "traceParent"
     internal const val DETAILS_ARG_NAME : String = "details"
     internal const val EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME : String = "embraceFlutterSdkVersion"
     internal const val DART_RUNTIME_VERSION_ARG_NAME : String = "dartRuntimeVersion"
@@ -101,6 +105,14 @@ internal object EmbraceConstants {
     internal const val PUSH_PRIORITY_ARG_NAME : String = "priority"
     internal const val PUSH_HAS_NOTIFICATION_ARG_NAME : String = "hasNotification"
     internal const val PUSH_HAS_DATA_ARG_NAME : String = "hasData"
+    internal const val PARENT_SPAN_ID_ARG_NAME : String = "parentSpanId"
+    internal const val START_TIME_MS_ARG_NAME : String = "startTimeMs"
+    internal const val SPAN_ID_ARG_NAME : String = "spanId"
+    internal const val ERROR_CODE_ARG_NAME : String = "errorCode"
+    internal const val END_TIME_MS_ARG_NAME : String = "endTimeMs"
+    internal const val TIMESTAMP_MS_ARG_NAME : String = "timestampMs"
+    internal const val ATTRIBUTES_ARG_NAME : String = "attributes"
+    internal const val EVENTS_ARG_NAME : String = "events"
 }
 
 /** EmbracePlugin */
@@ -122,14 +134,12 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         try {
             when (call.method) {
                 EmbraceConstants.ATTACH_SDK_METHOD_NAME -> handleAttachSdkCall(call, result)
-                EmbraceConstants.END_STARTUP_MOMENT_METHOD_NAME -> handleEndStartupMomentCall(call, result)
                 EmbraceConstants.ADD_BREADCRUMB_METHOD_NAME -> handleAddBreadcrumbCall(call, result)
                 EmbraceConstants.LOG_INFO_METHOD_NAME -> handleLogInfoCall(call, result)
                 EmbraceConstants.LOG_WARNING_METHOD_NAME -> handleLogWarningCall(call, result)
                 EmbraceConstants.LOG_ERROR_METHOD_NAME -> handleLogErrorCall(call, result)
                 EmbraceConstants.LOG_NETWORK_REQUEST_METHOD_NAME -> handleLogNetworkRequestCall(call, result)
-                EmbraceConstants.START_MOMENT_METHOD_NAME -> handleStartMomentCall(call, result)
-                EmbraceConstants.END_MOMENT_METHOD_NAME -> handleEndMomentCall(call, result)
+                EmbraceConstants.GENERATE_W3C_TRACEPARENT_METHOD_NAME -> handleGenerateW3cTraceparentCall(call, result)
                 EmbraceConstants.START_VIEW_METHOD_NAME -> handleStartViewCall(call, result)
                 EmbraceConstants.END_VIEW_METHOD_NAME -> handleEndViewCall(call, result)
                 EmbraceConstants.GET_DEVICE_ID_METHOD_NAME -> handleGetDeviceIdCall(call, result)
@@ -150,7 +160,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.CLEAR_ALL_USER_PERSONAS_METHOD_NAME -> handleClearAllUserPersonasCall(call, result)
                 EmbraceConstants.ADD_SESSION_PROPERTY_METHOD_NAME -> handleAddSessionPropertyCall(call, result)
                 EmbraceConstants.REMOVE_SESSION_PROPERTY_METHOD_NAME -> handleRemoveSessionPropertyCall(call, result)
-                EmbraceConstants.GET_SESSION_PROPERTIES_METHOD_NAME -> handleGetSessionPropertiesCall(call, result)
                 EmbraceConstants.END_SESSION_METHOD_NAME -> handleEndSessionCall(call, result)
                 EmbraceConstants.LOG_INTERNAL_ERROR_METHOD_NAME -> handleLogInternalErrorCall(call, result)
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
@@ -158,7 +167,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.GET_LAST_RUN_END_STATE_METHOD_NAME -> handleGetLastRunEndStateCall(call, result)
                 EmbraceConstants.GET_CURRENT_SESSION_ID_METHOD_NAME -> handleGetCurrentSessionIdCall(call, result)
                 EmbraceConstants.GET_SDK_VERSION_METHOD_NAME -> handleGetSdkVersion(call, result)
-
+                EmbraceConstants.START_SPAN_METHOD_NAME -> handleStartSpan(call, result)
+                EmbraceConstants.STOP_SPAN_METHOD_NAME -> handleStopSpan(call, result)
+                EmbraceConstants.ADD_SPAN_EVENT_METHOD_NAME -> handleAddSpanEvent(call, result)
+                EmbraceConstants.ADD_SPAN_ATTRIBUTE_METHOD_NAME -> handleAddSpanAttribute(call, result)
+                EmbraceConstants.RECORD_COMPLETED_SPAN_METHOD_NAME -> handleRecordCompletedSpan(call, result)
                 else -> {
                     result.notImplemented()
                     throw NotImplementedError("EmbracePlugin received a method call for ${call.method} but has no handler for that name.")
@@ -192,8 +205,13 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     /// Returns the argument if it exists, otherwise returns emptyMap
-    private fun MethodCall.getMapArgument(argName: String) : Map<String, Any> {
-        return this.getArgumentOrDefault<Map<String, Any>>(argName, emptyMap<String, Any>())
+    private fun <T> MethodCall.getMapArgument(argName: String) : Map<String, T> {
+        return this.getArgumentOrDefault<Map<String, T>>(argName, emptyMap<String, T>())
+    }
+
+    /// Returns the argument if it exists, otherwise returns emptyList
+    private fun <T> MethodCall.getListArgument(argName: String) : List<T> {
+        return this.getArgumentOrDefault<List<T>>(argName, emptyList<T>())
     }
 
     /// Returns the argument if it exists, otherwise returns 0
@@ -201,8 +219,23 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return this.getArgumentOrDefault<Int>(argName, 0)
     }
 
+    /// Returns the argument if it exists, otherwise returns 0
+    private fun MethodCall.getLongArgument(argName: String, default: Long = 0L) : Long {
+        return this.getArgumentOrDefault<Long>(argName, default)
+    }
+
+    private fun MethodCall.getErrorCode(argName: String): ErrorCode? {
+        val arg = getStringArgument(argName) ?: return null
+        return when (arg.toLowerCase()) {
+            "failure" -> ErrorCode.FAILURE
+            "abandon" -> ErrorCode.USER_ABANDON
+            "unknown" -> ErrorCode.UNKNOWN
+            else -> null
+        }
+    }
+
     private fun handleAttachSdkCall(call: MethodCall, result: Result) : Unit {
-        val started = Embrace.getInstance().isStarted()
+        val started = Embrace.getInstance().isStarted
 
         if (!started) { // fallback to starting the SDK here, but log a warning.
             val enableIntegrationTesting = call.getBooleanArgument(EmbraceConstants.ENABLE_INTEGRATION_TESTING_ARG_NAME)
@@ -218,13 +251,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         // required by Flutter, and passing any Flutter-specific data down to the
         // Android SDK.
         result.success(started)
-        return
-    }
-
-    private fun handleEndStartupMomentCall(call: MethodCall, result: Result) : Unit {
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME) 
-        Embrace.getInstance().endAppStartup(properties)
-        result.success(null)
         return
     }
 
@@ -248,19 +274,19 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleLogInfoCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME) 
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME) 
+        val properties = call.getMapArgument<Any>(EmbraceConstants.PROPERTIES_ARG_NAME) 
         Embrace.getInstance().logMessage(message, Severity.INFO, properties)
     }
 
     private fun handleLogWarningCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME) 
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME)
+        val properties = call.getMapArgument<Any>(EmbraceConstants.PROPERTIES_ARG_NAME)
         Embrace.getInstance().logMessage(message, Severity.WARNING, properties)
     }
 
     private fun handleLogErrorCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME) 
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME)
+        val properties = call.getMapArgument<Any>(EmbraceConstants.PROPERTIES_ARG_NAME)
         Embrace.getInstance().logMessage(message, Severity.ERROR, properties)
     }
 
@@ -274,6 +300,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val statusCode = call.getArgumentOrDefault<Int>(EmbraceConstants.STATUS_CODE_ARG_NAME, 0)
         val error = call.getArgumentOrDefault<String?>(EmbraceConstants.ERROR_ARG_NAME, null)
         val traceId = call.getArgumentOrDefault<String?>(EmbraceConstants.TRACE_ID_ARG_NAME, null)
+        var w3cTraceparent = call.getArgumentOrDefault<String?>(EmbraceConstants.W3C_TRACEPARENT_ARG_NAME, null)
+
+        if (w3cTraceparent == null) {
+            w3cTraceparent = Embrace.getInstance().generateW3cTraceparent()
+        }
 
         val request =
             if (error != null) {
@@ -283,7 +314,10 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                     startTime,
                     endTime,
                     "",
-                    error
+                    error,
+                    null,
+                    w3cTraceparent,
+                    null
                 )
             } else {
                 EmbraceNetworkRequest.fromCompletedRequest(
@@ -294,29 +328,18 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                     bytesSent,
                     bytesReceived,
                     statusCode,
-                    traceId
+                    traceId,
+                    w3cTraceparent,
+                    null
                 )
             }
 
         Embrace.getInstance().recordNetworkRequest(request)
     }
 
-    private fun handleStartMomentCall(call: MethodCall, result: Result) : Unit {
-        val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
-        val identifier = call.getStringArgument(EmbraceConstants.IDENTIFIER_ARG_NAME)
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME)
-        Embrace.getInstance().startMoment(name, identifier, properties)
-        result.success(null)
-        return
-    }
-
-    private fun handleEndMomentCall(call: MethodCall, result: Result) : Unit {
-        val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
-        val identifier = call.getStringArgument(EmbraceConstants.IDENTIFIER_ARG_NAME)
-        val properties = call.getMapArgument(EmbraceConstants.PROPERTIES_ARG_NAME)
-        Embrace.getInstance().endMoment(name, identifier, properties)
-        result.success(null)
-        return
+    private fun handleGenerateW3cTraceparentCall(call: MethodCall, result: Result) : Unit {
+        val w3cTraceparent = Embrace.getInstance().generateW3cTraceparent();
+        result.success(w3cTraceparent)
     }
 
     private fun handleStartViewCall(call: MethodCall, result: Result) : Unit {
@@ -458,12 +481,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return
     }
 
-    private fun handleGetSessionPropertiesCall(call: MethodCall, result: Result) : Unit {
-        val properties = Embrace.getInstance().getSessionProperties()
-        result.success(properties)
-        return
-    }
-
     private fun handleEndSessionCall(call: MethodCall, result: Result) : Unit {
         val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
         Embrace.getInstance().endSession(clearUserInfo)
@@ -510,5 +527,50 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val version = io.embrace.android.embracesdk.BuildConfig::class.java
             .getField("VERSION_NAME")[null] as String
         result.success(version)
+    }
+
+    private fun handleStartSpan(call: MethodCall, result: Result) {
+        val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
+        val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
+        val startTimeMs: Long? = call.argument(EmbraceConstants.START_TIME_MS_ARG_NAME)
+        val spanId = Embrace.getInstance().flutterInternalInterface?.startSpan(name, parentSpanId, startTimeMs)
+        result.success(spanId)
+    }
+
+    private fun handleStopSpan(call: MethodCall, result: Result) {
+        val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
+        val errorCode = call.getErrorCode(EmbraceConstants.ERROR_CODE_ARG_NAME)
+        val endTimeMs: Long? = call.argument(EmbraceConstants.END_TIME_MS_ARG_NAME)
+        val success = Embrace.getInstance().flutterInternalInterface?.stopSpan(spanId, errorCode, endTimeMs)
+        result.success(success)
+    }
+
+    private fun handleAddSpanEvent(call: MethodCall, result: Result) {
+        val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
+        val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
+        val timestampMs: Long? = call.argument(EmbraceConstants.TIMESTAMP_MS_ARG_NAME)
+        val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
+        val success = Embrace.getInstance().flutterInternalInterface?.addSpanEvent(spanId, name, timestampMs, attributes)
+        result.success(success)
+    }
+
+    private fun handleAddSpanAttribute(call: MethodCall, result: Result) {
+        val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
+        val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
+        val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
+        val success = Embrace.getInstance().flutterInternalInterface?.addSpanAttribute(spanId, key, value)
+        result.success(success)
+    }
+
+    private fun handleRecordCompletedSpan(call: MethodCall, result: Result) {
+        val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
+        val startTimeMs = call.getLongArgument(EmbraceConstants.START_TIME_MS_ARG_NAME)
+        val endTimeMs = call.getLongArgument(EmbraceConstants.END_TIME_MS_ARG_NAME)
+        val errorCode = call.getErrorCode(EmbraceConstants.ERROR_CODE_ARG_NAME)
+        val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
+        val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
+        val events = call.getListArgument<Map<String, Any>>(EmbraceConstants.EVENTS_ARG_NAME)
+        val success = Embrace.getInstance().flutterInternalInterface?.recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
+        result.success(success)
     }
 }

@@ -84,14 +84,6 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
-  void endAppStartup({Map<String, String>? properties}) {
-    _runCatching(
-      'endAppStartup',
-      () => _platform.endAppStartup(properties),
-    );
-  }
-
-  @override
   void addBreadcrumb(String message) {
     _runCatching(
       'addBreadcrumb',
@@ -174,7 +166,17 @@ class Embrace implements EmbraceFlutterApi {
         statusCode: request.statusCode,
         error: request.errorDetails,
         traceId: request.traceId,
+        w3cTraceparent: request.w3cTraceparent,
       ),
+    );
+  }
+
+  @override
+  Future<String?> generateW3cTraceparent(String? traceId, String? spanId) {
+    return _runCatchingAndReturn<String?>(
+      'generateW3cTraceparent',
+      () => _platform.generateW3cTraceparent(traceId, spanId),
+      defaultValue: null,
     );
   }
 
@@ -205,34 +207,6 @@ class Embrace implements EmbraceFlutterApi {
         hasNotification: hasNotification,
         hasData: hasData,
       ),
-    );
-  }
-
-  @override
-  void startMoment(
-    String name, {
-    String? identifier,
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'startMoment',
-      () => _platform.startMoment(
-        name,
-        identifier,
-        properties,
-      ),
-    );
-  }
-
-  @override
-  void endMoment(
-    String name, {
-    String? identifier,
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'endMoment',
-      () => _platform.endMoment(name, identifier, properties),
     );
   }
 
@@ -357,15 +331,6 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
-  Future<Map<String, String>> getSessionProperties() async {
-    return _runCatchingAndReturn<Map<String, String>>(
-      'getSessionProperties',
-      () => _platform.getSessionProperties(),
-      defaultValue: const {},
-    );
-  }
-
-  @override
   void endSession({bool clearUserInfo = true}) {
     return _runCatching(
       'endSession',
@@ -418,6 +383,61 @@ class Embrace implements EmbraceFlutterApi {
       defaultValue: null,
     );
   }
+
+  @override
+  Future<EmbraceSpan?> startSpan(
+    String name, {
+    EmbraceSpan? parent,
+    int? startTimeMs,
+  }) async {
+    return _runCatchingAndReturn<EmbraceSpan?>(
+      'startSpan',
+      () async {
+        final id = await _platform.startSpan(
+          name,
+          parentSpanId: parent?.id,
+          startTimeMs: startTimeMs,
+        );
+        if (id != null) {
+          return Future.value(EmbraceSpanImpl(id, _platform));
+        } else {
+          return Future.value();
+        }
+      },
+      defaultValue: null,
+    );
+  }
+
+  @override
+  Future<bool> recordCompletedSpan<T>(
+    String name,
+    int startTimeMs,
+    int endTimeMs, {
+    ErrorCode? errorCode,
+    EmbraceSpan? parent,
+    Map<String, String>? attributes,
+    List<EmbraceSpanEvent>? events,
+  }) async {
+    return _runCatchingAndReturn<bool>(
+      'recordCompletedSpan',
+      () async {
+        return _platform.recordCompletedSpan(
+          name,
+          startTimeMs,
+          endTimeMs,
+          errorCode: errorCode,
+          parentSpanId: parent?.id,
+          attributes: attributes,
+          events: _convertSpanEvents(events),
+        );
+      },
+      defaultValue: false,
+    );
+  }
+}
+
+List<Map<String, dynamic>>? _convertSpanEvents(List<EmbraceSpanEvent>? events) {
+  return events?.map((e) => e.toMap()).toList();
 }
 
 /// Runs an action and catches any exception/error. If an exception/error is
@@ -548,4 +568,40 @@ void _processGlobalZoneError(Object error, StackTrace stack) {
     null,
     errorType: error.runtimeType.toString(),
   );
+}
+
+/// Implementation detail of EmbraceSpan. You should
+/// not use this directly as function signatures may change without warning.
+class EmbraceSpanImpl extends EmbraceSpan {
+  /// Constructor
+  EmbraceSpanImpl(String id, this._platform) : super(id);
+
+  final EmbracePlatform _platform;
+
+  @override
+  Future<bool> stop({
+    ErrorCode? errorCode,
+    int? endTimeMs,
+  }) {
+    return _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
+  }
+
+  @override
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  }) {
+    return _platform.addSpanEvent(
+      id,
+      name,
+      timestampMs: timestampMs,
+      attributes: attributes,
+    );
+  }
+
+  @override
+  Future<bool> addAttribute(String key, String value) {
+    return _platform.addSpanAttribute(id, key, value);
+  }
 }

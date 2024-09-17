@@ -155,7 +155,7 @@ class RenderflexOverflowWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Title', style: Theme.of(context).textTheme.headline4),
+            Text('Title'),
             const Text(
                 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'
                 ' do eiusmod tempor incididunt ut labore et dolore magna '

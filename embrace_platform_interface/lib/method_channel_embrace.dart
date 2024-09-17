@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
@@ -17,11 +19,8 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
   // Method Names
   static const String _attachSdkMethodName = 'attachToHostSdk';
-  static const String _endStartupMomentMethodName = 'endStartupMoment';
   static const String _addBreadcrumbMethodName = 'addBreadcrumb';
   static const String _logPushNotificationMethodName = 'logPushNotification';
-  static const String _startMomentMethodName = 'startMoment';
-  static const String _endMomentMethodName = 'endMoment';
   static const String _startViewMethodName = 'startView';
   static const String _endViewMethodName = 'endView';
   static const String _getDeviceIdMethodName = 'getDeviceId';
@@ -40,21 +39,26 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _clearUserPersonaMethodName = 'clearUserPersona';
   static const String _clearAllUserPersonasMethodName = 'clearAllUserPersonas';
   static const String _logNetworkRequestMethodName = 'logNetworkRequest';
+  static const String _generateW3cTraceparentMethodName =
+      'generateW3cTraceparent';
   static const String _logInternalErrorMethodName = 'logInternalError';
   static const String _logDartErrorMethodName = 'logDartError';
   static const String _addSessionPropertyMethodName = 'addSessionProperty';
   static const String _removeSessionPropertyMethodName =
       'removeSessionProperty';
-  static const String _getSessionPropertiesMethodName = 'getSessionProperties';
   static const String _endSessionMethodName = 'endSession';
   static const String _getLastRunEndStateMethodName = 'getLastRunEndState';
   static const String _getCurrentSessionIdMethodName = 'getCurrentSessionId';
+  static const String _startSpanMethodName = 'startSpan';
+  static const String _stopSpanMethodName = 'stopSpan';
+  static const String _addSpanEventMethodName = 'addSpanEvent';
+  static const String _addSpanAttributeMethodName = 'addSpanAttribute';
+  static const String _recordCompletedSpanMethodName = 'recordCompletedSpan';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
   static const String _messageArgName = 'message';
   static const String _nameArgName = 'name';
-  static const String _identifierArgName = 'identifier';
   static const String _userIdArgName = 'identifier';
   static const String _userNameArgName = 'name';
   static const String _userEmailArgName = 'email';
@@ -70,6 +74,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _statusCodeArgName = 'statusCode';
   static const String _errorArgName = 'error';
   static const String _traceIdArgName = 'traceId';
+  static const String _w3cTraceparentArgName = 'traceParent';
   static const String _detailsArgName = 'details';
   static const String _embraceFlutterSdkVersionArgName =
       'embraceFlutterSdkVersion';
@@ -94,10 +99,18 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _priorityArgName = 'priority';
   static const String _hasNotificationArgName = 'hasNotification';
   static const String _hasDataArgName = 'hasData';
+  static const String _parentSpanIdArgName = 'parentSpanId';
+  static const String _spanIdArgName = 'spanId';
+  static const String _errorCodeArgName = 'errorCode';
+  static const String _startTimeMsArgName = 'startTimeMs';
+  static const String _endTimeMsArgName = 'endTimeMs';
+  static const String _timestampMsArgName = 'timestampMs';
+  static const String _eventsArgName = 'events';
+  static const String _attributesArgName = 'attributes';
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
-  static const String minimumAndroidVersion = '6.3.0';
+  static const String minimumAndroidVersion = '6.13.0';
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -175,15 +188,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
       }
     }
     return success;
-  }
-
-  @override
-  void endAppStartup(Map<String, String>? properties) {
-    throwIfNotStarted();
-    methodChannel.invokeMethod(
-      _endStartupMomentMethodName,
-      {_propertiesArgName: properties},
-    );
   }
 
   @override
@@ -269,6 +273,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     required int statusCode,
     String? error,
     String? traceId,
+    String? w3cTraceparent,
   }) {
     throwIfNotStarted();
 
@@ -282,6 +287,19 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _statusCodeArgName: statusCode,
       _errorArgName: error,
       _traceIdArgName: traceId,
+      _w3cTraceparentArgName: w3cTraceparent,
+    });
+  }
+
+  @override
+  Future<String?> generateW3cTraceparent(
+    String? traceId,
+    String? spanId,
+  ) async {
+    throwIfNotStarted();
+    return methodChannel.invokeMethod(_generateW3cTraceparentMethodName, {
+      _traceIdArgName: traceId,
+      _spanIdArgName: spanId,
     });
   }
 
@@ -295,34 +313,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   void endView(String name) {
     throwIfNotStarted();
     methodChannel.invokeMethod(_endViewMethodName, {_nameArgName: name});
-  }
-
-  @override
-  void startMoment(
-    String name,
-    String? identifier,
-    Map<String, String>? properties,
-  ) {
-    throwIfNotStarted();
-    methodChannel.invokeMethod(_startMomentMethodName, {
-      _nameArgName: name,
-      _identifierArgName: identifier,
-      _propertiesArgName: properties
-    });
-  }
-
-  @override
-  void endMoment(
-    String name,
-    String? identifier,
-    Map<String, String>? properties,
-  ) {
-    throwIfNotStarted();
-    methodChannel.invokeMethod(_endMomentMethodName, {
-      _nameArgName: name,
-      _identifierArgName: identifier,
-      _propertiesArgName: properties
-    });
   }
 
   @override
@@ -460,14 +450,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  Future<Map<String, String>> getSessionProperties() async {
-    throwIfNotStarted();
-    final properties = await methodChannel
-        .invokeMapMethod<String, String>(_getSessionPropertiesMethodName);
-    return properties ?? const {};
-  }
-
-  @override
   void logInternalError(String message, String details) {
     throwIfNotStarted();
     methodChannel.invokeMethod(
@@ -530,6 +512,82 @@ class MethodChannelEmbrace extends EmbracePlatform {
     return methodChannel.invokeMethod<String?>(_getCurrentSessionIdMethodName);
   }
   // lib/method_channel_embrace.dart: 364, 373, 378, 380, 390
+
+  @override
+  Future<String?> startSpan(
+    String name, {
+    String? parentSpanId,
+    int? startTimeMs,
+  }) async {
+    throwIfNotStarted();
+    return methodChannel.invokeMethod(_startSpanMethodName, {
+      _nameArgName: name,
+      _parentSpanIdArgName: parentSpanId,
+      _startTimeMsArgName: startTimeMs,
+    });
+  }
+
+  @override
+  Future<bool> stopSpan(
+    String spanId, {
+    ErrorCode? errorCode,
+    int? endTimeMs,
+  }) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_stopSpanMethodName, {
+      _spanIdArgName: spanId,
+      _errorCodeArgName: errorCode?.name,
+      _endTimeMsArgName: endTimeMs,
+    }) as bool;
+  }
+
+  @override
+  Future<bool> addSpanEvent(
+    String spanId,
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  }) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_addSpanEventMethodName, {
+      _spanIdArgName: spanId,
+      _nameArgName: name,
+      _timestampMsArgName: timestampMs,
+      _attributesArgName: attributes
+    }) as bool;
+  }
+
+  @override
+  Future<bool> addSpanAttribute(String spanId, String key, String value) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_addSpanAttributeMethodName, {
+      _spanIdArgName: spanId,
+      _keyArgName: key,
+      _valueArgName: value
+    }) as bool;
+  }
+
+  @override
+  Future<bool> recordCompletedSpan(
+    String name,
+    int startTimeMs,
+    int endTimeMs, {
+    ErrorCode? errorCode,
+    String? parentSpanId,
+    Map<String, String>? attributes,
+    List<Map<String, dynamic>>? events,
+  }) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_recordCompletedSpanMethodName, {
+      _nameArgName: name,
+      _startTimeMsArgName: startTimeMs,
+      _endTimeMsArgName: endTimeMs,
+      _errorCodeArgName: errorCode?.name,
+      _parentSpanIdArgName: parentSpanId,
+      _attributesArgName: attributes,
+      _eventsArgName: events,
+    }) as bool;
+  }
 
   /// Throws a [StateError] if the SDK has not been started.
   void throwIfNotStarted() {

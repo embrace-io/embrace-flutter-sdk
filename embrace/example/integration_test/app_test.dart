@@ -8,8 +8,8 @@ void main() {
   group('E2E', () {
     testWidgets('smokeTest', (tester) async {
       // checks the example app runs
-      app.main();
-      await tester.pumpAndSettle();
+      await app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 3));
       await tester.ensureVisible(find.text('Errors'));
     });
   });

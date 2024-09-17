@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
@@ -34,8 +36,29 @@ class _PushNotificationsDemoState extends State<PushNotificationsDemo> {
               controller: _body,
             ),
             ElevatedButton(
-              onPressed: () =>
-                  Embrace.instance.logPushNotification(_title.text, _body.text),
+              onPressed: () => {
+                if (Platform.isIOS)
+                  {
+                    Embrace.instance.logPushNotification(
+                      _title.text,
+                      _body.text,
+                      subtitle: 'my_subtitle',
+                      badge: 5,
+                      category: 'my_category',
+                    ),
+                  }
+                else if (Platform.isAndroid)
+                  {
+                    Embrace.instance.logPushNotification(
+                      _title.text,
+                      _body.text,
+                      from: 'my_from',
+                      messageId: 'my_message_id',
+                      priority: 5,
+                      hasNotification: true,
+                    ),
+                  },
+              },
               child: const Text('Log Push Notification'),
             ),
           ],

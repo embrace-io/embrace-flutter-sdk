@@ -10,12 +10,13 @@ class CurrentSessionDemo extends StatefulWidget {
 
 class _CurrentSessionDemoState extends State<CurrentSessionDemo> {
   String? _currentsessionId;
+  String? _currentDeviceId;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateSessionId();
+      _updateIds();
     });
   }
 
@@ -29,7 +30,11 @@ class _CurrentSessionDemoState extends State<CurrentSessionDemo> {
           child: Column(
             children: <Widget>[
               Text(
-                  "Current session id is:\n${_currentsessionId ?? 'No current session id'}"),
+                "Current session id is:\n${_currentsessionId ?? 'No current session id'}",
+              ),
+              Text(
+                "Current device id is:\n${_currentDeviceId ?? 'No current device id'}",
+              ),
               ElevatedButton(
                 onPressed: _endSession,
                 child: const Text('End session'),
@@ -41,16 +46,22 @@ class _CurrentSessionDemoState extends State<CurrentSessionDemo> {
     );
   }
 
-  void _updateSessionId() {
+  void _updateIds() {
     Embrace.instance.getCurrentSessionId().then((sessionId) {
       setState(() {
         _currentsessionId = sessionId;
+      });
+    });
+
+    Embrace.instance.getDeviceId().then((deviceId) {
+      setState(() {
+        _currentDeviceId = deviceId;
       });
     });
   }
 
   void _endSession() {
     Embrace.instance.endSession();
-    _updateSessionId();
+    _updateIds();
   }
 }

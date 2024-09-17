@@ -1,3 +1,4 @@
+import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
@@ -29,7 +30,15 @@ void main() {
             case 'attachToHostSdk':
               return true;
             case 'getSdkVersion':
-              return '6.3.0';
+              return '6.13.0';
+            case 'stopSpan':
+              return true;
+            case 'addSpanEvent':
+              return true;
+            case 'addSpanAttribute':
+              return true;
+            case 'recordCompletedSpan':
+              return true;
             default:
               return null;
           }
@@ -93,33 +102,6 @@ void main() {
             ),
           ),
         );
-      });
-    });
-
-    group('endAppStartup', () {
-      const properties = {'key': 'value'};
-      test('invokes endStartupMoment method in the method channel', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
-        methodChannelEmbrace.endAppStartup(properties);
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'endStartupMoment',
-              arguments: {'properties': properties},
-            ),
-          ),
-        );
-      });
-
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.endAppStartup(properties),
-          throwsA(isA<StateError>()),
-        );
-        expect(log, isEmpty);
       });
     });
 
@@ -297,6 +279,7 @@ void main() {
       const statusCode = 200;
       const error = '__error__';
       const traceId = '__trace__';
+      const w3cTraceparent = '__traceParent__';
       test('invokes logNetworkRequest method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
@@ -311,6 +294,7 @@ void main() {
           statusCode: statusCode,
           error: error,
           traceId: traceId,
+          w3cTraceparent: w3cTraceparent,
         );
         expect(
           log,
@@ -327,6 +311,7 @@ void main() {
                 'statusCode': statusCode,
                 'error': error,
                 'traceId': traceId,
+                'traceParent': w3cTraceparent,
               },
             ),
           ),
@@ -345,6 +330,7 @@ void main() {
             statusCode: statusCode,
             error: error,
             traceId: traceId,
+            w3cTraceparent: w3cTraceparent,
           ),
           throwsA(isA<StateError>()),
         );
@@ -394,88 +380,6 @@ void main() {
       test('throws StateError if not started', () {
         expect(
           () => methodChannelEmbrace.endView(viewName),
-          throwsA(isA<StateError>()),
-        );
-        expect(log, isEmpty);
-      });
-    });
-
-    group('startMoment', () {
-      const name = '__name__';
-      const identifier = '__identifier__';
-      const properties = {'key': 'value'};
-      test('invokes startMoment method in the method channel', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
-        methodChannelEmbrace.startMoment(
-          name,
-          identifier,
-          properties,
-        );
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'startMoment',
-              arguments: {
-                'name': name,
-                'identifier': identifier,
-                'properties': properties,
-              },
-            ),
-          ),
-        );
-      });
-
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.startMoment(
-            name,
-            identifier,
-            properties,
-          ),
-          throwsA(isA<StateError>()),
-        );
-        expect(log, isEmpty);
-      });
-    });
-
-    group('endMoment', () {
-      const name = '__name__';
-      const identifier = '__identifier__';
-      const properties = {'key': 'value'};
-      test('invokes endMoment method in the method channel', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
-        methodChannelEmbrace.endMoment(
-          name,
-          identifier,
-          properties,
-        );
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'endMoment',
-              arguments: {
-                'name': name,
-                'identifier': identifier,
-                'properties': properties,
-              },
-            ),
-          ),
-        );
-      });
-
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.endMoment(
-            name,
-            identifier,
-            properties,
-          ),
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);
@@ -955,30 +859,6 @@ void main() {
       });
     });
 
-    group('getSessionProperties', () {
-      test('invokes getSessionProperties method in the method channel',
-          () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
-        await methodChannelEmbrace.getSessionProperties();
-        expect(
-          log,
-          contains(
-            isMethodCall('getSessionProperties', arguments: null),
-          ),
-        );
-      });
-
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.getSessionProperties(),
-          throwsA(isA<StateError>()),
-        );
-        expect(log, isEmpty);
-      });
-    });
-
     group('endSession', () {
       test('invokes endSession method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
@@ -1155,6 +1035,230 @@ void main() {
             ),
           ),
         );
+      });
+    });
+
+    group('startSpan', () {
+      const name = '__name__';
+      const parentSpanId = '__parentSpanId__';
+      const startTimeMs = 1234;
+      test('invokes startSpan method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.startSpan(
+          name,
+          parentSpanId: parentSpanId,
+          startTimeMs: startTimeMs,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'startSpan',
+              arguments: {
+                'name': name,
+                'parentSpanId': parentSpanId,
+                'startTimeMs': startTimeMs,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.startSpan(
+            name,
+            parentSpanId: parentSpanId,
+            startTimeMs: startTimeMs,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('stopSpan', () {
+      const spanId = '__spanId__';
+      const errorCode = ErrorCode.unknown;
+      const endTimeMs = 4321;
+
+      test('invokes stopSpan method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.stopSpan(
+          spanId,
+          errorCode: errorCode,
+          endTimeMs: endTimeMs,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'stopSpan',
+              arguments: {
+                'spanId': spanId,
+                'errorCode': errorCode.name,
+                'endTimeMs': endTimeMs,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.stopSpan(
+            spanId,
+            errorCode: ErrorCode.unknown,
+            endTimeMs: endTimeMs,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('addSpanEvent', () {
+      const spanId = '__spanId__';
+      const name = '__name__';
+      const timestampMs = 1234;
+      const attributes = {'key': 'value'};
+
+      test('invokes addSpanEvent method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.addSpanEvent(
+          spanId,
+          name,
+          timestampMs: timestampMs,
+          attributes: attributes,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addSpanEvent',
+              arguments: {
+                'spanId': spanId,
+                'name': name,
+                'timestampMs': timestampMs,
+                'attributes': attributes,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.addSpanEvent(
+            spanId,
+            name,
+            timestampMs: timestampMs,
+            attributes: attributes,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('addSpanAttribute', () {
+      const spanId = '__spanId__';
+      const key = '__key__';
+      const value = '__value__';
+
+      test('invokes addSpanAttribute method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.addSpanAttribute(spanId, key, value);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addSpanAttribute',
+              arguments: {
+                'spanId': spanId,
+                'key': key,
+                'value': value,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.addSpanAttribute(spanId, key, value),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('recordCompletedSpan', () {
+      const name = '__name__';
+      const startTimeMs = 1234;
+      const endTimeMs = 4321;
+      const errorCode = ErrorCode.abandon;
+      const parentSpanId = '__parentSpanId__';
+      const attributes = {'key': 'value'};
+      const events = [
+        {'key': 'value'}
+      ];
+
+      test('invokes recordCompletedSpan method in the method channel',
+          () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.recordCompletedSpan(
+          name,
+          startTimeMs,
+          endTimeMs,
+          errorCode: errorCode,
+          parentSpanId: parentSpanId,
+          attributes: attributes,
+          events: events,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'recordCompletedSpan',
+              arguments: {
+                'name': name,
+                'startTimeMs': startTimeMs,
+                'endTimeMs': endTimeMs,
+                'errorCode': errorCode.name,
+                'parentSpanId': parentSpanId,
+                'attributes': attributes,
+                'events': events,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.recordCompletedSpan(
+            name,
+            startTimeMs,
+            endTimeMs,
+            errorCode: errorCode,
+            parentSpanId: parentSpanId,
+            attributes: attributes,
+            events: events,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
       });
     });
   });

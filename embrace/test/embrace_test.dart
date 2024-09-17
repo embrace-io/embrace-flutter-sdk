@@ -193,29 +193,6 @@ void main() {
       });
     });
 
-    group('endAppStartup', () {
-      const properties = {'key': 'value'};
-      test('logs an error when platform implementation exists', () {
-        Embrace.instance.endAppStartup(properties: properties);
-        verify(() => embracePlatform.endAppStartup(properties)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.endAppStartup(properties))
-            .thenThrow(MockError());
-        Embrace.instance.endAppStartup(properties: properties);
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'endAppStartup',
-            errorMessage,
-          ),
-        ).called(1);
-      });
-    });
-
     group('addBreadcrumb', () {
       const message = '__message__';
       test('adds a breadcrumb when platform implementation exists', () {
@@ -490,6 +467,7 @@ void main() {
       const statusCode = 200;
       const error = '__error__';
       const traceId = '__traceId__';
+      const w3cTraceparent = '__traceParent__';
       test('record completed request', () {
         final request = EmbraceNetworkRequest.fromCompletedRequest(
           url: url,
@@ -499,6 +477,7 @@ void main() {
           bytesSent: bytesSent,
           bytesReceived: bytesReceived,
           statusCode: statusCode,
+          w3cTraceparent: w3cTraceparent,
         );
         Embrace.instance.recordNetworkRequest(request);
         verify(
@@ -510,6 +489,7 @@ void main() {
             bytesSent: bytesSent,
             bytesReceived: bytesReceived,
             statusCode: statusCode,
+            w3cTraceparent: w3cTraceparent,
           ),
         ).called(1);
       });
@@ -522,6 +502,7 @@ void main() {
           endTime: endTime,
           errorDetails: error,
           traceId: traceId,
+          w3cTraceparent: w3cTraceparent,
         );
         Embrace.instance.recordNetworkRequest(request);
         verify(
@@ -535,6 +516,7 @@ void main() {
             statusCode: -1,
             error: error,
             traceId: traceId,
+            w3cTraceparent: w3cTraceparent,
           ),
         ).called(1);
       });
@@ -551,6 +533,7 @@ void main() {
             bytesSent: bytesSent,
             bytesReceived: bytesReceived,
             statusCode: statusCode,
+            w3cTraceparent: w3cTraceparent,
           ),
         ).thenThrow(MockError());
 
@@ -562,6 +545,7 @@ void main() {
           bytesSent: bytesSent,
           bytesReceived: bytesReceived,
           statusCode: statusCode,
+          w3cTraceparent: w3cTraceparent,
         );
         Embrace.instance.recordNetworkRequest(request);
 
@@ -574,10 +558,37 @@ void main() {
       });
     });
 
+    group('generateW3cTraceparent', () {
+      const traceId = '__traceId__';
+      const spanId = '__spanId__';
+      test('generates traceparent when platform implementation exists', () {
+        Embrace.instance.generateW3cTraceparent(traceId, spanId);
+        verify(
+          () => embracePlatform.generateW3cTraceparent(traceId, spanId),
+        ).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(
+          () => embracePlatform.generateW3cTraceparent(traceId, spanId),
+        ).thenThrow(MockError());
+        Embrace.instance.generateW3cTraceparent(traceId, spanId);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'generateW3cTraceparent',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
     group('logDartError', () {
       var stackStr = '';
       test(
-          'starts the specified moment when '
+          'logs dart error when '
           'platform implementation exists', () {
         try {
           throw Exception('Test exception');
@@ -605,7 +616,7 @@ void main() {
     group('logHandledDartError', () {
       var stackStr = '';
       test(
-          'starts the specified moment when '
+          'logs handled dart error when '
           'platform implementation exists', () {
         try {
           throw Exception('Test exception');
@@ -624,96 +635,6 @@ void main() {
             null,
             errorType: '_Exception',
             wasHandled: true,
-          ),
-        ).called(1);
-      });
-    });
-
-    group('startMoment', () {
-      const momentName = '__momentName__';
-      const identifier = '__identifier__';
-      const properties = {'key': 'value'};
-      test(
-          'starts the specified moment when '
-          'platform implementation exists', () {
-        Embrace.instance.startMoment(
-          momentName,
-          identifier: identifier,
-          properties: properties,
-        );
-        verify(
-          () => embracePlatform.startMoment(
-            momentName,
-            identifier,
-            properties,
-          ),
-        ).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(
-          () => embracePlatform.startMoment(
-            momentName,
-            identifier,
-            properties,
-          ),
-        ).thenThrow(MockError());
-        Embrace.instance.startMoment(
-          momentName,
-          identifier: identifier,
-          properties: properties,
-        );
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'startMoment',
-            errorMessage,
-          ),
-        ).called(1);
-      });
-    });
-
-    group('endMoment', () {
-      const momentName = '__momentName__';
-      const identifier = '__identifier__';
-      const properties = {'key': 'value'};
-      test('ends the specified moment when platform implementation exists', () {
-        Embrace.instance.endMoment(
-          momentName,
-          identifier: identifier,
-          properties: properties,
-        );
-        verify(
-          () => embracePlatform.endMoment(
-            momentName,
-            identifier,
-            properties,
-          ),
-        ).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(
-          () => embracePlatform.endMoment(
-            momentName,
-            identifier,
-            properties,
-          ),
-        ).thenThrow(MockError());
-        Embrace.instance.endMoment(
-          momentName,
-          identifier: identifier,
-          properties: properties,
-        );
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'endMoment',
-            errorMessage,
           ),
         ).called(1);
       });
@@ -1067,32 +988,6 @@ void main() {
       });
     });
 
-    group('getSessionProperties', () {
-      test('getSessionProperties when platform implementation exists', () {
-        Embrace.instance.getSessionProperties();
-        verify(
-          () => embracePlatform.getSessionProperties(),
-        ).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.getSessionProperties())
-            .thenThrow(MockError());
-        final properties = Embrace.instance.getSessionProperties();
-
-        expect(properties, isA<Future<Map<String, String>>>());
-
-        verify(
-          () => embracePlatform.logInternalError(
-            'getSessionProperties',
-            errorMessage,
-          ),
-        ).called(1);
-      });
-    });
-
     group('endSession', () {
       test('ends session when platform implementation exists', () {
         Embrace.instance.endSession();
@@ -1184,6 +1079,164 @@ void main() {
             'getCurrentSessionId',
             errorMessage,
           ),
+        ).called(1);
+      });
+    });
+
+    group('startSpan', () {
+      const id = 'my-span-id';
+      test('starts span when platform implementation exists', () async {
+        final obj = await Embrace.instance.startSpan(id);
+        verify(
+          () => embracePlatform.startSpan(id),
+        ).called(1);
+
+        expect(obj, isA<EmbraceSpan?>());
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () async {
+        when(() => embracePlatform.startSpan(id)).thenThrow(MockError());
+        await Embrace.instance.startSpan(id);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'startSpan',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('recordCompletedSpan', () {
+      const id = 'my-span-id';
+      const startTimeMs = 100;
+      const endTimeMs = 200;
+      test('records completed span when platform implementation exists',
+          () async {
+        when(
+          () => embracePlatform.recordCompletedSpan(
+            id,
+            startTimeMs,
+            endTimeMs,
+            events: [],
+          ),
+        ).thenAnswer((_) => Future.value(true));
+        await Embrace.instance
+            .recordCompletedSpan<bool>(id, startTimeMs, endTimeMs);
+        verify(
+          () => embracePlatform.recordCompletedSpan(id, startTimeMs, endTimeMs),
+        ).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () async {
+        when(
+          () => embracePlatform.recordCompletedSpan(
+            id,
+            startTimeMs,
+            endTimeMs,
+            events: [],
+          ),
+        ).thenThrow(MockError());
+        await Embrace.instance
+            .recordCompletedSpan<bool>(id, startTimeMs, endTimeMs, events: []);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'recordCompletedSpan',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('convert EmbraceSpanEvent', () {
+      test('convert EmbraceSpanEvent', () async {
+        final event = EmbraceSpanEvent(
+          name: 'name',
+          timestampMs: 100,
+          attributes: {'key': 'value'},
+        );
+        final map = event.toMap();
+        expect(
+          map,
+          equals({
+            'name': 'name',
+            'timestampMs': 100,
+            'attributes': {'key': 'value'},
+          }),
+        );
+      });
+    });
+
+    group('EmbraceSpanImpl', () {
+      const id = '__id__';
+
+      test('propagate stop', () async {
+        const errorCode = ErrorCode.abandon;
+        const endTimeMs = 100;
+        final event = EmbraceSpanImpl(id, embracePlatform);
+        when(
+          () => embracePlatform.stopSpan(
+            id,
+            errorCode: errorCode,
+            endTimeMs: endTimeMs,
+          ),
+        ).thenAnswer((_) => Future.value(true));
+
+        await event.stop(errorCode: errorCode, endTimeMs: endTimeMs);
+        verify(
+          () => embracePlatform.stopSpan(
+            id,
+            errorCode: errorCode,
+            endTimeMs: endTimeMs,
+          ),
+        ).called(1);
+      });
+
+      test('propagate add event', () async {
+        const name = 'name';
+        const timestamp = 100;
+        const attributes = {'key': 'value'};
+        final event = EmbraceSpanImpl(id, embracePlatform);
+        when(
+          () => embracePlatform.addSpanEvent(
+            id,
+            name,
+            timestampMs: timestamp,
+            attributes: attributes,
+          ),
+        ).thenAnswer((_) => Future.value(true));
+
+        await event.addEvent(
+          name,
+          timestampMs: timestamp,
+          attributes: attributes,
+        );
+        verify(
+          () => embracePlatform.addSpanEvent(
+            id,
+            name,
+            timestampMs: timestamp,
+            attributes: attributes,
+          ),
+        ).called(1);
+      });
+
+      test('propagate add attribute', () async {
+        const key = 'key';
+        const value = 'value';
+        final event = EmbraceSpanImpl(id, embracePlatform);
+        when(
+          () => embracePlatform.addSpanAttribute(id, key, value),
+        ).thenAnswer((_) => Future.value(true));
+
+        await event.addAttribute(key, value);
+        verify(
+          () => embracePlatform.addSpanAttribute(id, key, value),
         ).called(1);
       });
     });

@@ -29,15 +29,18 @@ class _LogsDemoState extends State<LogsDemo> {
               controller: _controller,
             ),
             ElevatedButton(
-              onPressed: () => Embrace.instance.logInfo(_controller.text),
+              onPressed: () => Embrace.instance
+                  .logInfo(_controller.text, properties: {'key': 'value'}),
               child: const Text('Log Info'),
             ),
             ElevatedButton(
-              onPressed: () => Embrace.instance.logWarning(_controller.text),
+              onPressed: () => Embrace.instance
+                  .logWarning(_controller.text, properties: {'key': 'value'}),
               child: const Text('Log Warning'),
             ),
             ElevatedButton(
-              onPressed: () => Embrace.instance.logError(_controller.text),
+              onPressed: () => Embrace.instance
+                  .logError(_controller.text, properties: {'key': 'value'}),
               child: const Text('Log Error'),
             ),
           ],

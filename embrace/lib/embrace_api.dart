@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 
@@ -44,7 +45,7 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
 /// not use EmbraceApi directly or implement it in your own custom classes,
 /// as new functions may be added in future. Use the Embrace class instead.
 abstract class EmbraceApi
-    implements LogsApi, MomentsApi, NetworkRequestApi, SessionApi, UserApi {
+    implements LogsApi, NetworkRequestApi, SessionApi, TracingApi, UserApi {
   /// Adds a breadcrumb.
   ///
   /// Breadcrumbs track a user's journey through the application and will be
@@ -122,32 +123,6 @@ abstract class LogsApi {
   });
 }
 
-/// Declares the functions that consist of Embrace's public API. You should
-/// not use MomentsApi directly or implement it in your own custom classes,
-/// as new functions may be added in future. Use the Embrace class instead.
-abstract class MomentsApi {
-  /// Starts a moment.
-  ///
-  /// Moments are used for encapsulating particular activities within the app,
-  /// such as the user adding an item to their shopping cart. The length of time
-  /// a moment takes to execute is recorded.
-  void startMoment(
-    String name, {
-    String? identifier,
-    Map<String, String>? properties,
-  });
-
-  /// Signals the end of a moment with the specified [name] and [identifier].
-  void endMoment(
-    String name, {
-    String? identifier,
-    Map<String, String>? properties,
-  });
-
-  /// Signals that the app has completed startup.
-  void endAppStartup({Map<String, String>? properties});
-}
-
 /// This class is used to create manually-recorded network requests.
 class EmbraceNetworkRequest {
   EmbraceNetworkRequest._({
@@ -160,6 +135,7 @@ class EmbraceNetworkRequest {
     required this.statusCode,
     required this.errorDetails,
     this.traceId,
+    this.w3cTraceparent,
   });
 
   /// Network request URL.
@@ -189,6 +165,9 @@ class EmbraceNetworkRequest {
   /// Optional trace ID for distributed tracing
   final String? traceId;
 
+  /// Optional w3c trace parent for network span forwarding
+  final String? w3cTraceparent;
+
   /// Construct a new [EmbraceNetworkRequest] instance where a HTTP response
   /// was not returned.
   /// If a response was returned, use [fromCompletedRequest] instead.
@@ -197,6 +176,10 @@ class EmbraceNetworkRequest {
   /// - [httpMethod]: the HTTP method of the request.
   /// - [startTime]: the start time of the request.
   /// - [endTime]: the end time of the request.
+  /// - [errorDetails]: string describing the error details
+  /// - [traceId]: the trace ID of the request, used for distributed tracing.
+  /// - [w3cTraceparent]: a w3c trace parent of the request, used to
+  /// enable network span forwarding
   /// Returns a new [EmbraceNetworkRequest] instance.
   // ignore: prefer_constructors_over_static_methods
   static EmbraceNetworkRequest fromIncompleteRequest({
@@ -206,6 +189,7 @@ class EmbraceNetworkRequest {
     required int endTime,
     required String errorDetails,
     String? traceId,
+    String? w3cTraceparent,
   }) {
     return EmbraceNetworkRequest._(
       url: url,
@@ -217,6 +201,7 @@ class EmbraceNetworkRequest {
       statusCode: -1,
       traceId: traceId,
       errorDetails: errorDetails,
+      w3cTraceparent: w3cTraceparent,
     );
   }
 
@@ -232,6 +217,8 @@ class EmbraceNetworkRequest {
   /// - [bytesReceived]: the number of bytes received.
   /// - [statusCode]: the status code of the response.
   /// - [traceId]: the trace ID of the request, used for distributed tracing.
+  /// - [w3cTraceparent]: a w3c trace parent of the request, used to
+  /// enable network span forwarding
   /// Returns a new [EmbraceNetworkRequest] instance.
   // ignore: prefer_constructors_over_static_methods
   static EmbraceNetworkRequest fromCompletedRequest({
@@ -243,6 +230,7 @@ class EmbraceNetworkRequest {
     required int bytesReceived,
     required int statusCode,
     String? traceId,
+    String? w3cTraceparent,
   }) {
     return EmbraceNetworkRequest._(
       url: url,
@@ -254,6 +242,7 @@ class EmbraceNetworkRequest {
       statusCode: statusCode,
       errorDetails: null,
       traceId: traceId,
+      w3cTraceparent: w3cTraceparent,
     );
   }
 }
@@ -266,6 +255,12 @@ class EmbraceNetworkRequest {
 abstract class NetworkRequestApi {
   /// Records a network request to Embrace.
   void recordNetworkRequest(EmbraceNetworkRequest request);
+
+  /// Generates a W3C traceparent header for network span forwarding, or null
+  /// if this has not been enabled.
+  /// For iOS, it's required to pass in the spanId and traceId of the network
+  /// span that is being forwarded. For Android, these parameters are ignored.
+  Future<String?> generateW3cTraceparent(String? traceId, String? spanId);
 }
 
 /// Declares the functions that consist of Embrace's public API. You should
@@ -285,13 +280,6 @@ abstract class SessionApi {
   /// If the property was permanent, it will be removed from all future
   /// sessions.
   void removeSessionProperty(String key);
-
-  /// Returns all properties for the current session.
-  ///
-  /// Modifications to the returned map will not be applied to the session. To
-  /// modify the session properties, use [addSessionProperty] and
-  /// [removeSessionProperty].
-  Future<Map<String, String>> getSessionProperties();
 
   /// Manually forces the end of the current session and starts a new session.
   ///
@@ -356,4 +344,117 @@ abstract class UserApi {
 
   /// Clears all custom user personas from the user.
   void clearAllUserPersonas();
+}
+
+/// Declares the functions that consist of Embrace's public API. You should
+/// not use TracingApi directly or implement it in your own custom classes,
+/// as new functions may be added in future. Use the Embrace class instead.
+abstract class TracingApi {
+  ///
+  /// Create and start a new span. Returns a reference to the new span on
+  /// success and null on failure.
+  ///
+  Future<EmbraceSpan?> startSpan(
+    String name, {
+    EmbraceSpan? parent,
+    int? startTimeMs,
+  }) {
+    throw UnimplementedError('Not implemented yet.');
+  }
+
+  /// Record a span with the given name, error code, parent, start time, and
+  /// end time (epoch time in milliseconds). Passing in a parent
+  /// that is null will result in a new trace with the new span as its root.
+  /// A non-null [ErrorCode] can be passed in to denote the
+  /// operation the span represents was ended unsuccessfully under the stated
+  /// circumstances. You can also pass in a [Map]
+  /// with [String] keys and values to be used as the attributes of the recorded
+  /// span, or a [List] of [EmbraceSpanEvent] to be used
+  /// as the events of the recorded span.
+  ///
+  Future<bool> recordCompletedSpan<T>(
+    String name,
+    int startTimeMs,
+    int endTimeMs, {
+    ErrorCode? errorCode,
+    EmbraceSpan? parent,
+    Map<String, String>? attributes,
+    List<EmbraceSpanEvent>? events,
+  }) {
+    throw UnimplementedError('Not implemented yet.');
+  }
+}
+
+/// Represents a Span that can be started and stopped with the appropriate
+/// [ErrorCode] if applicable. This wraps the OpenTelemetry Span
+/// by adding an additional layer for local validation
+///
+abstract class EmbraceSpan {
+  /// constructor
+  EmbraceSpan(this.id);
+
+  /// ID for this span
+  final String id;
+
+  ///
+  /// Stop an active span. Returns true if the span is stopped after the method
+  /// returns and false otherwise.
+  ///
+  Future<bool> stop({
+    ErrorCode? errorCode,
+    int? endTimeMs,
+  });
+
+  ///
+  /// Add an [EmbraceSpanEvent] with the given [name]. If [timestampMs] is null,
+  /// the current time will be used. Optionally, the specific
+  /// time of the event and a set of attributes can be passed in associated with
+  /// the event. Returns false if the Event was definitely not
+  /// successfully added. Returns true if the validation at the Embrace level
+  /// has passed and the call to add the Event at the
+  /// OpenTelemetry level was successful.
+  ///
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  });
+
+  ///
+  /// Add the given key-value pair as an Attribute to the Event. Returns false
+  /// if the Attribute was definitely not added. Returns true
+  /// if the validation at the Embrace Level has passed and the call to add the
+  /// Attribute at the OpenTelemetry level was successful.
+  ///
+  Future<bool> addAttribute(String key, String value);
+}
+
+///
+/// Represents an Event in an [EmbraceSpan]
+///
+class EmbraceSpanEvent {
+  /// Constructor
+  EmbraceSpanEvent({
+    required this.name,
+    required this.timestampMs,
+    required this.attributes,
+  });
+
+  /// The name of the event
+  final String name;
+
+  /// The timestamp of the event in milliseconds
+  final int timestampMs;
+
+  /// The attributes of this event
+  final Map<String, String> attributes;
+
+  /// Produces a map representation of this class
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'timestampMs': timestampMs,
+      'attributes': attributes,
+    };
+  }
 }

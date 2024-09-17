@@ -11,14 +11,12 @@ class SessionPropertiesDemo extends StatefulWidget {
 class _SessionPropertiesDemoState extends State<SessionPropertiesDemo> {
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
-  String _sessionProperties = '{}';
 
   @override
   void initState() {
     super.initState();
     _keyController.text = 'key';
     _valueController.text = 'value';
-    _updateProperties();
   }
 
   @override
@@ -41,29 +39,19 @@ class _SessionPropertiesDemoState extends State<SessionPropertiesDemo> {
                   _keyController.text,
                   _valueController.text,
                 );
-                _updateProperties();
               },
               child: const Text('Add'),
             ),
             ElevatedButton(
               onPressed: () {
                 Embrace.instance.removeSessionProperty(_keyController.text);
-                _updateProperties();
               },
               child: const Text('Remove'),
             ),
-            Text(_sessionProperties),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _updateProperties() async {
-    final properties = await Embrace.instance.getSessionProperties();
-    setState(() {
-      _sessionProperties = properties.toString();
-    });
   }
 
   @override
