@@ -1,6 +1,6 @@
 name: embrace_platform_interface
 description: A common platform interface for the Embrace plugin that enables platform-specific implementations.
-version: 3.0.0
+version: 3.0.1
 homepage: https://embrace.io
 environment:
   sdk: ">=2.12.0 <3.0.0"
