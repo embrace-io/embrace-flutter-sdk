@@ -1,0 +1,21 @@
+name: embrace_android
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/embrace_android.yaml"
+      - "embrace_android/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/embrace_android.yaml"
+      - "embrace_android/**"
+
+jobs:
+  build:
+    uses: ./.github/workflows/flutter_ci.yaml
+    with:
+      flutter_channel: stable
+      flutter_version: 3.3.1
+      working_directory: embrace_android

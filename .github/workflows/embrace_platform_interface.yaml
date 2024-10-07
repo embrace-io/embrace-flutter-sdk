@@ -1,0 +1,21 @@
+name: embrace_platform_interface
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/embrace_platform_interface.yaml"
+      - "**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/embrace_platform_interface.yaml"
+      - "**"
+
+jobs:
+  build:
+    uses: ./.github/workflows/flutter_ci.yaml
+    with:
+      flutter_channel: stable
+      flutter_version: 3.3.1
+      working_directory: embrace_platform_interface
