@@ -1,3 +1,7 @@
+# 3.0.1
+
+* Updated Embrace iOS SDK to 6.4.2.
+
 # 3.0.0
 
 * Updated Embrace Android SDK to 6.13.0.
