@@ -1,0 +1,14 @@
+# Invokes the release workflow in dry-run mode whenever a release candidate PR is opened or updated
+name: RC-PR
+
+on: pull_request
+
+jobs:
+
+  rc-publish-dry-run:
+    name: Publish Release (dry-run)
+    if: contains(github.event.pull_request.labels.*.name, 'release-candidate')
+    uses: ./.github/workflows/release.yaml
+    with:
+      dry-run: true
+    secrets: inherit

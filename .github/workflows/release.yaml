@@ -1,0 +1,98 @@
+name: Release
+
+env:
+  REPO_PATH: 'embrace-flutter-sdk'
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Validate but do not push the package'
+        type: boolean
+        required: true
+  workflow_call:
+    inputs:
+      dry-run:
+        description: 'Validate but do not push the package'
+        type: boolean
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  verify-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          path: ${{ env.REPO_PATH }}
+
+      - name: Setup yq
+        run: |
+          sudo snap install yq
+
+      - name: Verify Package Versions
+        run: |
+          cd ${{ env.REPO_PATH }}
+          ./verify_versions.sh
+
+  publish-packages:
+    name: Publish Packages
+    needs: verify-versions
+    uses: ./.github/workflows/publish_flutter_packages.yaml
+    with:
+      dry-run: ${{ inputs.dry-run }}
+    secrets: inherit
+
+  create-release:
+    name: Create Release
+    needs: publish-packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          path: ${{ env.REPO_PATH }}
+
+      - name: Setup yq
+        run: |
+          sudo snap install yq
+
+      - name: Parse Version
+        run: |
+          cd ${{ env.REPO_PATH }}
+          export PACKAGE_VERSION=$(yq -r .version embrace/pubspec.yaml)
+          echo "${PACKAGE_VERSION}"
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+
+      - name: Tag commit
+        run: |
+          cd ${{ env.REPO_PATH }}
+          git config --global user.name "embrace-ci"
+          git config --global user.email "embrace-ci@users.noreply.github.com"
+          git tag -a ${{ env.PACKAGE_VERSION }} -m "${{ env.PACKAGE_VERSION }}"
+
+      - name: Push Tag
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          cd ${{ env.REPO_PATH }}
+          git push --tags
+
+      - name: Create Release
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          cd ${{ env.REPO_PATH }}
+          gh release create ${{ env.PACKAGE_VERSION }} -t ${{ env.PACKAGE_VERSION }} -F embrace/CHANGELOG.md
+
+      - name: Record SDK Version History
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          curl -X POST ${{ vars.SDK_VERSION_URL }}/flutter/version/ -H 'X-Embrace-CI: ${{ secrets.SDK_VERSION_TOKEN }}' -H 'Content-Type: application/json' -d '{"version": "${{ env.PACKAGE_VERSION }}"}'

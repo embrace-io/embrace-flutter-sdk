@@ -1,0 +1,58 @@
+name: Publish Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Validate but do not push the package'
+        type: boolean
+        required: true
+  workflow_call:
+    inputs:
+      dry-run:
+        description: 'Validate but do not push the package'
+        type: boolean
+        required: true
+
+jobs:
+  publish:
+    name: Publish Package
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        package: ['embrace_platform_interface', 'embrace_ios', 'embrace_android', 'embrace', 'embrace_dio']
+      fail-fast: true
+      max-parallel: 1  # Publish the packages in sequential order
+
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐦 Setup Flutter
+        uses: embrace-io/flutter-action@v2
+        with:
+          flutter-version: '3.3.1'
+          channel: stable
+          cache: true
+
+      - name: Get Publishing Credentials
+        run: |
+          mkdir -p $XDG_CONFIG_HOME/dart
+          cat <<EOF > $XDG_CONFIG_HOME/dart/pub-credentials.json
+          ${{ secrets.FLUTTER_PUB_CREDENTIALS }}
+          EOF
+
+      - name: Publish Dry Run
+        run: |
+          cd ${{ matrix.package }}
+          flutter config --no-analytics
+          flutter pub publish --dry-run
+
+      - name: Publish
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          cd ${{ matrix.package }}
+          flutter pub publish -f
