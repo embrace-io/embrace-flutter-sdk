@@ -1,0 +1,184 @@
+name: embrace
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/embrace.yaml"
+      - "embrace/**"
+      - "embrace_android/**"
+      - "embrace_ios/**"
+      - "embrace_platform_interface/**"
+      - "embrace_dio/**"
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/embrace.yaml"
+      - "embrace/**"
+      - "embrace_android/**"
+      - "embrace_ios/**"
+      - "embrace_platform_interface/**"
+      - "embrace_dio/**"
+
+jobs:
+  build:
+    uses: ./.github/workflows/flutter_ci.yaml
+    with:
+      flutter_channel: stable
+      flutter_version: '3.3.1'
+      working_directory: embrace
+
+  test_min_version:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: embrace
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: embrace-io/flutter-action@v2
+        with:
+          flutter-version: '3.0.0'
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Tests for min version
+        run: flutter test --dart-define=belowFlutter_3_1=true
+
+  test_release:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: embrace
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: embrace-io/flutter-action@v2
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Tests for release mode
+        run: flutter test --dart-define=dart.vm.product=true test_release/
+
+  android:
+    runs-on: macos-12
+
+    defaults:
+      run:
+        working-directory: embrace/example
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: "17"
+
+      - uses: embrace-io/flutter-action@v2
+
+      - name: Configure App ID and API Token
+        run: |
+          sed -i .bak 's/YOUR_APP_ID/${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}/' android/app/src/main/embrace-config.json
+          sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}/' android/app/src/main/embrace-config.json
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: AVD Cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-29
+
+      - name: Cache AVD Snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: embrace-io/android-emulator-runner@v2
+        with:
+          api-level: 29
+          force-avd-creation: false
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Android Integration Tests
+        uses: embrace-io/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: flutter test integration_test
+          working-directory: embrace/example
+
+  ios:
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: embrace/example
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: embrace-io/flutter-action@v2
+
+      - name: Configure App ID and API Token
+        run: |
+          sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Embrace-Info.plist
+          sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
+          sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
+          sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Start iOS Simulator
+        run: open -a Simulator.app
+
+      - name: Wait 5s for simulator to load
+        run: sleep 5
+
+      - name: Integration Tests
+        run: flutter test integration_test -d iPhone
+
+  pana:
+    defaults:
+      run:
+        working-directory: embrace
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🖋 Override Embrace packages with local versions
+        run: |
+          sed -i 'pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
+          sed -i 'pubspec.yaml' -e 's/embrace_android:.*/embrace_android:\n    path: ..\/embrace_android/'
+          sed -i 'pubspec.yaml' -e 's/embrace_ios:.*/embrace_ios:\n    path: ..\/embrace_ios/'
+          sed -i '../embrace_ios/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
+          sed -i '../embrace_android/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
+
+      - name: 🐦 Setup Flutter
+        uses: embrace-io/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: ⬇️ Pub Get
+        run: flutter pub get
+
+      - name: 📦 Install Pana
+        run: flutter pub global activate pana
+
+      - name: 📊 Verify Pana Score
+        run: |
+          PANA=$(pana . --no-warning); PANA_SCORE=$(echo $PANA | sed -n "s/.*Points: \([0-9]*\)\/\([0-9]*\)./\1\/\2/p")
+          echo "Score: $PANA_SCORE"
+          IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=SCORE_ARR[0];
+          if (( $SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
