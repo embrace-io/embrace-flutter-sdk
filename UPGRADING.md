@@ -4,7 +4,7 @@
 
 The Moments API has been removed. Please use the [Tracing API](https://embrace.io/docs/flutter/features/tracing/) instead.
 
-The Android and iOS SDKs have been updated to the latest major version. If you have written Android/iOS code as part of your integration you may need to perform additional migrations. Please see the [Android](https://embrace.io/docs/android/upgrading/) and [iOS](https://embrace.io/docs/ios/open-source/upgrade-guide/) upgrading guides for further information.
+The Android and iOS SDKs have been updated to the latest major versions. If you have written Android/iOS code as part of your integration you may need to perform additional migrations. Please see the [Android](https://embrace.io/docs/android/upgrading/) and [iOS](https://embrace.io/docs/ios/open-source/upgrade-guide/) upgrading guides for further information.
 
 # Upgrading from 1.5.0 to 2.0.0
 
