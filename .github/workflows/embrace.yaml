@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: embrace-io/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.0.0'
 
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: embrace-io/flutter-action@v2
+      - uses: subosito/flutter-action@v2
 
       - name: Flutter Doctor
         run: flutter doctor -v
@@ -80,7 +80,7 @@ jobs:
           distribution: "adopt"
           java-version: "17"
 
-      - uses: embrace-io/flutter-action@v2
+      - uses: subosito/flutter-action@v2
 
       - name: Configure App ID and API Token
         run: |
@@ -101,7 +101,7 @@ jobs:
 
       - name: Cache AVD Snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: embrace-io/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
           force-avd-creation: false
@@ -109,7 +109,7 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
 
       - name: Android Integration Tests
-        uses: embrace-io/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
           script: flutter test integration_test
@@ -125,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: embrace-io/flutter-action@v2
+      - uses: subosito/flutter-action@v2
 
       - name: Configure App ID and API Token
         run: |
@@ -165,7 +165,7 @@ jobs:
           sed -i '../embrace_android/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
 
       - name: 🐦 Setup Flutter
-        uses: embrace-io/flutter-action@v2
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
