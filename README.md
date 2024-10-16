@@ -1,6 +1,6 @@
 # Embrace Flutter SDK
 
-[See the embrace package readme for integration instructions.](embrace/README.md)
+[See the embrace docs for integration instructions.](https://embrace.io/docs/flutter/integration/)
 
 In order to use the Embrace Flutter SDK, you will need to [create an account with Embrace](https://dash.embrace.io/) first.
 
