@@ -9,7 +9,7 @@ dependencies:
   build_runner: ^2.0.0
   build_version: ^2.0.0
   dio: '>=4.0.0 <6.0.0'
-  embrace: 3.1.0
+  embrace: ^3.1.0
   flutter:
     sdk: flutter
   platform: ^3.1.0
