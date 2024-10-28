@@ -1,6 +1,6 @@
 name: embrace_dio
 description: Allows automatic Dio network capture when using the the embrace plugin.
-version: 3.0.1
+version: 3.1.0
 homepage: https://embrace.io
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -9,12 +9,12 @@ dependencies:
   build_runner: ^2.0.0
   build_version: ^2.0.0
   dio: '>=4.0.0 <6.0.0'
-  embrace: ^3.0.1
+  embrace: 3.1.0
   flutter:
     sdk: flutter
   platform: ^3.1.0
   plugin_platform_interface: ^2.1.0
-  embrace_platform_interface: ">=3.0.1 <3.1.0"
+  embrace_platform_interface: ">=3.1.0 <3.2.0"
 dev_dependencies:
   flutter_test:
     sdk: flutter
