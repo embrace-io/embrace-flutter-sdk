@@ -2,8 +2,6 @@
 
 [See the embrace docs for integration instructions.](https://embrace.io/docs/flutter/integration/)
 
-In order to use the Embrace Flutter SDK, you will need to [create an account with Embrace](https://dash.embrace.io/) first.
-
 ## About Embrace
 
 Get comprehensive [session-level data](https://embrace.io/) to quickly debug errors & performance issues in your app.
