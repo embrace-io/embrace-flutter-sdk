@@ -30,7 +30,7 @@ void main() {
             case 'attachToHostSdk':
               return true;
             case 'getSdkVersion':
-              return '6.13.0';
+              return '6.14.0';
             case 'stopSpan':
               return true;
             case 'addSpanEvent':
