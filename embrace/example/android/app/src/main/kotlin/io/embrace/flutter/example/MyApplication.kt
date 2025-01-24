@@ -7,6 +7,6 @@ import io.embrace.android.embracesdk.Embrace
 class MyApplication : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
-        Embrace.getInstance().start(this, false, Embrace.AppFramework.FLUTTER)
+        Embrace.getInstance().start(this, Embrace.AppFramework.FLUTTER)
     }
 }

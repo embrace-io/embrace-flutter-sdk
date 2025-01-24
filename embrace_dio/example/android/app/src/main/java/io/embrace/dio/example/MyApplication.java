@@ -7,6 +7,6 @@ public final class MyApplication extends FlutterApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        Embrace.getInstance().start(this, false, Embrace.AppFramework.FLUTTER);
+        Embrace.getInstance().start(this, Embrace.AppFramework.FLUTTER);
     }
 }
