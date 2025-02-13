@@ -1,5 +1,19 @@
 # Upgrade guide
 
+# Upgrading from 3.x to 4.x
+
+The Android SDK has been updated to the latest major version. This has changes that affect all Flutter users:
+
+1. In your `Application` subclass replace `Embrace.getInstance().start(this, Embrace.AppFramework.FLUTTER)` with `Embrace.getInstance().start(this)`
+2. In your `embrace-config.json` file add the following:
+```json
+    "sdk_config": {
+        "app_framework": "flutter"
+    }
+```
+
+If you have written additional Android code as part of your integration you may need to perform additional migrations. Please see the [Android](https://embrace.io/docs/android/upgrading/) upgrade guide for further information.
+
 # Upgrading from 2.x to 3.x
 
 The Moments API has been removed. Please use the [Tracing API](https://embrace.io/docs/flutter/features/tracing/) instead.

@@ -55,6 +55,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
     compileOnly "io.embrace:embrace-android-sdk:$emb_android_sdk"
+    compileOnly "io.embrace:embrace-android-core:$emb_android_sdk"
+    compileOnly "io.embrace:embrace-internal-api:$emb_android_sdk"
 }

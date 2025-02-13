@@ -11,9 +11,10 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import io.embrace.android.embracesdk.Embrace
-import io.embrace.android.embracesdk.Embrace.AppFramework
-import io.embrace.android.embracesdk.EmbraceSamples
+import io.embrace.android.embracesdk.AppFramework
 import io.embrace.android.embracesdk.network.http.HttpMethod
+import io.embrace.android.embracesdk.internal.EmbraceInternalApi
+import io.embrace.android.embracesdk.internal.FlutterInternalInterface
 
 import android.os.Handler
 import android.os.Looper
@@ -181,8 +182,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             if (call.method == EmbraceConstants.TRIGGER_CHANNEL_ERROR_METHOD_NAME) {
                 throw e
             }
-            safeSdkCall {
-                internalInterface.logInternalError(e)
+            safeFlutterInterfaceCall {
+                logInternalError(e)
             }
         }
     }
@@ -197,6 +198,18 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             if (embrace.isStarted) {
                 return embrace.action()
             }
+        } catch (ignored: Throwable) {
+        }
+        return null
+    }
+
+    /**
+     * Performs a call on the Android SDK safely by wrapping in a try-catch & swallowing any exceptions.
+     */
+    private inline fun <reified T> safeFlutterInterfaceCall(action: FlutterInternalInterface.() -> T?): T? {
+        try {
+            val obj = EmbraceInternalApi.getInstance().flutterInternalInterface
+            return obj.action()
         } catch (ignored: Throwable) {
         }
         return null
@@ -258,13 +271,13 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             Embrace.getInstance().start(context, AppFramework.FLUTTER)
         }
 
-        safeSdkCall {
+        safeFlutterInterfaceCall {
             val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
-            flutterInternalInterface?.setEmbraceFlutterSdkVersion(embraceFlutterSdkVersion)
+            setEmbraceFlutterSdkVersion(embraceFlutterSdkVersion)
         }
-        safeSdkCall {
+        safeFlutterInterfaceCall {
             val dartRuntimeVersion = call.getStringArgument(EmbraceConstants.DART_RUNTIME_VERSION_ARG_NAME)
-            flutterInternalInterface?.setDartVersion(dartRuntimeVersion)
+            setDartVersion(dartRuntimeVersion)
         }
 
         // 'attach' to the Android SDK at this point by requesting any information
@@ -322,7 +335,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleLogNetworkRequestCall(call: MethodCall, result: Result) : Unit {
         val url = call.getStringArgument(EmbraceConstants.URL_ARG_NAME)
-        val method = call.getArgumentOrDefault<String?>(EmbraceConstants.HTTP_METHOD_ARG_NAME, null)
+        val method = call.getArgumentOrDefault<String?>(EmbraceConstants.HTTP_METHOD_ARG_NAME, null) ?: return
         val startTime = call.getArgumentOrDefault<Long>(EmbraceConstants.START_TIME_ARG_NAME, 0)
         val endTime = call.getArgumentOrDefault<Long>(EmbraceConstants.END_TIME_ARG_NAME, 0)
         val bytesSent = call.getArgumentOrDefault<Long>(EmbraceConstants.BYTES_SENT_ARG_NAME, 0)
@@ -337,12 +350,13 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 generateW3cTraceparent()
             }
         }
+        val httpMethod = HttpMethod.fromString(method)
 
         val request =
             if (error != null) {
                 EmbraceNetworkRequest.fromIncompleteRequest(
                     url,
-                    HttpMethod.fromString(method),
+                    httpMethod,
                     startTime,
                     endTime,
                     "",
@@ -354,7 +368,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             } else {
                 EmbraceNetworkRequest.fromCompletedRequest(
                     url,
-                    HttpMethod.fromString(method),
+                    httpMethod,
                     startTime,
                     endTime,
                     bytesSent,
@@ -406,20 +420,20 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleTriggerNativeSdkError(call: MethodCall, result: Result) : Unit {
         runOnMainThread {
-            EmbraceSamples.throwJvmException()
+            throw IllegalStateException("Whoops!")
         }
         result.success(null)
     }
 
     private fun handleTriggerAnr(call: MethodCall, result: Result) : Unit {
         runOnMainThread {
-            EmbraceSamples.triggerLongAnr()
+            java.lang.Thread.sleep(10000)
         }
         result.success(null)
     }
 
     private fun handleTriggerRaisedSignal(call: MethodCall, result: Result) : Unit {
-        EmbraceSamples.causeNdkIllegalInstruction()
+        // unimplemented
         result.success(null)
     }
 
@@ -427,8 +441,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         // note: Dart installs its own handler for this Thread called DartMessenger (in debug + release mode).
         // We need to intercept that to automatically capture the exception, which would be useful as
         // otherwise it'll get swallowed.
-        print("Method channel error!")
-        EmbraceSamples.throwJvmException()
+        throw IllegalStateException("Whoops!")
         result.success(null)
     }
 
@@ -489,7 +502,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleSetUserAsPayerCall(call: MethodCall, result: Result) : Unit {
         safeSdkCall {
-            setUserAsPayer()
+            addUserPersona("payer")
         }
         result.success(null)
         return
@@ -497,7 +510,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleClearUserAsPayerCall(call: MethodCall, result: Result) : Unit {
         safeSdkCall {
-            clearUserAsPayer()
+            clearUserPersona("payer")
         }
         result.success(null)
         return
@@ -561,8 +574,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleLogInternalErrorCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
         val details = call.getStringArgument(EmbraceConstants.DETAILS_ARG_NAME)
-        safeSdkCall {
-            internalInterface.logInternalError(message, details)
+        safeFlutterInterfaceCall {
+            logInternalError(message, details)
         }
         result.success(null)
         return
@@ -575,11 +588,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val library = call.getStringArgument(EmbraceConstants.ERROR_LIBRARY_ARG_NAME)
         val type = call.getStringArgument(EmbraceConstants.ERROR_TYPE_ARG_NAME)
         val wasHandled = call.getBooleanArgument(EmbraceConstants.ERROR_WAS_HANDLED_ARG_NAME)
-        safeSdkCall {
+        safeFlutterInterfaceCall {
             if (wasHandled) {
-                flutterInternalInterface?.logHandledDartException(stack, type, message, context, library)
+                logHandledDartException(stack, type, message, context, library)
             } else {
-                flutterInternalInterface?.logUnhandledDartException(stack, type, message, context, library)
+                logUnhandledDartException(stack, type, message, context, library)
             }
         }
         result.success(null)
@@ -602,7 +615,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun handleGetSdkVersion(call: MethodCall, result: Result) {
-        val version = io.embrace.android.embracesdk.BuildConfig::class.java
+        val version = io.embrace.android.embracesdk.core.BuildConfig::class.java
             .getField("VERSION_NAME")[null] as String
         result.success(version)
     }
@@ -611,8 +624,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val startTimeMs: Long? = call.argument(EmbraceConstants.START_TIME_MS_ARG_NAME)
-        val spanId = safeSdkCall { 
-            flutterInternalInterface?.startSpan(name, parentSpanId, startTimeMs)
+        val spanId = safeFlutterInterfaceCall {
+            startSpan(name, parentSpanId, startTimeMs)
         }
         result.success(spanId)
     }
@@ -621,8 +634,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val errorCode = call.getErrorCode(EmbraceConstants.ERROR_CODE_ARG_NAME)
         val endTimeMs: Long? = call.argument(EmbraceConstants.END_TIME_MS_ARG_NAME)
-        val success = safeSdkCall {
-            flutterInternalInterface?.stopSpan(spanId, errorCode, endTimeMs)
+        val success = safeFlutterInterfaceCall {
+            stopSpan(spanId, errorCode, endTimeMs)
         }
         result.success(success)
     }
@@ -632,8 +645,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val timestampMs: Long? = call.argument(EmbraceConstants.TIMESTAMP_MS_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
-        val success = safeSdkCall {
-            flutterInternalInterface?.addSpanEvent(spanId, name, timestampMs, attributes)
+        val success = safeFlutterInterfaceCall {
+            addSpanEvent(spanId, name, timestampMs, attributes)
         }
         result.success(success)
     }
@@ -642,8 +655,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
-        val success = safeSdkCall {
-            flutterInternalInterface?.addSpanAttribute(spanId, key, value)
+        val success = safeFlutterInterfaceCall {
+            addSpanAttribute(spanId, key, value)
         }
         result.success(success)
     }
@@ -656,8 +669,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
         val events = call.getListArgument<Map<String, Any>>(EmbraceConstants.EVENTS_ARG_NAME)
-        val success = safeSdkCall {
-            flutterInternalInterface?.recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
+        val success = safeFlutterInterfaceCall {
+            recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
         }
         result.success(success)
     }
