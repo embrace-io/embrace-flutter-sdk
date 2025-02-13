@@ -15,11 +15,9 @@ class EmbraceSpanRepository {
                 .setStartTime(time: createDate(timeMs: startTimeMs) ?? Date())
             if let span = findSpan(id: parentSpanId) {
                 builder.setParent(span)
-            } else {
-                builder.markAsKeySpan()
             }
             let span = builder.startSpan()
-            let spanId = generateSpanId()
+            let spanId = span.context.spanId.hexString
             spans[spanId] = span
             return spanId
         }
@@ -72,8 +70,6 @@ class EmbraceSpanRepository {
 
                 if let parentSpan = findSpan(id: parentSpanId) {
                     builder.setParent(parentSpan)
-                } else {
-                    builder.markAsKeySpan()
                 }
                 let span = builder.startSpan()
 
@@ -128,10 +124,6 @@ class EmbraceSpanRepository {
             return nil
         }
         return spans[id]
-    }
-
-    private func generateSpanId() -> String {
-        return UUID().uuidString
     }
 
     private func createDate(timeMs: Int?) -> Date? {
