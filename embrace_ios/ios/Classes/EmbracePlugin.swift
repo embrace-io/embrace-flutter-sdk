@@ -210,7 +210,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
            let args = call.arguments as? [String: Any],
            let flutterSdkVersion = args[EmbracePlugin.EmbraceFlutterSdkVersionArgName] as? String,
            let dartRuntimeVersion = args[EmbracePlugin.DartRuntimeVersionArgName] as? String {
-            started = client.started
+            started = client.state == .started
 
             if (started) { // fallback to starting the SDK here, but log a warning.
                 try? client.metadata.addResource(key: "emb_flutter_sdk_version", value: flutterSdkVersion, lifespan:.process)
@@ -225,113 +225,119 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     }
 
     private func handleAddBreadcrumbCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let message = args[EmbracePlugin.MessageArgName] as? String {
-            client.add(event: .breadcrumb(message, properties: [:]))
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let message = args[EmbracePlugin.MessageArgName] as? String {
+                client.add(event: .breadcrumb(message, properties: [:]))
+            }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleLogPushNotificationCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let title = args[EmbracePlugin.TitleArgName] as? String,
-           let body = args[EmbracePlugin.BodyArgName] as? String,
-           let subtitle = args[EmbracePlugin.SubtitleArgName] as? String,
-           let badge = args[EmbracePlugin.BadgeArgName] as? Int,
-           let category = args[EmbracePlugin.CategoryArgName] as? String {
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let title = args[EmbracePlugin.TitleArgName] as? String,
+                let body = args[EmbracePlugin.BodyArgName] as? String,
+                let subtitle = args[EmbracePlugin.SubtitleArgName] as? String,
+                let badge = args[EmbracePlugin.BadgeArgName] as? Int,
+                let category = args[EmbracePlugin.CategoryArgName] as? String {
 
-            let pushData: [AnyHashable: Any?] = [
-                "aps": [
-                    "alert" : [
-                        "title" : title,
-                        "subtitle" : subtitle,
-                        "body" : body
-                    ],
-                    "badge" : badge,
-                    "category" : category
+                let pushData: [AnyHashable: Any?] = [
+                    "aps": [
+                        "alert" : [
+                            "title" : title,
+                            "subtitle" : subtitle,
+                            "body" : body
+                        ],
+                        "badge" : badge,
+                        "category" : category
+                    ]
                 ]
-            ]
-            try? client.add(event: .push(userInfo: pushData as [AnyHashable : Any]))
+                try? client.add(event: .push(userInfo: pushData as [AnyHashable : Any]))
+            }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleLogInfoCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let message = args[EmbracePlugin.MessageArgName] as? String {
-            let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
-            client.log(message, severity: .info, attributes: props)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let message = args[EmbracePlugin.MessageArgName] as? String {
+                let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
+                client.log(message, severity: .info, attributes: props)
+            }
         }
     }
 
     private func handleLogWarningCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let message = args[EmbracePlugin.MessageArgName] as? String {
-            let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
-            client.log(message, severity: .warn, attributes: props)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let message = args[EmbracePlugin.MessageArgName] as? String {
+                let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
+                client.log(message, severity: .warn, attributes: props)
+            }
         }
     }
 
     private func handleLogErrorCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let message = args[EmbracePlugin.MessageArgName] as? String {
-            let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
-            client.log(message, severity: .error, attributes: props)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let message = args[EmbracePlugin.MessageArgName] as? String {
+                let props = args[EmbracePlugin.PropertiesArgName] as? [String: String] ?? [:]
+                client.log(message, severity: .error, attributes: props)
+            }
         }
     }
 
     private func handleLogNetworkRequestCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let url = args[EmbracePlugin.UrlArgName] as? String,
-           let sanitizedUrl = stripQueryAndFragment(urlString: url),
-           let path = getUrlPath(urlString: sanitizedUrl),
-           let method = args[EmbracePlugin.HttpMethodArgName] as? String,
-           let startTime = args[EmbracePlugin.StartTimeArgName] as? Int,
-           let endTime = args[EmbracePlugin.EndTimeArgName] as? Int {
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let url = args[EmbracePlugin.UrlArgName] as? String,
+                let sanitizedUrl = stripQueryAndFragment(urlString: url),
+                let path = getUrlPath(urlString: sanitizedUrl),
+                let method = args[EmbracePlugin.HttpMethodArgName] as? String,
+                let startTime = args[EmbracePlugin.StartTimeArgName] as? Int,
+                let endTime = args[EmbracePlugin.EndTimeArgName] as? Int {
 
-            let statusCode = String(args[EmbracePlugin.StatusCodeArgName] as? Int ?? -1)
-            let bytesSent = String(args[EmbracePlugin.BytesSentArgName] as? Int ?? -1)
-            let bytesReceived = String(args[EmbracePlugin.BytesReceivedArgName] as? Int ?? -1)
-            let err = args[EmbracePlugin.ErrorArgName] as? String
-            let traceId = args[EmbracePlugin.TraceIdArgName] as? String
-            let w3cTraceparent = args[EmbracePlugin.W3cTraceparentArgName] as? String
+                let statusCode = String(args[EmbracePlugin.StatusCodeArgName] as? Int ?? -1)
+                let bytesSent = String(args[EmbracePlugin.BytesSentArgName] as? Int ?? -1)
+                let bytesReceived = String(args[EmbracePlugin.BytesReceivedArgName] as? Int ?? -1)
+                let err = args[EmbracePlugin.ErrorArgName] as? String
+                let traceId = args[EmbracePlugin.TraceIdArgName] as? String
+                let w3cTraceparent = args[EmbracePlugin.W3cTraceparentArgName] as? String
 
-            let attrs: [String : String?] = [
-                EmbracePlugin.AttrEmbType : EmbracePlugin.TypeNetworkRequest,
-                EmbracePlugin.AttrUrl : sanitizedUrl,
-                EmbracePlugin.AttrHttpMethod: method,
-                EmbracePlugin.AttrHttpStatusCode : statusCode,
-                EmbracePlugin.AttrHttpRequestBodySize : bytesSent,
-                EmbracePlugin.AttrHttpResponseBodySize : bytesReceived,
-                EmbracePlugin.AttrErrorMessage : err,
-                EmbracePlugin.AttrTraceId : traceId,
-                EmbracePlugin.AttrW3cTraceparent : w3cTraceparent
-            ]
-            let filteredAttrs = attrs.compactMapValues { $0 }
+                let attrs: [String : String?] = [
+                    EmbracePlugin.AttrEmbType : EmbracePlugin.TypeNetworkRequest,
+                    EmbracePlugin.AttrUrl : sanitizedUrl,
+                    EmbracePlugin.AttrHttpMethod: method,
+                    EmbracePlugin.AttrHttpStatusCode : statusCode,
+                    EmbracePlugin.AttrHttpRequestBodySize : bytesSent,
+                    EmbracePlugin.AttrHttpResponseBodySize : bytesReceived,
+                    EmbracePlugin.AttrErrorMessage : err,
+                    EmbracePlugin.AttrTraceId : traceId,
+                    EmbracePlugin.AttrW3cTraceparent : w3cTraceparent
+                ]
+                let filteredAttrs = attrs.compactMapValues { $0 }
 
-            // construct span
-            let builder = client.buildSpan(name: method + " " + path)
-            filteredAttrs.forEach { (key: String, value: String) in
-                builder.setAttribute(key: key, value: value)
+                // construct span
+                let builder = client.buildSpan(name: method + " " + path)
+                filteredAttrs.forEach { (key: String, value: String) in
+                    builder.setAttribute(key: key, value: value)
+                }
+                let span = builder.setStartTime(time: Date(timeIntervalSince1970: TimeInterval(startTime) / 1000))
+                    .startSpan()
+
+                if (w3cTraceparent == nil) {
+                    let trid = span.context.traceId.hexString
+                    let spid = span.context.spanId.hexString
+                    let traceParent = W3C.traceparent(traceId: trid, spanId: spid)
+                    span.setAttribute(key: EmbracePlugin.W3cTraceparentArgName, value: traceParent)
+                }
+                span.end(time: Date(timeIntervalSince1970: TimeInterval(endTime) / 1000))
             }
-            let span = builder.setStartTime(time: Date(timeIntervalSince1970: TimeInterval(startTime) / 1000))
-                .startSpan()
-
-            if (w3cTraceparent == nil) {
-                let trid = span.context.traceId.hexString
-                let spid = span.context.spanId.hexString
-                let traceParent = W3C.traceparent(traceId: trid, spanId: spid)
-                span.setAttribute(key: EmbracePlugin.W3cTraceparentArgName, value: traceParent)
-            }
-            span.end(time: Date(timeIntervalSince1970: TimeInterval(endTime) / 1000))
+            result(nil)
         }
-        result(nil)
     }
 
     private func stripQueryAndFragment(urlString: String) -> String? {
@@ -353,31 +359,35 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     private var viewSpanDict: [String : Span] = [:]
 
     private func handleStartViewCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let viewName = args[EmbracePlugin.NameArgName] as? String {
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let viewName = args[EmbracePlugin.NameArgName] as? String {
 
-            // End the previous view if one already exists.
-            viewSpanDict.removeValue(forKey: viewName)?.end()
-            viewSpanDict[viewName] = client.buildSpan(name: EmbracePlugin.SpanScreenView)
-                .setAttribute(key: EmbracePlugin.AttrViewName, value: viewName)
-                .setAttribute(key: EmbracePlugin.AttrEmbType, value: EmbracePlugin.TypeUxView)
-                .startSpan()
+                // End the previous view if one already exists.
+                viewSpanDict.removeValue(forKey: viewName)?.end()
+                viewSpanDict[viewName] = client.buildSpan(name: EmbracePlugin.SpanScreenView)
+                    .setAttribute(key: EmbracePlugin.AttrViewName, value: viewName)
+                    .setAttribute(key: EmbracePlugin.AttrEmbType, value: EmbracePlugin.TypeUxView)
+                    .startSpan()
+            }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleEndViewCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let viewName = args[EmbracePlugin.NameArgName] as? String {
-            viewSpanDict.removeValue(forKey: viewName)?.end()
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let viewName = args[EmbracePlugin.NameArgName] as? String {
+                    viewSpanDict.removeValue(forKey: viewName)?.end()
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleGetDeviceIdCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(Embrace.client?.currentDeviceId())
+        callAppleSdk { client in
+            result(client.currentDeviceId())
+        }
     }
 
     private func handleNativeError(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -395,109 +405,124 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     }
 
     private func handleSetUserIdentifierCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let userId = args[EmbracePlugin.UserIdentifierArgName] as? String {
-            client.metadata.userIdentifier = userId
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let userId = args[EmbracePlugin.UserIdentifierArgName] as? String {
+                client.metadata.userIdentifier = userId
+            }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearUserIdentifierCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Embrace.client?.metadata.userIdentifier = nil
-        result(nil)
+        callAppleSdk { client in
+            client.metadata.userIdentifier = nil
+            result(nil)
+        }
     }
 
     private func handleSetUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let userName = args[EmbracePlugin.UserNameArgName] as? String {
-            client.metadata.userName = userName
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let userName = args[EmbracePlugin.UserNameArgName] as? String {
+                    client.metadata.userName = userName
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Embrace.client?.metadata.userName = nil
-        result(nil)
+        callAppleSdk { client in
+            client.metadata.userName = nil
+            result(nil)
+        }
     }
 
     private func handleSetUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let userEmail = args[EmbracePlugin.UserEmailArgName] as? String {
-            client.metadata.userEmail = userEmail
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let userEmail = args[EmbracePlugin.UserEmailArgName] as? String {
+                    client.metadata.userEmail = userEmail
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Embrace.client?.metadata.userEmail = nil
-        result(nil)
+        callAppleSdk { client in
+            client.metadata.userEmail = nil
+            result(nil)
+        }
     }
 
     private func handleSetUserAsPayerCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client {
+        callAppleSdk { client in
             try? client.metadata.add(persona: PersonaTag("payer"), lifespan: .process)
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearUserAsPayerCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client {
+        callAppleSdk { client in
             try? client.metadata.remove(persona: PersonaTag("payer"), lifespan: .process)
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleAddUserPersonaCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let persona = args[EmbracePlugin.UserPersonaArgName] as? String {
-            try? client.metadata.add(persona: PersonaTag(persona), lifespan: .process)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let persona = args[EmbracePlugin.UserPersonaArgName] as? String {
+                    try? client.metadata.add(persona: PersonaTag(persona), lifespan: .process)
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearUserPersonaCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let persona = args[EmbracePlugin.UserPersonaArgName] as? String {
-            try? client.metadata.remove(persona: PersonaTag(persona), lifespan: .process)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let persona = args[EmbracePlugin.UserPersonaArgName] as? String {
+                    try? client.metadata.remove(persona: PersonaTag(persona), lifespan: .process)
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleClearAllUserPersonasCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client {
+        callAppleSdk { client in
             try? client.metadata.removeAllPersonas()
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleAddSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let keyStr = args[EmbracePlugin.KeyArgName] as? String,
-           let valueStr = args[EmbracePlugin.ValueArgName] as? String {
-            let perm = args[EmbracePlugin.PermanentArgName] as? Bool ?? false
-            try? client.metadata.addProperty(key: keyStr, value: valueStr, lifespan: perm ? .permanent : .session)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let keyStr = args[EmbracePlugin.KeyArgName] as? String,
+                let valueStr = args[EmbracePlugin.ValueArgName] as? String {
+                    let perm = args[EmbracePlugin.PermanentArgName] as? Bool ?? false
+                    try? client.metadata.addProperty(key: keyStr, value: valueStr, lifespan: perm ? .permanent : .session)
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleRemoveSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let keyStr = args[EmbracePlugin.KeyArgName] as? String {
-            try? client.metadata.removeProperty(key: keyStr)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let keyStr = args[EmbracePlugin.KeyArgName] as? String {
+                    try? client.metadata.removeProperty(key: keyStr)
+                }
+            result(nil)
         }
-        result(nil)
     }
 
     private func handleEndSessionCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Embrace.client?.endCurrentSession()
-        result(nil)
+        callAppleSdk { client in
+            client.endCurrentSession()
+            result(nil)
+        }
     }
 
     private func handleLogInternalErrorCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -506,42 +531,45 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     }
 
     private func handleLogDartErrorCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let client = Embrace.client,
-           let args = call.arguments as? [String: Any],
-           let message = args[EmbracePlugin.ErrorMessageArgName] as? String,
-           let type = args[EmbracePlugin.ErrorTypeArgName] as? String,
-           let stack = args[EmbracePlugin.ErrorStackArgName] as? String {
-            let handled = args[EmbracePlugin.ErrorWasHandledArgName] as? Bool ?? false
-            let attrs = [
-                EmbracePlugin.AttrExcStacktrace: stack,
-                EmbracePlugin.AttrExcType: type,
-                EmbracePlugin.AttrExcHandling : handled ? "HANDLED" : "UNHANDLED",
-                EmbracePlugin.AttrExcMessage : message
-            ]
-            client.log(message, severity: .error, type: .exception, attributes: attrs, stackTraceBehavior: .notIncluded)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let message = args[EmbracePlugin.ErrorMessageArgName] as? String,
+                let type = args[EmbracePlugin.ErrorTypeArgName] as? String,
+                let stack = args[EmbracePlugin.ErrorStackArgName] as? String {
+                    let handled = args[EmbracePlugin.ErrorWasHandledArgName] as? Bool ?? false
+                    let attrs = [
+                        EmbracePlugin.AttrExcStacktrace: stack,
+                        EmbracePlugin.AttrExcType: type,
+                        EmbracePlugin.AttrExcHandling : handled ? "HANDLED" : "UNHANDLED",
+                        EmbracePlugin.AttrExcMessage : message
+                    ]
+                    client.log(message, severity: .error, type: .exception, attributes: attrs, stackTraceBehavior: .notIncluded)
+                }
         }
     }
 
     private func handleGetLastRunEndStateCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        var ordinal = 0
-        if let client = Embrace.client {
+        callAppleSdk { client in
+            var ordinal = 0
             let state = client.lastRunEndState()
             switch(state) {
-            case .cleanExit:
-                ordinal = 2
-            case .crash:
-                ordinal = 1
-            case .unavailable:
-                ordinal = 0
-            @unknown default:
-                ordinal = 0
+                case .cleanExit:
+                    ordinal = 2
+                case .crash:
+                    ordinal = 1
+                case .unavailable:
+                    ordinal = 0
+                @unknown default:
+                    ordinal = 0
             }
+            result(NSNumber(value: ordinal))
         }
-        result(NSNumber(value: ordinal))
     }
 
     private func handleGetCurrentSessionIdCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(Embrace.client?.currentSessionId())
+        callAppleSdk { client in
+            result(client.currentSessionId())
+        }
     }
 
     private func handleGetSdkVersionCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -549,73 +577,92 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     }
 
     private func handleStartSpanCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-           let name = args[EmbracePlugin.NameArgName] as? String {
-            let parentSpanId = args[EmbracePlugin.ParentSpanIdArgName] as? String
-            let startTimeMs = args[EmbracePlugin.StartTimeMsArgName] as? Int
-            let spanId = repository.startSpan(name: name, parentSpanId: parentSpanId, startTimeMs: startTimeMs)
-            result(spanId)
-        } else {
-            result(nil)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let name = args[EmbracePlugin.NameArgName] as? String {
+                let parentSpanId = args[EmbracePlugin.ParentSpanIdArgName] as? String
+                let startTimeMs = args[EmbracePlugin.StartTimeMsArgName] as? Int
+                let spanId = repository.startSpan(name: name, parentSpanId: parentSpanId, startTimeMs: startTimeMs)
+                result(spanId)
+            } else {
+                result(nil)
+            }
         }
     }
 
     private func handleStopSpanCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-           let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
-            let endTimeMs = args[EmbracePlugin.EndTimeMsArgName] as? Int
-            let errorCode = args[EmbracePlugin.ErrorCodeArgName] as? String
-            let success = repository.stopSpan(spanId: spanId, endTimeMs: endTimeMs, errorCode: errorCode)
-            result(NSNumber(value: success))
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
+                    let endTimeMs = args[EmbracePlugin.EndTimeMsArgName] as? Int
+                    let errorCode = args[EmbracePlugin.ErrorCodeArgName] as? String
+                    let success = repository.stopSpan(spanId: spanId, endTimeMs: endTimeMs, errorCode: errorCode)
+                    result(NSNumber(value: success))
+                }
+                result(NSNumber(value: false))
         }
-        result(NSNumber(value: false))
     }
 
     private func handleAddSpanEventCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-           let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
-           let name = args[EmbracePlugin.NameArgName] as? String {
-            let timestampMs = args[EmbracePlugin.TimestampMsArgName] as? Int
-            let attrs = args[EmbracePlugin.AttributesArgName] as? [String: String] ?? [:]
-            let success = repository.addSpanEvent(spanId: spanId, name: name, timestampMs: timestampMs, attributes: attrs)
-            result(NSNumber(value: success))
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
+                let name = args[EmbracePlugin.NameArgName] as? String {
+                    let timestampMs = args[EmbracePlugin.TimestampMsArgName] as? Int
+                    let attrs = args[EmbracePlugin.AttributesArgName] as? [String: String] ?? [:]
+                    let success = repository.addSpanEvent(spanId: spanId, name: name, timestampMs: timestampMs, attributes: attrs)
+                    result(NSNumber(value: success))
+                }
+                result(NSNumber(value: false))
         }
-        result(NSNumber(value: false))
     }
 
     private func handleAddSpanAttributeCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-           let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
-           let keyObj = args[EmbracePlugin.KeyArgName] as? String,
-           let valueObj = args[EmbracePlugin.ValueArgName] as? String {
-            let success = repository.addSpanAttribute(spanId: spanId, key: keyObj, value: valueObj)
-            result(NSNumber(value: success))
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
+                let keyObj = args[EmbracePlugin.KeyArgName] as? String,
+                let valueObj = args[EmbracePlugin.ValueArgName] as? String {
+                    let success = repository.addSpanAttribute(spanId: spanId, key: keyObj, value: valueObj)
+                    result(NSNumber(value: success))
+                }
+                result(NSNumber(value: false))
         }
-        result(NSNumber(value: false))
     }
 
     private func handleRecordCompletedSpanCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-           let name = args[EmbracePlugin.NameArgName] as? String,
-           let startTimeMs = args[EmbracePlugin.StartTimeMsArgName] as? Int,
-           let endTimeMs = args[EmbracePlugin.EndTimeMsArgName] as? Int {
-            let errorCode = args[EmbracePlugin.ErrorCodeArgName] as? String
-            let parentSpanId = args[EmbracePlugin.ParentSpanIdArgName] as? String
-            let attrs = args[EmbracePlugin.AttributesArgName] as? [String: String] ?? [:]
-            let events = args[EmbracePlugin.EventsArgName] as? Array<Dictionary<String, Any>> ?? []
-            let success = repository.recordCompletedSpan(name: name, startTimeMs: startTimeMs, endTimeMs: endTimeMs, errorCode: errorCode, parentSpanId: parentSpanId, attributes: attrs, events: events)
-            result(NSNumber(value: success))
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let name = args[EmbracePlugin.NameArgName] as? String,
+                let startTimeMs = args[EmbracePlugin.StartTimeMsArgName] as? Int,
+                let endTimeMs = args[EmbracePlugin.EndTimeMsArgName] as? Int {
+                    let errorCode = args[EmbracePlugin.ErrorCodeArgName] as? String
+                    let parentSpanId = args[EmbracePlugin.ParentSpanIdArgName] as? String
+                    let attrs = args[EmbracePlugin.AttributesArgName] as? [String: String] ?? [:]
+                    let events = args[EmbracePlugin.EventsArgName] as? Array<Dictionary<String, Any>> ?? []
+                    let success = repository.recordCompletedSpan(name: name, startTimeMs: startTimeMs, endTimeMs: endTimeMs, errorCode: errorCode, parentSpanId: parentSpanId, attributes: attrs, events: events)
+                    result(NSNumber(value: success))
+                }
+                result(nil)
         }
-        result(nil)
     }
 
     private func handleGenerateW3cTraceparentCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if let args = call.arguments as? [String: Any],
-            let traceId = args[EmbracePlugin.TraceIdArgName] as? String,
-            let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
-            let traceparent = W3C.traceparent(traceId: traceId, spanId: spanId)
-            result(traceparent)
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let traceId = args[EmbracePlugin.TraceIdArgName] as? String,
+                let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
+                let traceparent = W3C.traceparent(traceId: traceId, spanId: spanId)
+                result(traceparent)
+            }
+            result(nil)
         }
-        result(nil)
+    }
+
+    private func callAppleSdk<T>(action: (Embrace) -> T) -> T? {
+        guard let client = Embrace.client, client.state == .started else {
+            return nil
+        }
+        return action(client)
     }
 }
