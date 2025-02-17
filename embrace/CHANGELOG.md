@@ -1,3 +1,9 @@
+# 4.0.0
+
+* Updated Embrace Android SDK to 7.1.0
+* Updated Embrace iOS SDK to 6.8.1
+* Added ability to access trace ID for spans
+
 # 3.2.0
 
 * Updated Embrace Android SDK to 6.14.0.

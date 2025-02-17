@@ -54,6 +54,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _addSpanEventMethodName = 'addSpanEvent';
   static const String _addSpanAttributeMethodName = 'addSpanAttribute';
   static const String _recordCompletedSpanMethodName = 'recordCompletedSpan';
+  static const String _getTraceIdMethodName = 'getTraceId';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -587,6 +588,14 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _attributesArgName: attributes,
       _eventsArgName: events,
     }) as bool;
+  }
+
+  @override
+  Future<String?> getTraceId(String spanId) async {
+    throwIfNotStarted();
+    return methodChannel.invokeMethod<String>(_getTraceIdMethodName, {
+      _spanIdArgName: spanId,
+    });
   }
 
   /// Throws a [StateError] if the SDK has not been started.

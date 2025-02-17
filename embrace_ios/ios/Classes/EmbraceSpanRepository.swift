@@ -119,7 +119,7 @@ class EmbraceSpanRepository {
         }
     }
 
-    private func findSpan(id: String?) -> Span? {
+    func findSpan(id: String?) -> Span? {
         guard let id = id else {
             return nil
         }

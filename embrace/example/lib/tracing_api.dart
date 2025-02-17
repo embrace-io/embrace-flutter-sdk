@@ -48,6 +48,7 @@ class _TracingApiDemoState extends State<TracingApiDemo> {
           'my-event-attribute-key': 'my-event-attribute-value',
         },
       );
+      print('Span ID: ${span.id}, Trace ID: ${await span.traceId}');
       await span.stop();
       return;
     }

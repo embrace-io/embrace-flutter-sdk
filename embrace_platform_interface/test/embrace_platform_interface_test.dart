@@ -324,5 +324,12 @@ void main() {
         throwsA(isA<UnimplementedError>()),
       );
     });
+
+    test('getTraceId throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.getTraceId('__spanId__'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
   });
 }
