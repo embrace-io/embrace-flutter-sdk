@@ -349,4 +349,13 @@ abstract class EmbracePlatform extends PlatformInterface {
   Future<String?> getCurrentSessionId() {
     throw UnimplementedError('getCurrentSessionId() has not been implemented');
   }
+
+  /// Gets the trace ID for a given span ID.
+  Future<String?> getTraceId(
+    String spanId,
+  ) {
+    throw UnimplementedError(
+      'getTraceId() has not been implemented',
+    );
+  }
 }

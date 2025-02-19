@@ -579,6 +579,9 @@ class EmbraceSpanImpl extends EmbraceSpan {
   final EmbracePlatform _platform;
 
   @override
+  Future<String?> get traceId async => _platform.getTraceId(id);
+
+  @override
   Future<bool> stop({
     ErrorCode? errorCode,
     int? endTimeMs,

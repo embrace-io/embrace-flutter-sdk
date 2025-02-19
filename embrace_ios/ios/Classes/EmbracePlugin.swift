@@ -48,6 +48,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let AddSpanAttributeMethodName = "addSpanAttribute"
     static let RecordCompletedSpanMethodName = "recordCompletedSpan"
     static let GenerateW3cTraceparentMethodName = "generateW3cTraceparent"
+    static let GetTraceIdMethodName = "getTraceId"
 
     // Parameter Names
     static let PropertiesArgName = "properties"
@@ -199,6 +200,8 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleAddSpanAttributeCall(call, result: result)
             case EmbracePlugin.RecordCompletedSpanMethodName:
                 handleRecordCompletedSpanCall(call, result: result)
+            case EmbracePlugin.GetTraceIdMethodName:
+                handleGetTraceIdCall(call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
         }
@@ -654,6 +657,17 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
                 let traceparent = W3C.traceparent(traceId: traceId, spanId: spanId)
                 result(traceparent)
+            }
+            result(nil)
+        }
+    }
+
+    private func handleGetTraceIdCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        callAppleSdk { client in
+            if let args = call.arguments as? [String: Any],
+                let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
+                let span = repository.findSpan(id: spanId) {
+                result(span.context.traceId.hexString)
             }
             result(nil)
         }

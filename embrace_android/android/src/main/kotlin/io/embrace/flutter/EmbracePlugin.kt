@@ -65,6 +65,7 @@ internal object EmbraceConstants {
     internal const val ADD_SPAN_EVENT_METHOD_NAME : String = "addSpanEvent"
     internal const val ADD_SPAN_ATTRIBUTE_METHOD_NAME : String = "addSpanAttribute"
     internal const val RECORD_COMPLETED_SPAN_METHOD_NAME : String = "recordCompletedSpan"
+    internal const val GET_TRACE_ID_METHOD_NAME : String = "getTraceId"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -173,6 +174,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.ADD_SPAN_EVENT_METHOD_NAME -> handleAddSpanEvent(call, result)
                 EmbraceConstants.ADD_SPAN_ATTRIBUTE_METHOD_NAME -> handleAddSpanAttribute(call, result)
                 EmbraceConstants.RECORD_COMPLETED_SPAN_METHOD_NAME -> handleRecordCompletedSpan(call, result)
+                EmbraceConstants.GET_TRACE_ID_METHOD_NAME -> handleGetTraceId(call, result)
                 else -> {
                     result.notImplemented()
                     throw NotImplementedError("EmbracePlugin received a method call for ${call.method} but has no handler for that name.")
@@ -673,5 +675,14 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
         }
         result.success(success)
+    }
+
+    private fun handleGetTraceId(call: MethodCall, result: Result) {
+        val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
+        val traceId = safeSdkCall {
+            val span = getSpan(spanId)
+            span?.traceId
+        }
+        result.success(traceId)
     }
 }
