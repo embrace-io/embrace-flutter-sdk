@@ -452,7 +452,10 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
   @override
   void logInternalError(String message, String details) {
-    throwIfNotStarted();
+    // don't fail when logging internal errors if not started
+    if (!isStarted) {
+      return;
+    }
     methodChannel.invokeMethod(
       _logInternalErrorMethodName,
       {_messageArgName: message, _detailsArgName: details},
