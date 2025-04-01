@@ -915,10 +915,6 @@ void main() {
       });
 
       test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.logInternalError(message, details),
-          throwsA(isA<StateError>()),
-        );
         expect(log, isEmpty);
       });
     });
