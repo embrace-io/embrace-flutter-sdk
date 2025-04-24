@@ -1,3 +1,8 @@
+# 4.1.0
+
+* Updated Embrace Android SDK to 7.3.0
+* Updated Embrace iOS SDK to 6.8.5
+
 # 4.0.1
 
 * Fixed crash in Dio interceptors when SDK is disabled but interceptor is applied
