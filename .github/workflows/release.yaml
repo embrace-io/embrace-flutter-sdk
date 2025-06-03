@@ -42,6 +42,16 @@ jobs:
           cd ${{ env.REPO_PATH }}
           ./verify_versions.sh
 
+      - name: Validate access to version data service
+        uses: embrace-io/public-actions/upload-sdk-version@f4229398f257b24dbbe8b873f78e719f9af6cbbb
+        with:
+          platform: 'flutter'
+          version: '0.0.0'  # We are just validating the token here, so the version is not important
+          dryRun: true
+          sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+        env:
+          SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
+
   publish-packages:
     name: Publish Packages
     needs: verify-versions
@@ -93,6 +103,12 @@ jobs:
           gh release create ${{ env.PACKAGE_VERSION }} -t ${{ env.PACKAGE_VERSION }} -F embrace/CHANGELOG.md
 
       - name: Record SDK Version History
+        uses: embrace-io/public-actions/upload-sdk-version@f4229398f257b24dbbe8b873f78e719f9af6cbbb
         if: ${{ inputs.dry-run == false }}
-        run: |
-          curl -X POST ${{ vars.SDK_VERSION_URL }}/flutter/version/ -H 'X-Embrace-CI: ${{ secrets.SDK_VERSION_TOKEN }}' -H 'Content-Type: application/json' -d '{"version": "${{ env.PACKAGE_VERSION }}"}'
+        with:
+          platform: 'flutter'
+          version: ${{ env.PACKAGE_VERSION }}
+          dryRun: false
+          sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+        env:
+          SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
