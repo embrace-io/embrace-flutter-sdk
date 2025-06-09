@@ -48,7 +48,7 @@ jobs:
           platform: 'flutter'
           version: '0.0.0'  # We are just validating the token here, so the version is not important
           dryRun: true
-          sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+          uploadUrl: ${{ vars.SDK_VERSION_URL }}
         env:
           SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
 
@@ -109,6 +109,6 @@ jobs:
           platform: 'flutter'
           version: ${{ env.PACKAGE_VERSION }}
           dryRun: false
-          sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+          uploadUrl: ${{ vars.SDK_VERSION_URL }}
         env:
           SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
