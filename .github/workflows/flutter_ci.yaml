@@ -46,19 +46,17 @@ jobs:
   build:
     defaults:
       run:
-        working-directory: ${{inputs.working_directory}}
-
-    runs-on: ${{inputs.runs_on}}
-
+        working-directory: ${{ inputs.working_directory }}
+    runs-on: ${{ inputs.runs_on }}
     steps:
       - name: 📚 Git Checkout
         uses: actions/checkout@v4
 
       - name: 🐦 Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
-          flutter-version: ${{inputs.flutter_version}}
-          channel: ${{inputs.flutter_channel}}
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: ${{ inputs.flutter_channel }}
           cache: true
 
       - name: 📦 Install Dependencies
@@ -74,11 +72,11 @@ jobs:
         run: flutter analyze lib test
 
       - name: 🧪 Run Tests
-        run: very_good test -j ${{inputs.concurrency}} ${{(inputs.test_recursion && '--recursive') || ''}} ${{(inputs.test_optimization && '--optimization') || '--no-optimization'}} --coverage --test-randomize-ordering-seed random
+        run: very_good test -j ${{ inputs.concurrency }} ${{ (inputs.test_recursion && '--recursive') || '' }} ${{ (inputs.test_optimization && '--optimization') || '--no-optimization' }} --coverage --test-randomize-ordering-seed random
 
       - name: 📊 Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v2
+        uses: VeryGoodOpenSource/very_good_coverage@c953fca3e24a915e111cc6f55f03f756dcb3964c # v3.0.0
         with:
-          path: ${{inputs.working_directory}}/coverage/lcov.info
-          exclude: ${{inputs.coverage_excludes}}
-          min_coverage: ${{inputs.min_coverage}}
+          path: ${{ inputs.working_directory }}/coverage/lcov.info
+          exclude: ${{ inputs.coverage_excludes }}
+          min_coverage: ${{ inputs.min_coverage }}
