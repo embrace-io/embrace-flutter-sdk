@@ -43,7 +43,7 @@ jobs:
           ./verify_versions.sh
 
       - name: Validate access to version data service
-        uses: embrace-io/public-actions/upload-sdk-version@f4229398f257b24dbbe8b873f78e719f9af6cbbb
+        uses: embrace-io/public-actions/upload-sdk-version@88167cd1a3fce3418e26c8c842026e6dfab99e41
         with:
           platform: 'flutter'
           version: '0.0.0'  # We are just validating the token here, so the version is not important
@@ -103,7 +103,7 @@ jobs:
           gh release create ${{ env.PACKAGE_VERSION }} -t ${{ env.PACKAGE_VERSION }} -F embrace/CHANGELOG.md
 
       - name: Record SDK Version History
-        uses: embrace-io/public-actions/upload-sdk-version@f4229398f257b24dbbe8b873f78e719f9af6cbbb
+        uses: embrace-io/public-actions/upload-sdk-version@88167cd1a3fce3418e26c8c842026e6dfab99e41
         if: ${{ inputs.dry-run == false }}
         with:
           platform: 'flutter'
