@@ -1,6 +1,9 @@
 # Invokes the release workflow whenever a release candidate PR is merged
 name: RC Release
 
+permissions:
+  contents: write
+
 on:
   pull_request:
     types:

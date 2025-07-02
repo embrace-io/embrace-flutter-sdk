@@ -3,8 +3,10 @@ name: RC-PR
 
 on: pull_request
 
-jobs:
+permissions:
+  contents: read
 
+jobs:
   rc-publish-dry-run:
     name: Publish Release (dry-run)
     if: contains(github.event.pull_request.labels.*.name, 'release-candidate')
