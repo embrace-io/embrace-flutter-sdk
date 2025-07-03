@@ -2,7 +2,6 @@ name: Release
 
 env:
   REPO_PATH: 'embrace-flutter-sdk'
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   workflow_dispatch:
@@ -19,8 +18,7 @@ on:
         required: true
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   verify-versions:
@@ -32,6 +30,7 @@ jobs:
           fetch-depth: 0
           lfs: true
           path: ${{ env.REPO_PATH }}
+          persist-credentials: false
 
       - name: Setup yq
         run: |
@@ -64,6 +63,8 @@ jobs:
     name: Create Release
     needs: publish-packages
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: 📚 Git Checkout
         uses: actions/checkout@v4
@@ -71,6 +72,7 @@ jobs:
           fetch-depth: 0
           lfs: true
           path: ${{ env.REPO_PATH }}
+          persist-credentials: true
 
       - name: Setup yq
         run: |
@@ -88,7 +90,9 @@ jobs:
           cd ${{ env.REPO_PATH }}
           git config --global user.name "embrace-ci"
           git config --global user.email "embrace-ci@users.noreply.github.com"
-          git tag -a ${{ env.PACKAGE_VERSION }} -m "${{ env.PACKAGE_VERSION }}"
+          git tag -a ${PACKAGE_VERSION} -m "${PACKAGE_VERSION}"
+        env:
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
 
       - name: Push Tag
         if: ${{ inputs.dry-run == false }}
@@ -100,7 +104,9 @@ jobs:
         if: ${{ inputs.dry-run == false }}
         run: |
           cd ${{ env.REPO_PATH }}
-          gh release create ${{ env.PACKAGE_VERSION }} -t ${{ env.PACKAGE_VERSION }} -F embrace/CHANGELOG.md
+          gh release create ${PACKAGE_VERSION} -t ${PACKAGE_VERSION} -F embrace/CHANGELOG.md
+        env:
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
 
       - name: Record SDK Version History
         uses: embrace-io/public-actions/upload-sdk-version@88167cd1a3fce3418e26c8c842026e6dfab99e41

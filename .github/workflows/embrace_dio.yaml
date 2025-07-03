@@ -12,11 +12,13 @@ on:
       - ".github/workflows/embrace_dio.yaml"
       - "embrace_dio/**"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     uses: ./.github/workflows/flutter_ci.yaml
     with:
       flutter_channel: stable
-      flutter_version: 3.3.1
+      flutter_version: "3.3.1"
       working_directory: embrace_dio
-      
