@@ -335,7 +335,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                     let trid = span.context.traceId.hexString
                     let spid = span.context.spanId.hexString
                     let traceParent = W3C.traceparent(traceId: trid, spanId: spid)
-                    span.setAttribute(key: EmbracePlugin.W3cTraceparentArgName, value: traceParent)
+                    span.setAttribute(key: EmbracePlugin.AttrW3cTraceparent, value: traceParent)
                 }
                 span.end(time: Date(timeIntervalSince1970: TimeInterval(endTime) / 1000))
             }
