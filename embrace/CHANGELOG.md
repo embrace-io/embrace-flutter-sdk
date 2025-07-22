@@ -1,3 +1,7 @@
+# 4.2.0
+
+* Updated Embrace Android SDK to 7.7.0
+
 # 4.1.0
 
 * Updated Embrace Android SDK to 7.3.0
