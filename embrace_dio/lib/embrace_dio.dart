@@ -36,6 +36,8 @@ class EmbraceInterceptor extends Interceptor {
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
       var bytesSent = 0;
+      final w3cTraceparent = await _addTraceparentHeader(request);
+
       if (request.data is String) {
         bytesSent = (request.data as String).length;
       }
@@ -67,6 +69,7 @@ class EmbraceInterceptor extends Interceptor {
           bytesSent: bytesSent,
           bytesReceived: bytesReceived,
           statusCode: response.statusCode ?? 0,
+          w3cTraceparent: w3cTraceparent,
         ),
       );
     } catch (e) {
@@ -86,6 +89,7 @@ class EmbraceInterceptor extends Interceptor {
       final method = httpMethodFromString(request.method);
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
+      final w3cTraceparent = await _addTraceparentHeader(request);
 
       Embrace.instance.recordNetworkRequest(
         EmbraceNetworkRequest.fromIncompleteRequest(
@@ -94,6 +98,7 @@ class EmbraceInterceptor extends Interceptor {
           startTime: startTime,
           endTime: endTime,
           errorDetails: err.message?.toString() ?? '',
+          w3cTraceparent: w3cTraceparent,
         ),
       );
     } catch (e) {
@@ -102,5 +107,19 @@ class EmbraceInterceptor extends Interceptor {
     } finally {
       handler.next(err);
     }
+  }
+
+  Future<String?> _addTraceparentHeader(
+    RequestOptions options,
+  ) async {
+    final w3cTraceparent = options.headers['traceparent']?.toString() ??
+        await Embrace.instance.generateW3cTraceparent(
+          null,
+          null,
+        );
+    if (w3cTraceparent != null) {
+      options.headers.putIfAbsent('traceparent', () => w3cTraceparent);
+    }
+    return w3cTraceparent;
   }
 }
