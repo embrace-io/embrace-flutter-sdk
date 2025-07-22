@@ -41,6 +41,16 @@ class EmbraceHttpClient extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) async {
     final start = DateTime.now();
     final method = httpMethodFromString(request.method);
+
+    final w3cTraceparent = request.headers['traceparent'] ??
+        await Embrace.instance.generateW3cTraceparent(
+          null,
+          null,
+        );
+    if (w3cTraceparent != null) {
+      request.headers.putIfAbsent('traceparent', () => w3cTraceparent);
+    }
+
     try {
       final response = await _internalClient.send(request);
       final end = DateTime.now();
@@ -54,6 +64,7 @@ class EmbraceHttpClient extends BaseClient {
           bytesSent: request.contentLength ?? 0,
           bytesReceived: response.contentLength ?? 0,
           statusCode: response.statusCode,
+          w3cTraceparent: w3cTraceparent,
         ),
       );
       return response;
@@ -67,6 +78,7 @@ class EmbraceHttpClient extends BaseClient {
           startTime: start.millisecondsSinceEpoch,
           endTime: end.millisecondsSinceEpoch,
           errorDetails: e.message,
+          w3cTraceparent: w3cTraceparent,
         ),
       );
       rethrow;
