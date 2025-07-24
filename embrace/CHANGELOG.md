@@ -1,6 +1,7 @@
 # 4.2.0
 
 * Updated Embrace Android SDK to 7.7.0
+* Fixed w3cTraceparent header not being set in Dio/HttpClient requests when network spans forwarding enabled
 
 # 4.1.0
 
