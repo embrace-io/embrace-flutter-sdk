@@ -336,7 +336,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 if (w3cTraceparent == nil) {
                     let trid = span.context.traceId.hexString
                     let spid = span.context.spanId.hexString
-                    let traceParent = W3C.traceparent(traceId: trid, spanId: spid)
+                    let traceParent = W3C.traceparent(traceId: trid, spanId: spid, sampled: true)
                     span.setAttribute(key: EmbracePlugin.AttrW3cTraceparent, value: traceParent)
                 }
                 span.end(time: Date(timeIntervalSince1970: TimeInterval(endTime) / 1000))
@@ -661,9 +661,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
             if let args = call.arguments as? [String: Any],
                 let traceId = args[EmbracePlugin.TraceIdArgName] as? String,
                 let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
-                result(W3C.traceparent(traceId: traceId, spanId: spanId))
+                result(W3C.traceparent(traceId: traceId, spanId: spanId, sampled: true))
             } else {
-                result(W3C.traceparent(traceId: TraceId.random().hexString, spanId: SpanId.random().hexString))
+                result(W3C.traceparent(traceId: TraceId.random().hexString, spanId: SpanId.random().hexString, sampled: true))
             }
         }
     }
