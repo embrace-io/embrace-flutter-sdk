@@ -200,6 +200,8 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleAddSpanAttributeCall(call, result: result)
             case EmbracePlugin.RecordCompletedSpanMethodName:
                 handleRecordCompletedSpanCall(call, result: result)
+            case EmbracePlugin.GenerateW3cTraceparentMethodName:
+                handleGenerateW3cTraceparentCall(call, result: result)
             case EmbracePlugin.GetTraceIdMethodName:
                 handleGetTraceIdCall(call, result: result)
             default:
@@ -334,7 +336,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 if (w3cTraceparent == nil) {
                     let trid = span.context.traceId.hexString
                     let spid = span.context.spanId.hexString
-                    let traceParent = W3C.traceparent(traceId: trid, spanId: spid)
+                    let traceParent = W3C.traceparent(traceId: trid, spanId: spid, sampled: true)
                     span.setAttribute(key: EmbracePlugin.AttrW3cTraceparent, value: traceParent)
                 }
                 span.end(time: Date(timeIntervalSince1970: TimeInterval(endTime) / 1000))
@@ -601,8 +603,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                     let errorCode = args[EmbracePlugin.ErrorCodeArgName] as? String
                     let success = repository.stopSpan(spanId: spanId, endTimeMs: endTimeMs, errorCode: errorCode)
                     result(NSNumber(value: success))
+                } else {
+                    result(NSNumber(value: false))
                 }
-                result(NSNumber(value: false))
         }
     }
 
@@ -615,8 +618,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                     let attrs = args[EmbracePlugin.AttributesArgName] as? [String: String] ?? [:]
                     let success = repository.addSpanEvent(spanId: spanId, name: name, timestampMs: timestampMs, attributes: attrs)
                     result(NSNumber(value: success))
+                } else {
+                    result(NSNumber(value: false))
                 }
-                result(NSNumber(value: false))
         }
     }
 
@@ -628,8 +632,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 let valueObj = args[EmbracePlugin.ValueArgName] as? String {
                     let success = repository.addSpanAttribute(spanId: spanId, key: keyObj, value: valueObj)
                     result(NSNumber(value: success))
+                } else {
+                    result(NSNumber(value: false))
                 }
-                result(NSNumber(value: false))
         }
     }
 
@@ -645,8 +650,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                     let events = args[EmbracePlugin.EventsArgName] as? Array<Dictionary<String, Any>> ?? []
                     let success = repository.recordCompletedSpan(name: name, startTimeMs: startTimeMs, endTimeMs: endTimeMs, errorCode: errorCode, parentSpanId: parentSpanId, attributes: attrs, events: events)
                     result(NSNumber(value: success))
+                } else {
+                    result(nil)
                 }
-                result(nil)
         }
     }
 
@@ -655,10 +661,10 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
             if let args = call.arguments as? [String: Any],
                 let traceId = args[EmbracePlugin.TraceIdArgName] as? String,
                 let spanId = args[EmbracePlugin.SpanIdArgName] as? String {
-                let traceparent = W3C.traceparent(traceId: traceId, spanId: spanId)
-                result(traceparent)
+                result(W3C.traceparent(traceId: traceId, spanId: spanId, sampled: true))
+            } else {
+                result(W3C.traceparent(traceId: TraceId.random().hexString, spanId: SpanId.random().hexString, sampled: true))
             }
-            result(nil)
         }
     }
 
@@ -668,8 +674,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 let spanId = args[EmbracePlugin.SpanIdArgName] as? String,
                 let span = repository.findSpan(id: spanId) {
                 result(span.context.traceId.hexString)
+            } else {
+                result(nil)
             }
-            result(nil)
         }
     }
 
