@@ -54,7 +54,7 @@ class _TracingApiDemoState extends State<TracingApiDemo> {
     }
   }
 
-  void _recordCompletedSpan() async {
+  Future<void> _recordCompletedSpan() async {
     final start = DateTime.now().millisecondsSinceEpoch - 1000;
     final end = start + 500;
     final result = await Embrace.instance.recordCompletedSpan(
@@ -67,7 +67,7 @@ class _TracingApiDemoState extends State<TracingApiDemo> {
           name: 'my-span-event',
           attributes: {'my-event-key': 'my-event-value'},
           timestampMs: DateTime.now().millisecondsSinceEpoch,
-        )
+        ),
       ],
     );
   }

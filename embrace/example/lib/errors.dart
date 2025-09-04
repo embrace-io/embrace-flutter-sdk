@@ -148,15 +148,15 @@ class RenderflexOverflowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
-        const Icon(Icons.message),
+        Icon(Icons.message),
         Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Title'),
-            const Text(
+            Text(
                 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'
                 ' do eiusmod tempor incididunt ut labore et dolore magna '
                 'aliqua. Ut enim ad minim veniam, quis nostrud '
@@ -184,9 +184,9 @@ class StateDuringBuildWidget extends StatelessWidget {
       },
     );
 
-    return Center(
+    return const Center(
       child: Column(
-        children: const <Widget>[
+        children: <Widget>[
           Text('Show Material Dialog'),
         ],
       ),
@@ -204,8 +204,8 @@ class UnboundInputDecoratorWidget extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Unbounded Width of the TextField'),
         ),
-        body: Row(
-          children: const [
+        body: const Row(
+          children: [
             TextField(),
           ],
         ),

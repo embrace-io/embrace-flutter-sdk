@@ -18,6 +18,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  http: any
+  embrace_platform_interface: any
 dev_dependencies:
   flutter_driver:
     sdk: flutter

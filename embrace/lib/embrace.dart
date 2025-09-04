@@ -574,7 +574,7 @@ void _processGlobalZoneError(Object error, StackTrace stack) {
 /// not use this directly as function signatures may change without warning.
 class EmbraceSpanImpl extends EmbraceSpan {
   /// Constructor
-  EmbraceSpanImpl(String id, this._platform) : super(id);
+  EmbraceSpanImpl(super.id, this._platform);
 
   final EmbracePlatform _platform;
 

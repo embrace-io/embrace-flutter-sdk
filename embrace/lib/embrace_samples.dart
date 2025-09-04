@@ -40,8 +40,8 @@ class EmbraceSamples {
     } catch (exc, stack) {
       if (kDebugMode) {
         print(
-          'Exception message: ${exc.toString()}, '
-          'Stacktrace:\n${stack.toString()}',
+          'Exception message: $exc, '
+          'Stacktrace:\n$stack',
         );
       }
     }
