@@ -24,62 +24,53 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  # Build with minimum supported Flutter/Dart versions
+  build_minimum:
     uses: ./.github/workflows/flutter_ci.yaml
     with:
       flutter_channel: stable
-      flutter_version: '3.3.1'
+      flutter_version: '3.22.0'
       working_directory: embrace
 
-  test_min_version:
+  # Run tests on minimum supported version
+  test_minimum:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: embrace
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
-          flutter-version: '3.0.0'
-
+          flutter-version: '3.22.0'
       - name: Flutter Doctor
         run: flutter doctor -v
+      - name: Tests for minimum version
+        run: flutter test
 
-      - name: Tests for min version
-        run: flutter test --dart-define=belowFlutter_3_1=true
-
+  # Run tests on latest stable Flutter/Dart
   test_release:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: embrace
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
       - name: Flutter Doctor
         run: flutter doctor -v
-
       - name: Tests for release mode
         run: flutter test --dart-define=dart.vm.product=true test_release/
 
   android:
     runs-on: macos-latest
-
     defaults:
       run:
         working-directory: embrace/example
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -88,17 +79,13 @@ jobs:
         with:
           distribution: "adopt"
           java-version: "17"
-
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # latest stable
       - name: Configure App ID and API Token
         run: |
           sed -i .bak 's/YOUR_APP_ID/${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}/' android/app/src/main/embrace-config.json
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}/' android/app/src/main/embrace-config.json
-
       - name: Flutter Doctor
         run: flutter doctor -v
-
       - name: AVD Cache
         uses: actions/cache@v4
         id: avd-cache
@@ -107,7 +94,6 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-29
-
       - name: Cache AVD Snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
@@ -116,7 +102,6 @@ jobs:
           force-avd-creation: false
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
-
       - name: Android Integration Tests
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
@@ -126,34 +111,26 @@ jobs:
 
   ios:
     runs-on: macos-latest
-
     defaults:
       run:
         working-directory: embrace/example
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # latest stable
       - name: Configure App ID and API Token
         run: |
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-
       - name: Flutter Doctor
         run: flutter doctor -v
-
       - name: Start iOS Simulator
         run: open -a Simulator.app
-
       - name: Wait 5s for simulator to load
         run: sleep 5
-
       - name: Integration Tests
         run: flutter test integration_test -d iPhone
 
@@ -161,14 +138,12 @@ jobs:
     defaults:
       run:
         working-directory: embrace
-
     runs-on: ubuntu-latest
     steps:
       - name: 📚 Git Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - name: 🖋 Override Embrace packages with local versions
         run: |
           sed -i 'pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
@@ -176,22 +151,18 @@ jobs:
           sed -i 'pubspec.yaml' -e 's/embrace_ios:.*/embrace_ios:\n    path: ..\/embrace_ios/'
           sed -i '../embrace_ios/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
           sed -i '../embrace_android/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
-
       - name: 🐦 Setup Flutter
-        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
           channel: stable
           cache: true
-
       - name: ⬇️ Pub Get
         run: flutter pub get
-
       - name: 📦 Install Pana
         run: flutter pub global activate pana
-
       - name: 📊 Verify Pana Score
         run: |
           PANA=$(pana . --no-warning); PANA_SCORE=$(echo $PANA | sed -n "s/.*Points: \([0-9]*\)\/\([0-9]*\)./\1\/\2/p")
           echo "Score: $PANA_SCORE"
-          IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=SCORE_ARR[0];
-          if (( $SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
+          IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=${SCORE_ARR[0]}
+          if (( SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
