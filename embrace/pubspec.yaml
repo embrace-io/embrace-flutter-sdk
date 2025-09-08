@@ -4,7 +4,7 @@ version: 4.2.0
 homepage: https://embrace.io
 environment:
   sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.22.0"
+  flutter: ">=3.10.0"
 flutter:
   plugin:
     platforms:
