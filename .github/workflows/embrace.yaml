@@ -67,68 +67,98 @@ jobs:
         run: flutter test --dart-define=dart.vm.product=true test_release/
 
   android:
-    runs-on: macos-15
+    name: Android (Flutter emulator, Ubuntu + KVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 60
     defaults:
       run:
         working-directory: embrace/example
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@v4
+      # Enable hardware accel for the x86_64 emulator
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e  # stable
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          cache: true
 
-      # Make sure SDK pieces + licenses are in place
+      - name: Flutter pub get
+        run: flutter pub get
+
       - name: Accept Android SDK licenses
-        run: |
-          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+        run: yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
-      # Proactively clean up any stragglers from prior attempts
-      - name: Kill orphaned emulators/adb
-        run: |
-          pkill -f "emulator.*-avd" || true
-          "${ANDROID_SDK_ROOT}/platform-tools/adb" kill-server || true
-
-      # Cache the AVD (key includes OS/arch/api)
-      - name: AVD Cache
+      # Cache the AVD (x86_64 + API 34); change API here if needed
+      - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-macos15-arm64-api34
+          key: avd-ubuntu-x86_64-api34
 
-      # Prime cache if needed (no GPU flag; don't force port)
-      - name: Cache AVD Snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed
+      # Prime the cache by creating the snapshot (do NOT disable snapshots)
+      - name: Create AVD + snapshot (cache prime)
+        if: ${{ steps.avd-cache.outputs.cache-hit != 'true' }}
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 34
-          target: google_apis
-          arch: arm64-v8a
-          avd-name: test
-          emulator-boot-timeout: 1500
-          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics
+          target: default
+          arch: x86_64
+          profile: pixel_5
+          force-avd-creation: false
+          disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      # Run the tests on the same AVD definition
-      - name: Android Integration Tests
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed
+      # Boot from the cached snapshot and run Flutter integration tests
+      - name: Run Flutter integration tests
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 34
-          target: google_apis
-          arch: arm64-v8a
-          avd-name: test
-          emulator-boot-timeout: 1500
-          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics
-          script: flutter test integration_test
+          target: default
+          arch: x86_64
+          profile: pixel_5
+          cores: 4
+          emulator-options: -no-window -no-boot-anim -no-audio -no-metrics
           working-directory: embrace/example
+          script: |
+            set -euxo pipefail
+            adb devices
+            flutter --version
+            flutter devices
+            # Run tests on the emulator; on failure, capture logcat
+            flutter test integration_test -d emulator-5554 || (adb logcat -d > emulator_logcat.log && exit 127)
+
+      - name: Archive Test Results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-flutter-results
+          path: |
+            **/build/reports/**
+            **/test-results/**
+            emulator_logcat.log
+          if-no-files-found: ignore
 
 
   ios:
