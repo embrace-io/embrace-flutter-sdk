@@ -1,4 +1,20 @@
-include ':app'
+pluginManagement {
+    def flutterSdkPath = System.getenv("FLUTTER_ROOT")
+    assert flutterSdkPath != null : "FLUTTER_ROOT not set"
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id("com.android.application") apply false
+    id("org.jetbrains.kotlin.android") apply false
+}
+
+include(":app")
 
 def localPropertiesFile = new File(rootProject.projectDir, "local.properties")
 def properties = new Properties()
