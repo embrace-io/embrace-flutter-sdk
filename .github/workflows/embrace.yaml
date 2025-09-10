@@ -220,11 +220,6 @@ jobs:
           xcrun simctl status_bar "$UDID" override --time 9:41 || true
           xcrun simctl list devices | grep "$UDID"
 
-      - name: Ensure CocoaPods (optional but helps first-run flakiness)
-        run: |
-          sudo gem install cocoapods -N || true
-          (cd ios && pod install --repo-update)
-
       - name: Run iOS integration tests
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
