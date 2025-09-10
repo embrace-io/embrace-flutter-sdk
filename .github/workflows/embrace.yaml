@@ -171,7 +171,6 @@ jobs:
             emulator_logcat.log
           if-no-files-found: ignore
 
-
   ios:
     runs-on: macos-15 
     defaults:
@@ -194,13 +193,30 @@ jobs:
         id: boot-sim
         shell: bash
         run: |
-          set -euxo pipefail
-          RUNTIME=$(xcrun simctl list runtimes | awk -F'[()]' '/iOS .*available/ {rt=$2} END{print rt}')
-          DEVICE="iPhone 15 Pro"
-          UDID=$(xcrun simctl create "CI iPhone" "$DEVICE" "$RUNTIME")
-          echo "udid=$UDID" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          # Pick the newest available iOS runtime identifier
+          RUNTIME=$(xcrun simctl list runtimes -j \
+            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+            | sort -V | tail -n1)
+
+          if [[ -z "${RUNTIME:-}" ]]; then
+            echo "No available iOS runtimes found"; exit 1
+          fi
+
+          # Resolve device type identifier for iPhone 15 Pro
+          DEVICE_TYPE=$(xcrun simctl list devicetypes -j \
+            | jq -r '.devicetypes[] | select(.name=="iPhone 15 Pro") | .identifier')
+
+          if [[ -z "${DEVICE_TYPE:-}" ]]; then
+            echo "Device type iPhone 15 Pro not found"; exit 1
+          fi
+
+          UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
           xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b  # blocks until the OS is ready
+          xcrun simctl bootstatus "$UDID" -b
           xcrun simctl status_bar "$UDID" override --time 9:41 || true
           xcrun simctl list devices | grep "$UDID"
 
