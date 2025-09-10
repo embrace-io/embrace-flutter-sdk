@@ -107,6 +107,11 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
+      - name: Configure App ID and API Token
+        run: |
+          sed -i .bak 's/YOUR_APP_ID/${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}/' android/app/src/main/embrace-config.json
+          sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}/' android/app/src/main/embrace-config.json
+
       # Cache the AVD (x86_64 + API 34); change API here if needed
       - name: AVD cache
         uses: actions/cache@v4
