@@ -113,8 +113,8 @@ jobs:
           mkdir -p android/app/src/main
           cat > android/app/src/main/embrace-config.json <<'JSON'
           {
-            "app_id": "${{ secrets.EMBRACE_APP_ID }}",
-            "api_token": "${{ secrets.EMBRACE_API_TOKEN }}",
+            "app_id": "${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}",
+            "api_token": "${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}",
             "ndk_enabled": true,
             "sdk_config": { "app_framework": "flutter" }
           }
