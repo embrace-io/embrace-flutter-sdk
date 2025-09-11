@@ -172,7 +172,7 @@ jobs:
           if-no-files-found: ignore
 
   ios:
-    runs-on: macos-15 
+    runs-on: macos-15
     defaults:
       run:
         working-directory: embrace/example
@@ -180,7 +180,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e  # stable
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+      - name: Flutter Pub Get
+        run: flutter pub get
       - name: Configure App ID and API Token
         run: |
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Embrace-Info.plist
@@ -189,29 +191,25 @@ jobs:
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
       - name: Flutter Doctor (sanity check)
         run: flutter doctor -v
-      - name: Create & Boot iOS Simulator
+      - name: Create & Boot iOS Simulator (prefer iOS 17.x)
         id: boot-sim
         shell: bash
         run: |
           set -euo pipefail
+          xcrun simctl shutdown all || true
+          xcrun simctl erase all || true
 
-          # Pick the newest available iOS runtime identifier
+          # Prefer iOS 17.*, fall back to newest available
           RUNTIME=$(xcrun simctl list runtimes -j \
-            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith("17."))) | .identifier' \
             | sort -V | tail -n1)
-
           if [[ -z "${RUNTIME:-}" ]]; then
-            echo "No available iOS runtimes found"; exit 1
+            RUNTIME=$(xcrun simctl list runtimes -j \
+              | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+              | sort -V | tail -n1)
           fi
 
-          # Resolve device type identifier for iPhone 15 Pro
-          DEVICE_TYPE=$(xcrun simctl list devicetypes -j \
-            | jq -r '.devicetypes[] | select(.name=="iPhone 15 Pro") | .identifier')
-
-          if [[ -z "${DEVICE_TYPE:-}" ]]; then
-            echo "Device type iPhone 15 Pro not found"; exit 1
-          fi
-
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
@@ -219,17 +217,29 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl status_bar "$UDID" override --time 9:41 || true
           xcrun simctl list devices | grep "$UDID"
-
-      - name: Run iOS integration tests
+      - name: Stream Simulator Logs
+        run: |
+          xcrun simctl spawn "${{ steps.boot-sim.outputs.udid }}" log stream --style syslog \
+            --predicate 'process == "Runner"' > simlog.txt 2>&1 &
+          echo $! > log.pid
+      - name: Run iOS integration test (flutter drive)
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
           flutter devices
-          flutter test integration_test -d "$SIM_UDID"
-
+          flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/app_test.dart \
+            -d "$SIM_UDID"
+      - name: Kill log stream & tail
+        if: always()
+        run: |
+          kill $(cat log.pid) || true
+          tail -n 400 simlog.txt || true
       - name: Shutdown simulator
         if: always()
         run: xcrun simctl shutdown all || true
+
 
   pana:
     defaults:
