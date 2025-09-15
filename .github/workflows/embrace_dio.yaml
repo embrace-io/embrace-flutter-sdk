@@ -20,5 +20,5 @@ jobs:
     uses: ./.github/workflows/flutter_ci.yaml
     with:
       flutter_channel: stable
-      flutter_version: "3.10.0"
+      flutter_version: "3.22.0"
       working_directory: embrace_dio
