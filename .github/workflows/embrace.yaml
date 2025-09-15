@@ -219,9 +219,11 @@ jobs:
           xcrun simctl list devices | grep "$UDID"
       - name: Stream Simulator Logs
         run: |
-          xcrun simctl spawn "${{ steps.boot-sim.outputs.udid }}" log stream --style syslog \
+          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog \
             --predicate 'process == "Runner"' > simlog.txt 2>&1 &
           echo $! > log.pid
+        env:
+          STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
       - name: Run iOS integration test (flutter drive)
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
