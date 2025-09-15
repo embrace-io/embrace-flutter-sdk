@@ -1,61 +1,31 @@
-group 'io.embrace.flutter'
-version '1.0-SNAPSHOT'
-
-buildscript {
-    ext.kotlin_version = '1.8.22'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+plugins {
+  id "com.android.library"
+  id "org.jetbrains.kotlin.android"
 }
 
-rootProject.allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+group = "io.embrace.flutter"
+version = "1.0-SNAPSHOT"
 
 android {
-    compileSdkVersion 34
+  namespace "io.embrace.flutter"
+  compileSdk 34
 
-    if (project.android.hasProperty("namespace")) {
-        namespace = "io.embrace.flutter"
-    }
+  defaultConfig { minSdk 21 }
 
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions { jvmTarget = "1.8" }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        apiVersion = '1.8'
-        languageVersion = '1.8'
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-        freeCompilerArgs += '-Xexplicit-api=strict'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
-    defaultConfig {
-        minSdkVersion 21
-    }
+  sourceSets { main.java.srcDirs += "src/main/kotlin" }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compileOnly "io.embrace:embrace-android-sdk:$emb_android_sdk"
-    compileOnly "io.embrace:embrace-android-core:$emb_android_sdk"
-    compileOnly "io.embrace:embrace-internal-api:$emb_android_sdk"
+  def embAndroidSdk = (findProperty("emb_android_sdk") ?: rootProject.findProperty("emb_android_sdk"))
+  if (!embAndroidSdk) throw new GradleException("Missing 'emb_android_sdk' in gradle.properties")
+
+  compileOnly "io.embrace:embrace-android-sdk:$embAndroidSdk"
+  compileOnly "io.embrace:embrace-android-core:$embAndroidSdk"
+  compileOnly "io.embrace:embrace-internal-api:$embAndroidSdk"
 }

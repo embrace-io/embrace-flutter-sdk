@@ -3,8 +3,8 @@ description: A comprehensive observability and monitoring platform for iOS and A
 version: 4.2.0
 homepage: https://embrace.io
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
 flutter:
   plugin:
     platforms:

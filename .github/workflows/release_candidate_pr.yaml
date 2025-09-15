@@ -4,7 +4,7 @@ name: RC-PR
 on: pull_request
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   rc-publish-dry-run:

@@ -1,5 +1,8 @@
 name: embrace
 
+env:
+  ANDROID_API_LEVEL: 34
+
 on:
   pull_request:
     paths:
@@ -24,151 +27,235 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  # Build with minimum supported Flutter/Dart versions
+  build_minimum:
     uses: ./.github/workflows/flutter_ci.yaml
     with:
       flutter_channel: stable
-      flutter_version: '3.3.1'
+      flutter_version: '3.22.0'
       working_directory: embrace
 
-  test_min_version:
+  # Run tests on minimum supported version
+  test_minimum:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: embrace
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
-          flutter-version: '3.0.0'
-
+          flutter-version: '3.22.0'
       - name: Flutter Doctor
         run: flutter doctor -v
+      - name: Tests for minimum version
+        run: flutter test
 
-      - name: Tests for min version
-        run: flutter test --dart-define=belowFlutter_3_1=true
-
+  # Run tests on latest stable Flutter/Dart
   test_release:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: embrace
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
       - name: Flutter Doctor
         run: flutter doctor -v
-
       - name: Tests for release mode
         run: flutter test --dart-define=dart.vm.product=true test_release/
 
   android:
-    runs-on: macos-latest
-
+    name: Android (Flutter emulator, Ubuntu + KVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 60
     defaults:
       run:
         working-directory: embrace/example
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "adopt"
-          java-version: "17"
 
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
-      - name: Configure App ID and API Token
+      # Enable hardware accel for the x86_64 emulator
+      - name: Enable KVM group perms
         run: |
-          sed -i .bak 's/YOUR_APP_ID/${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}/' android/app/src/main/embrace-config.json
-          sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}/' android/app/src/main/embrace-config.json
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-      - name: Flutter Doctor
-        run: flutter doctor -v
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: AVD Cache
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Accept Android SDK licenses
+        run: yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+      - name: Write Embrace config (from secrets)
+        working-directory: embrace/example
+        run: |
+          mkdir -p android/app/src/main
+          cat > android/app/src/main/embrace-config.json <<'JSON'
+          {
+            "app_id": "${{ secrets.FLUTTER_TEST_ANDROID_APP_ID }}",
+            "api_token": "${{ secrets.FLUTTER_TEST_ANDROID_API_TOKEN }}",
+            "ndk_enabled": true,
+            "sdk_config": { "app_framework": "flutter" }
+          }
+          JSON
+
+      # Cache the AVD (x86_64 + API 34); change API here if needed
+      - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-29
+          key: avd-${{ runner.os }}-${{ runner.arch }}-api${{ env.ANDROID_API_LEVEL }}
 
-      - name: Cache AVD Snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
+      # Prime the cache by creating the snapshot (do NOT disable snapshots)
+      - name: Create AVD + snapshot (cache prime)
+        if: ${{ steps.avd-cache.outputs.cache-hit != 'true' }}
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
-          api-level: 29
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          target: default
+          arch: x86_64
+          profile: pixel_5
           force-avd-creation: false
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      - name: Android Integration Tests
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
+      - name: Run Flutter integration tests
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed
         with:
-          api-level: 29
-          script: flutter test integration_test
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          target: default
+          arch: x86_64
+          profile: pixel_5
+          cores: 4
+          emulator-options: -no-window -no-boot-anim -no-audio -no-metrics
           working-directory: embrace/example
+          script: |
+            set -eu
+            adb devices || true
+            flutter --version
+            flutter devices || true
+            flutter test integration_test -d emulator-5554 || { adb logcat -d > emulator_logcat.log 2>&1 || true; exit 127; }
+
+      - name: Archive Test Results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-flutter-results
+          path: |
+            **/build/reports/**
+            **/test-results/**
+            emulator_logcat.log
+          if-no-files-found: ignore
 
   ios:
-    runs-on: macos-latest
-
+    runs-on: macos-15
     defaults:
       run:
         working-directory: embrace/example
-
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
-
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+      - name: Flutter Pub Get
+        run: flutter pub get
       - name: Configure App ID and API Token
         run: |
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-
-      - name: Flutter Doctor
+      - name: Flutter Doctor (sanity check)
         run: flutter doctor -v
+      - name: Create & Boot iOS Simulator (prefer iOS 17.x)
+        id: boot-sim
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl shutdown all || true
+          xcrun simctl erase all || true
 
-      - name: Start iOS Simulator
-        run: open -a Simulator.app
+          # Prefer iOS 17.*, fall back to newest available
+          RUNTIME=$(xcrun simctl list runtimes -j \
+            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith("17."))) | .identifier' \
+            | sort -V | tail -n1)
+          if [[ -z "${RUNTIME:-}" ]]; then
+            RUNTIME=$(xcrun simctl list runtimes -j \
+              | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+              | sort -V | tail -n1)
+          fi
 
-      - name: Wait 5s for simulator to load
-        run: sleep 5
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
+          UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
-      - name: Integration Tests
-        run: flutter test integration_test -d iPhone
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 || true
+          xcrun simctl list devices | grep "$UDID"
+      - name: Stream Simulator Logs
+        run: |
+          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog \
+            --predicate 'process == "Runner"' > simlog.txt 2>&1 &
+          echo $! > log.pid
+        env:
+          STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
+      - name: Run iOS integration test (flutter drive)
+        env:
+          SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
+        run: |
+          flutter devices
+          flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/app_test.dart \
+            -d "$SIM_UDID"
+      - name: Kill log stream & tail
+        if: always()
+        run: |
+          kill $(cat log.pid) || true
+          tail -n 400 simlog.txt || true
+      - name: Shutdown simulator
+        if: always()
+        run: xcrun simctl shutdown all || true
+
 
   pana:
     defaults:
       run:
         working-directory: embrace
-
     runs-on: ubuntu-latest
     steps:
       - name: 📚 Git Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - name: 🖋 Override Embrace packages with local versions
         run: |
           sed -i 'pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
@@ -176,22 +263,18 @@ jobs:
           sed -i 'pubspec.yaml' -e 's/embrace_ios:.*/embrace_ios:\n    path: ..\/embrace_ios/'
           sed -i '../embrace_ios/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
           sed -i '../embrace_android/pubspec.yaml' -e 's/embrace_platform_interface:.*/embrace_platform_interface:\n    path: ..\/embrace_platform_interface/'
-
       - name: 🐦 Setup Flutter
-        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
           channel: stable
           cache: true
-
       - name: ⬇️ Pub Get
         run: flutter pub get
-
       - name: 📦 Install Pana
         run: flutter pub global activate pana
-
       - name: 📊 Verify Pana Score
         run: |
           PANA=$(pana . --no-warning); PANA_SCORE=$(echo $PANA | sed -n "s/.*Points: \([0-9]*\)\/\([0-9]*\)./\1\/\2/p")
           echo "Score: $PANA_SCORE"
-          IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=SCORE_ARR[0];
-          if (( $SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
+          IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=${SCORE_ARR[0]}
+          if (( SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
