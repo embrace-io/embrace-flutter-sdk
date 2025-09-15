@@ -3,7 +3,7 @@ import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/material.dart';
 
 class LastRunEndStateDemo extends StatefulWidget {
-  const LastRunEndStateDemo({Key? key}) : super(key: key);
+  const LastRunEndStateDemo({super.key});
 
   @override
   State<LastRunEndStateDemo> createState() => _LastRunEndStateDemoState();

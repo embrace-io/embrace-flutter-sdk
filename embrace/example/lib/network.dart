@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class NetworkDemo extends StatefulWidget {
-  const NetworkDemo({Key? key}) : super(key: key);
+  const NetworkDemo({super.key});
 
   @override
   State<NetworkDemo> createState() => _NetworkDemoState();

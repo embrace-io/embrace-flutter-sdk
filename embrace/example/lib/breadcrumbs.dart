@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class BreadcrumbDemo extends StatefulWidget {
-  const BreadcrumbDemo({Key? key}) : super(key: key);
+  const BreadcrumbDemo({super.key});
 
   @override
   State<BreadcrumbDemo> createState() => _BreadcrumbDemoState();

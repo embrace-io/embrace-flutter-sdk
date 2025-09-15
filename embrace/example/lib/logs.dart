@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class LogsDemo extends StatefulWidget {
-  const LogsDemo({Key? key}) : super(key: key);
+  const LogsDemo({super.key});
 
   @override
   State<LogsDemo> createState() => _LogsDemoState();

@@ -4,7 +4,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class PushNotificationsDemo extends StatefulWidget {
-  const PushNotificationsDemo({Key? key}) : super(key: key);
+  const PushNotificationsDemo({super.key});
 
   @override
   State<PushNotificationsDemo> createState() => _PushNotificationsDemoState();

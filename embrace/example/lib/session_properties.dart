@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class SessionPropertiesDemo extends StatefulWidget {
-  const SessionPropertiesDemo({Key? key}) : super(key: key);
+  const SessionPropertiesDemo({super.key});
 
   @override
   State<SessionPropertiesDemo> createState() => _SessionPropertiesDemoState();

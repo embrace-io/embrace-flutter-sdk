@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class ViewsDemo extends StatefulWidget {
-  const ViewsDemo({Key? key}) : super(key: key);
+  const ViewsDemo({super.key});
 
   @override
   State<ViewsDemo> createState() => _ViewsDemoState();

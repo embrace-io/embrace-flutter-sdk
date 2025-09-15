@@ -3,7 +3,7 @@ import 'package:embrace/embrace_api.dart';
 import 'package:flutter/material.dart';
 
 class TracingApiDemo extends StatefulWidget {
-  const TracingApiDemo({Key? key}) : super(key: key);
+  const TracingApiDemo({super.key});
 
   @override
   State<TracingApiDemo> createState() => _TracingApiDemoState();
