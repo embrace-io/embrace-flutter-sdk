@@ -10,7 +10,7 @@ Future<void> main() async {
 }
 
 class EmbraceDioDemo extends StatelessWidget {
-  const EmbraceDioDemo({Key? key}) : super(key: key);
+  const EmbraceDioDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class EmbraceDioDemo extends StatelessWidget {
 }
 
 class EmbraceDioMenu extends StatefulWidget {
-  const EmbraceDioMenu({Key? key}) : super(key: key);
+  const EmbraceDioMenu({super.key});
 
   @override
   State<EmbraceDioMenu> createState() => _EmbraceDioMenuState();
