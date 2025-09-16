@@ -1,10 +1,22 @@
 version: 2
 updates:
-  - package-ecosystem: "flutter"
-    directory: "/"
-    schedule:
-      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "gradle"
+    directories:
+      - "/embrace_android/android"
+      - "/**/example/android"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directories:
+      - "/embrace_android"
+      - "/embrace_dio"
+      - "/embrace_ios"
+      - "/embrace_platform_interface"
+      - "/embrace"
+      - "/**/example"
+    schedule:
+      interval: "daily"
