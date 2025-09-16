@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class CurrentSessionDemo extends StatefulWidget {
-  const CurrentSessionDemo({Key? key}) : super(key: key);
+  const CurrentSessionDemo({super.key});
 
   @override
   State<CurrentSessionDemo> createState() => _CurrentSessionDemoState();

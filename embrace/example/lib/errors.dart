@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 /// https://docs.flutter.dev/resources/architectural-overview
 ///
 class ErrorDemo extends StatelessWidget {
-  const ErrorDemo({Key? key}) : super(key: key);
+  const ErrorDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +144,7 @@ class ErrorDemo extends StatelessWidget {
 }
 
 class RenderflexOverflowWidget extends StatelessWidget {
-  const RenderflexOverflowWidget({Key? key}) : super(key: key);
+  const RenderflexOverflowWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +170,7 @@ class RenderflexOverflowWidget extends StatelessWidget {
 }
 
 class StateDuringBuildWidget extends StatelessWidget {
-  const StateDuringBuildWidget({Key? key}) : super(key: key);
+  const StateDuringBuildWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +195,7 @@ class StateDuringBuildWidget extends StatelessWidget {
 }
 
 class UnboundInputDecoratorWidget extends StatelessWidget {
-  const UnboundInputDecoratorWidget({Key? key}) : super(key: key);
+  const UnboundInputDecoratorWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +215,7 @@ class UnboundInputDecoratorWidget extends StatelessWidget {
 }
 
 class UnboundVerticalViewportWidget extends StatelessWidget {
-  const UnboundVerticalViewportWidget({Key? key}) : super(key: key);
+  const UnboundVerticalViewportWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

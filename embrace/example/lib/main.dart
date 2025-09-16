@@ -19,7 +19,7 @@ Future<void> main() async {
 }
 
 class EmbraceDemo extends StatelessWidget {
-  const EmbraceDemo({Key? key}) : super(key: key);
+  const EmbraceDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class EmbraceDemo extends StatelessWidget {
 }
 
 class EmbraceMenu extends StatefulWidget {
-  const EmbraceMenu({Key? key}) : super(key: key);
+  const EmbraceMenu({super.key});
 
   @override
   State<EmbraceMenu> createState() => _EmbraceMenuState();

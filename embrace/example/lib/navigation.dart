@@ -2,7 +2,7 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 class EmbraceNavigationDemo extends StatelessWidget {
-  const EmbraceNavigationDemo({Key? key}) : super(key: key);
+  const EmbraceNavigationDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class EmbraceNavigationDemo extends StatelessWidget {
 }
 
 class _Page1 extends StatelessWidget {
-  const _Page1({Key? key}) : super(key: key);
+  const _Page1();
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class _Page1 extends StatelessWidget {
 }
 
 class _Page2 extends StatelessWidget {
-  const _Page2({Key? key}) : super(key: key);
+  const _Page2();
 
   @override
   Widget build(BuildContext context) {
