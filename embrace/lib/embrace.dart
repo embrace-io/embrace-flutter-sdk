@@ -447,7 +447,7 @@ class Embrace implements EmbraceFlutterApi {
     () async {
       return _platform.recordSpan(
         name,
-        code,
+        code: code,
         parentSpanId: parent?.id,
         attributes: attributes,
         events: _convertSpanEvents(events),
