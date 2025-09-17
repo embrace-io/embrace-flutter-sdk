@@ -340,6 +340,18 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('recordCompletedSpan() has not been implemented');
   }
 
+  /// allows you to pass a lambda in so the runtime of that starts and ends a span
+  Future<bool> recordSpan(
+    String name,
+    {
+    String? parentSpanId,
+    Map<String, String>? attributes,
+    List<Map<String, dynamic>>? events,
+    Future<void> Function()? code,
+  }) {
+    throw UnimplementedError('recordSpan() has not been implemented');
+  }
+
   /// Returns the end state of the previous run of the application.
   Future<LastRunEndState> getLastRunEndState() {
     throw UnimplementedError('getLastRunEndState() has not been implemented');
