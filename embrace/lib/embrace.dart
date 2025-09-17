@@ -437,11 +437,11 @@ class Embrace implements EmbraceFlutterApi {
   
   @override
   Future<bool> recordSpan<T>(
-    String name,
-    Future<T> Function() code, {
+    String name,{
     EmbraceSpan? parent,
     Map<String, String>? attributes,
     List<EmbraceSpanEvent>? events,
+    required Future<T> Function() code, 
   }) async {
     return _runCatchingAndReturn<bool>('recordSpan', 
     () async {
