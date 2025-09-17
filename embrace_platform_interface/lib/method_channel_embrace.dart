@@ -596,12 +596,12 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  Future<bool> recordSpan(
+  Future<bool> recordSpan<T>(
     String name, {
     String? parentSpanId,
     Map<String, String>? attributes,
     List<Map<String, dynamic>>? events,
-    Future<void> Function()? code,
+    required Future<T> Function() code,
   }) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_recordSpanMethodName, {

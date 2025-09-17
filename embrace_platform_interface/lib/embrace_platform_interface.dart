@@ -341,13 +341,13 @@ abstract class EmbracePlatform extends PlatformInterface {
   }
 
   /// allows you to pass a lambda in so the runtime of that starts and ends a span
-  Future<bool> recordSpan(
+  Future<bool> recordSpan<T>(
     String name,
     {
     String? parentSpanId,
     Map<String, String>? attributes,
     List<Map<String, dynamic>>? events,
-    Future<void> Function()? code,
+    required Future<T> Function() code,
   }) {
     throw UnimplementedError('recordSpan() has not been implemented');
   }
