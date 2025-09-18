@@ -22,6 +22,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  mocktail: ^0.3.0
+  mocktail: ">=0.3.0 <2.0.0"
   plugin_platform_interface: ^2.0.0
   very_good_analysis: ">=3.0.2 <10.0.0"
