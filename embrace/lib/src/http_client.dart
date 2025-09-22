@@ -31,9 +31,8 @@ import 'package:http/http.dart';
 /// {@endtemplate}
 class EmbraceHttpClient extends BaseClient {
   /// {@macro embrace_http_client}
-  EmbraceHttpClient({
-    Client? internalClient,
-  }) : _internalClient = internalClient ?? Client();
+  EmbraceHttpClient({Client? internalClient})
+    : _internalClient = internalClient ?? Client();
 
   final Client _internalClient;
 
@@ -42,11 +41,9 @@ class EmbraceHttpClient extends BaseClient {
     final start = DateTime.now();
     final method = httpMethodFromString(request.method);
 
-    final w3cTraceparent = request.headers['traceparent'] ??
-        await Embrace.instance.generateW3cTraceparent(
-          null,
-          null,
-        );
+    final w3cTraceparent =
+        request.headers['traceparent'] ??
+        await Embrace.instance.generateW3cTraceparent(null, null);
     if (w3cTraceparent != null) {
       request.headers.putIfAbsent('traceparent', () => w3cTraceparent);
     }

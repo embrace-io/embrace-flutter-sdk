@@ -11,7 +11,6 @@ export 'src/http_client.dart';
 export 'src/navigation_observer.dart';
 
 @visibleForTesting
-
 /// A variable that can be used to override [Embrace.instance] for
 /// mocking in unit tests. If set to a non-null value, [Embrace.instance]
 /// will return this instead of its default behavior.
@@ -85,10 +84,7 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   void addBreadcrumb(String message) {
-    _runCatching(
-      'addBreadcrumb',
-      () => _platform.addBreadcrumb(message),
-    );
+    _runCatching('addBreadcrumb', () => _platform.addBreadcrumb(message));
   }
 
   @override
@@ -102,54 +98,27 @@ class Embrace implements EmbraceFlutterApi {
         logInfo(message, properties: properties);
         break;
       case Severity.warning:
-        logWarning(
-          message,
-          properties: properties,
-        );
+        logWarning(message, properties: properties);
         break;
       case Severity.error:
-        logError(
-          message,
-          properties: properties,
-        );
+        logError(message, properties: properties);
         break;
     }
   }
 
   @override
   void logInfo(String message, {Map<String, String>? properties}) {
-    _runCatching(
-      'logInfo',
-      () => _platform.logInfo(message, properties),
-    );
+    _runCatching('logInfo', () => _platform.logInfo(message, properties));
   }
 
   @override
-  void logWarning(
-    String message, {
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'logWarning',
-      () => _platform.logWarning(
-        message,
-        properties,
-      ),
-    );
+  void logWarning(String message, {Map<String, String>? properties}) {
+    _runCatching('logWarning', () => _platform.logWarning(message, properties));
   }
 
   @override
-  void logError(
-    String message, {
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'logError',
-      () => _platform.logError(
-        message,
-        properties,
-      ),
-    );
+  void logError(String message, {Map<String, String>? properties}) {
+    _runCatching('logError', () => _platform.logError(message, properties));
   }
 
   @override
@@ -212,98 +181,62 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   void startView(String name) {
-    _runCatching(
-      'startView',
-      () => _platform.startView(name),
-    );
+    _runCatching('startView', () => _platform.startView(name));
   }
 
   @override
   void endView(String name) {
-    _runCatching(
-      'endView',
-      () => _platform.endView(name),
-    );
+    _runCatching('endView', () => _platform.endView(name));
   }
 
   @override
   void setUserIdentifier(String id) {
-    _runCatching(
-      'setUserIdentifier',
-      () => _platform.setUserIdentifier(id),
-    );
+    _runCatching('setUserIdentifier', () => _platform.setUserIdentifier(id));
   }
 
   @override
   void clearUserIdentifier() {
-    _runCatching(
-      'clearUserIdentifier',
-      () => _platform.clearUserIdentifier(),
-    );
+    _runCatching('clearUserIdentifier', () => _platform.clearUserIdentifier());
   }
 
   @override
   void setUserName(String name) {
-    _runCatching(
-      'setUserName',
-      () => _platform.setUserName(name),
-    );
+    _runCatching('setUserName', () => _platform.setUserName(name));
   }
 
   @override
   void clearUserName() {
-    _runCatching(
-      'clearUserName',
-      () => _platform.clearUserName(),
-    );
+    _runCatching('clearUserName', () => _platform.clearUserName());
   }
 
   @override
   void setUserEmail(String email) {
-    _runCatching(
-      'setUserEmail',
-      () => _platform.setUserEmail(email),
-    );
+    _runCatching('setUserEmail', () => _platform.setUserEmail(email));
   }
 
   @override
   void clearUserEmail() {
-    _runCatching(
-      'clearUserEmail',
-      () => _platform.clearUserEmail(),
-    );
+    _runCatching('clearUserEmail', () => _platform.clearUserEmail());
   }
 
   @override
   void setUserAsPayer() {
-    _runCatching(
-      'setUserAsPayer',
-      () => _platform.setUserAsPayer(),
-    );
+    _runCatching('setUserAsPayer', () => _platform.setUserAsPayer());
   }
 
   @override
   void clearUserAsPayer() {
-    _runCatching(
-      'clearUserAsPayer',
-      () => _platform.clearUserAsPayer(),
-    );
+    _runCatching('clearUserAsPayer', () => _platform.clearUserAsPayer());
   }
 
   @override
   void addUserPersona(String persona) {
-    _runCatching(
-      'addUserPersona',
-      () => _platform.addUserPersona(persona),
-    );
+    _runCatching('addUserPersona', () => _platform.addUserPersona(persona));
   }
 
   @override
   void clearUserPersona(String persona) {
-    _runCatching(
-      'clearUserPersona',
-      () => _platform.clearUserPersona(persona),
-    );
+    _runCatching('clearUserPersona', () => _platform.clearUserPersona(persona));
   }
 
   @override
@@ -390,22 +323,18 @@ class Embrace implements EmbraceFlutterApi {
     EmbraceSpan? parent,
     int? startTimeMs,
   }) async {
-    return _runCatchingAndReturn<EmbraceSpan?>(
-      'startSpan',
-      () async {
-        final id = await _platform.startSpan(
-          name,
-          parentSpanId: parent?.id,
-          startTimeMs: startTimeMs,
-        );
-        if (id != null) {
-          return Future.value(EmbraceSpanImpl(id, _platform));
-        } else {
-          return Future.value();
-        }
-      },
-      defaultValue: null,
-    );
+    return _runCatchingAndReturn<EmbraceSpan?>('startSpan', () async {
+      final id = await _platform.startSpan(
+        name,
+        parentSpanId: parent?.id,
+        startTimeMs: startTimeMs,
+      );
+      if (id != null) {
+        return Future.value(EmbraceSpanImpl(id, _platform));
+      } else {
+        return Future.value();
+      }
+    }, defaultValue: null);
   }
 
   @override
@@ -418,21 +347,17 @@ class Embrace implements EmbraceFlutterApi {
     Map<String, String>? attributes,
     List<EmbraceSpanEvent>? events,
   }) async {
-    return _runCatchingAndReturn<bool>(
-      'recordCompletedSpan',
-      () async {
-        return _platform.recordCompletedSpan(
-          name,
-          startTimeMs,
-          endTimeMs,
-          errorCode: errorCode,
-          parentSpanId: parent?.id,
-          attributes: attributes,
-          events: _convertSpanEvents(events),
-        );
-      },
-      defaultValue: false,
-    );
+    return _runCatchingAndReturn<bool>('recordCompletedSpan', () async {
+      return _platform.recordCompletedSpan(
+        name,
+        startTimeMs,
+        endTimeMs,
+        errorCode: errorCode,
+        parentSpanId: parent?.id,
+        attributes: attributes,
+        events: _convertSpanEvents(events),
+      );
+    }, defaultValue: false);
   }
 }
 
@@ -476,8 +401,9 @@ Future<void> _start(
   WidgetsFlutterBinding.ensureInitialized();
 
   // step 2 - attach to the host SDK
-  await EmbracePlatform.instance
-      .attachToHostSdk(enableIntegrationTesting: enableIntegrationTesting);
+  await EmbracePlatform.instance.attachToHostSdk(
+    enableIntegrationTesting: enableIntegrationTesting,
+  );
 
   // step 3 - install a Flutter error handler
   _installFlutterOnError();
@@ -517,17 +443,14 @@ Future<void> _installGlobalErrorHandler(
     // ignore: avoid_dynamic_calls
     (PlatformDispatcher.instance as dynamic).onError =
         (Object exception, StackTrace stackTrace) {
-      _processGlobalZoneError(exception, stackTrace);
-      return false;
-    };
+          _processGlobalZoneError(exception, stackTrace);
+          return false;
+        };
     await action();
   } else {
-    runZonedGuarded<void>(
-      () async {
-        await action();
-      },
-      _processGlobalZoneError,
-    );
+    runZonedGuarded<void>(() async {
+      await action();
+    }, _processGlobalZoneError);
   }
 }
 
@@ -582,10 +505,7 @@ class EmbraceSpanImpl extends EmbraceSpan {
   Future<String?> get traceId async => _platform.getTraceId(id);
 
   @override
-  Future<bool> stop({
-    ErrorCode? errorCode,
-    int? endTimeMs,
-  }) {
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) {
     return _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
   }
 
