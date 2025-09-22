@@ -341,7 +341,7 @@ abstract class EmbracePlatform extends PlatformInterface {
   }
 
   /// allows you to pass a lambda in so the runtime of that starts and ends a span
-  Future<bool> recordSpan<T>(
+  Future<T> recordSpan<T>(
     String name,
     {
     String? parentSpanId,

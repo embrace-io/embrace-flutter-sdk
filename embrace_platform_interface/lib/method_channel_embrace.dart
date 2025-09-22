@@ -596,7 +596,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  Future<bool> recordSpan<T>(
+  Future<T> recordSpan<T>(
     String name, {
     String? parentSpanId,
     Map<String, String>? attributes,
@@ -604,13 +604,22 @@ class MethodChannelEmbrace extends EmbracePlatform {
     required Future<T> Function() code,
   }) async {
     throwIfNotStarted();
-    return await methodChannel.invokeMethod(_recordSpanMethodName, {
+    final startTimeMs = DateTime.now().millisecondsSinceEpoch;
+    final spanId = 
+    await methodChannel.invokeMethod<String>(_startSpanMethodName,
+    {
       _nameArgName: name,
       _parentSpanIdArgName: parentSpanId,
-      _attributesArgName: attributes,
-      _eventsArgName: events,
-      _codeArgName: code,
-    }) as bool;
+      _startTimeArgName : startTimeMs,
+    });
+    final result = await code();
+    final endTimeMs = DateTime.now().millisecondsSinceEpoch;
+    await methodChannel.invokeMethod(_stopSpanMethodName, {
+      _spanIdArgName: spanId,
+      _parentSpanIdArgName: parentSpanId,
+      _endTimeMsArgName: endTimeMs,
+    });
+    return result;
   }
 
   @override
