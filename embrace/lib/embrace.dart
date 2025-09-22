@@ -335,7 +335,7 @@ class Embrace implements EmbraceFlutterApi {
       } else {
         return Future.value();
       }
-    }, defaultValue: null);
+    }, defaultValue: null,);
   }
 
   @override
@@ -358,7 +358,7 @@ class Embrace implements EmbraceFlutterApi {
         attributes: attributes,
         events: _convertSpanEvents(events),
       );
-    }, defaultValue: false);
+    }, defaultValue: false,);
   }
 }
 
@@ -451,7 +451,7 @@ Future<void> _installGlobalErrorHandler(
   } else {
     runZonedGuarded<void>(() async {
       await action();
-    }, _processGlobalZoneError);
+    }, _processGlobalZoneError,);
   }
 }
 

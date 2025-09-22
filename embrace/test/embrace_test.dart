@@ -114,7 +114,7 @@ void main() {
           });
           expect(internalErrorZone, rootErrorZone);
         });
-      }, skip: belowFlutter_3_1);
+      }, skip: belowFlutter_3_1,);
 
       group('when below Flutter 3.1,', () {
         test('Flutter is lower than 3.1', () {
@@ -165,7 +165,7 @@ void main() {
           });
           expect(internalErrorZone, isNot(rootErrorZone));
         });
-      }, skip: !belowFlutter_3_1);
+      }, skip: !belowFlutter_3_1,);
 
       test('attaches to the host sdk when platform implementation exists', () {
         const enableIntegrationTesting = true;
