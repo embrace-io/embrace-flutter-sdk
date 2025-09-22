@@ -80,92 +80,101 @@ void main() {
         expect(count, 1);
       });
 
-      group('when in Flutter 3.1 or above', () {
-        // We can not throw an uncaught error and verify that it called
-        // logDartError because any uncaught errors translates to a
-        // failed test
-        //
-        // So we can only directly test if the global error handling method
-        // calls logDartError
-        test('handles error caught by dispatcher', () async {
-          await Embrace.instance.start(() async {
-            // ignore: avoid_dynamic_calls
-            (PlatformDispatcher.instance as dynamic).onError(
-              ArgumentError('Mock argument'),
-              StackTrace.current,
+      group(
+        'when in Flutter 3.1 or above',
+        () {
+          // We can not throw an uncaught error and verify that it called
+          // logDartError because any uncaught errors translates to a
+          // failed test
+          //
+          // So we can only directly test if the global error handling method
+          // calls logDartError
+          test('handles error caught by dispatcher', () async {
+            await Embrace.instance.start(() async {
+              // ignore: avoid_dynamic_calls
+              (PlatformDispatcher.instance as dynamic).onError(
+                ArgumentError('Mock argument'),
+                StackTrace.current,
+              );
+            });
+            verify(
+              () => embracePlatform.logDartError(
+                any(),
+                'Invalid argument(s): Mock argument',
+                any(),
+                any(),
+                errorType: 'ArgumentError',
+              ),
+            ).called(1);
+          });
+
+          test('does not inject a new error zone', () async {
+            final rootErrorZone = Zone.current.errorZone;
+            late Zone internalErrorZone;
+            await Embrace.instance.start(() async {
+              internalErrorZone = Zone.current.errorZone;
+            });
+            expect(internalErrorZone, rootErrorZone);
+          });
+        },
+        skip: belowFlutter_3_1,
+      );
+
+      group(
+        'when below Flutter 3.1,',
+        () {
+          test('Flutter is lower than 3.1', () {
+            expect(
+              // ignore: avoid_dynamic_calls
+              () => (PlatformDispatcher.instance as dynamic).onError,
+              throwsNoSuchMethodError,
+              reason: 'A version lower than 3.1 is required to run these tests',
             );
           });
-          verify(
-            () => embracePlatform.logDartError(
-              any(),
-              'Invalid argument(s): Mock argument',
-              any(),
-              any(),
-              errorType: 'ArgumentError',
-            ),
-          ).called(1);
-        });
 
-        test('does not inject a new error zone', () async {
-          final rootErrorZone = Zone.current.errorZone;
-          late Zone internalErrorZone;
-          await Embrace.instance.start(() async {
-            internalErrorZone = Zone.current.errorZone;
+          test('catches error', () async {
+            await Embrace.instance.start(
+              // ignore: only_throw_errors
+              () => throw 'Error',
+            );
+            verify(
+              () => embracePlatform.logDartError(
+                any(),
+                'Error',
+                any(),
+                any(),
+                errorType: 'String',
+              ),
+            ).called(1);
           });
-          expect(internalErrorZone, rootErrorZone);
-        });
-      }, skip: belowFlutter_3_1,);
 
-      group('when below Flutter 3.1,', () {
-        test('Flutter is lower than 3.1', () {
-          expect(
-            // ignore: avoid_dynamic_calls
-            () => (PlatformDispatcher.instance as dynamic).onError,
-            throwsNoSuchMethodError,
-            reason: 'A version lower than 3.1 is required to run these tests',
-          );
-        });
-
-        test('catches error', () async {
-          await Embrace.instance.start(
-            // ignore: only_throw_errors
-            () => throw 'Error',
-          );
-          verify(
-            () => embracePlatform.logDartError(
-              any(),
-              'Error',
-              any(),
-              any(),
-              errorType: 'String',
-            ),
-          ).called(1);
-        });
-
-        test('handles error caught by a zone', () async {
-          await Embrace.instance.start(
-            () => Zone.current.handleUncaughtError('Error', StackTrace.current),
-          );
-          verify(
-            () => embracePlatform.logDartError(
-              any(),
-              'Error',
-              any(),
-              any(),
-              errorType: 'String',
-            ),
-          ).called(1);
-        });
-
-        test('injects a new error zone', () async {
-          final rootErrorZone = Zone.current.errorZone;
-          late Zone internalErrorZone;
-          await Embrace.instance.start(() async {
-            internalErrorZone = Zone.current.errorZone;
+          test('handles error caught by a zone', () async {
+            await Embrace.instance.start(
+              () =>
+                  Zone.current.handleUncaughtError('Error', StackTrace.current),
+            );
+            verify(
+              () => embracePlatform.logDartError(
+                any(),
+                'Error',
+                any(),
+                any(),
+                errorType: 'String',
+              ),
+            ).called(1);
           });
-          expect(internalErrorZone, isNot(rootErrorZone));
-        });
-      }, skip: !belowFlutter_3_1,);
+
+          test('injects a new error zone', () async {
+            final rootErrorZone = Zone.current.errorZone;
+            late Zone internalErrorZone;
+            await Embrace.instance.start(() async {
+              internalErrorZone = Zone.current.errorZone;
+            });
+            expect(internalErrorZone, isNot(rootErrorZone));
+          });
+        },
+        skip: !belowFlutter_3_1,
+      );
 
       test('attaches to the host sdk when platform implementation exists', () {
         const enableIntegrationTesting = true;

@@ -324,18 +324,22 @@ class Embrace implements EmbraceFlutterApi {
     EmbraceSpan? parent,
     int? startTimeMs,
   }) async {
-    return _runCatchingAndReturn<EmbraceSpan?>('startSpan', () async {
-      final id = await _platform.startSpan(
-        name,
-        parentSpanId: parent?.id,
-        startTimeMs: startTimeMs,
-      );
-      if (id != null) {
-        return Future.value(EmbraceSpanImpl(id, _platform));
-      } else {
-        return Future.value();
-      }
-    }, defaultValue: null,);
+    return _runCatchingAndReturn<EmbraceSpan?>(
+      'startSpan',
+      () async {
+        final id = await _platform.startSpan(
+          name,
+          parentSpanId: parent?.id,
+          startTimeMs: startTimeMs,
+        );
+        if (id != null) {
+          return Future.value(EmbraceSpanImpl(id, _platform));
+        } else {
+          return Future.value();
+        }
+      },
+      defaultValue: null,
+    );
   }
 
   @override
@@ -348,17 +352,21 @@ class Embrace implements EmbraceFlutterApi {
     Map<String, String>? attributes,
     List<EmbraceSpanEvent>? events,
   }) async {
-    return _runCatchingAndReturn<bool>('recordCompletedSpan', () async {
-      return _platform.recordCompletedSpan(
-        name,
-        startTimeMs,
-        endTimeMs,
-        errorCode: errorCode,
-        parentSpanId: parent?.id,
-        attributes: attributes,
-        events: _convertSpanEvents(events),
-      );
-    }, defaultValue: false,);
+    return _runCatchingAndReturn<bool>(
+      'recordCompletedSpan',
+      () async {
+        return _platform.recordCompletedSpan(
+          name,
+          startTimeMs,
+          endTimeMs,
+          errorCode: errorCode,
+          parentSpanId: parent?.id,
+          attributes: attributes,
+          events: _convertSpanEvents(events),
+        );
+      },
+      defaultValue: false,
+    );
   }
 }
 
@@ -449,9 +457,12 @@ Future<void> _installGlobalErrorHandler(
     };
     await action();
   } else {
-    runZonedGuarded<void>(() async {
-      await action();
-    }, _processGlobalZoneError,);
+    runZonedGuarded<void>(
+      () async {
+        await action();
+      },
+      _processGlobalZoneError,
+    );
   }
 }
 
