@@ -30,7 +30,8 @@ void main() {
     });
 
     group('triggerNativeSdkError', () {
-      test('calls triggerNativeSdkError '
+      test(
+          'calls triggerNativeSdkError '
           'when platform implementation exists', () {
         when(embracePlatform.triggerNativeSdkError).thenAnswer((_) {});
         EmbraceSamples.triggerNativeSdkError();
@@ -39,7 +40,8 @@ void main() {
     });
 
     group('triggerRaisedSignal', () {
-      test('calls triggerRaisedSignal '
+      test(
+          'calls triggerRaisedSignal '
           'when platform implementation exists', () {
         when(embracePlatform.triggerRaisedSignal).thenAnswer((_) {});
         EmbraceSamples.triggerRaisedSignal();
@@ -48,14 +50,16 @@ void main() {
     });
 
     group('triggerMethodChannelError', () {
-      test('calls triggerMethodChannelError '
+      test(
+          'calls triggerMethodChannelError '
           'when platform implementation exists', () {
         when(embracePlatform.triggerMethodChannelError).thenAnswer((_) {});
         EmbraceSamples.triggerMethodChannelError();
         verify(embracePlatform.triggerMethodChannelError).called(1);
       });
 
-      test('logs message when debugging and '
+      test(
+          'logs message when debugging and '
           'platform implementation exists', () {
         when(embracePlatform.triggerMethodChannelError).thenAnswer((_) {});
         final printed = getPrints(EmbraceSamples.triggerMethodChannelError);
@@ -64,14 +68,16 @@ void main() {
     });
 
     group('triggerMethodChannelError', () {
-      test('calls triggerMethodChannelError '
+      test(
+          'calls triggerMethodChannelError '
           'when platform implementation exists', () {
         when(embracePlatform.triggerMethodChannelError).thenAnswer((_) {});
         EmbraceSamples.triggerMethodChannelError();
         verify(embracePlatform.triggerMethodChannelError).called(1);
       });
 
-      test('logs message when debugging and '
+      test(
+          'logs message when debugging and '
           'platform implementation exists', () {
         when(embracePlatform.triggerMethodChannelError).thenAnswer((_) {});
         final printed = getPrints(EmbraceSamples.triggerMethodChannelError);

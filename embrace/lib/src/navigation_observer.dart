@@ -2,8 +2,8 @@ import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 
 /// A function that extracts the settings from a route
-typedef EmbraceRouteSettingsExtractor =
-    RouteSettings? Function(Route<dynamic> route);
+typedef EmbraceRouteSettingsExtractor = RouteSettings? Function(
+    Route<dynamic> route);
 
 /// {@template embrace_navigation_observer}
 /// A [NavigatorObserver] that automatically tracks app navigation

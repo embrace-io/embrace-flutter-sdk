@@ -188,7 +188,8 @@ void main() {
         verify(() => embracePlatform.addBreadcrumb(message)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.addBreadcrumb(message),
@@ -281,7 +282,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.logPushNotification(
@@ -344,7 +346,8 @@ void main() {
         verify(() => embracePlatform.logInfo(message, properties)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.logInfo(message, properties),
@@ -365,7 +368,8 @@ void main() {
         verify(() => embracePlatform.logWarning(message, properties)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.logWarning(message, properties),
@@ -386,7 +390,8 @@ void main() {
         verify(() => embracePlatform.logError(message, properties)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.logError(message, properties),
@@ -463,7 +468,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.logNetworkRequest(
@@ -509,7 +515,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.generateW3cTraceparent(traceId, spanId),
@@ -527,7 +534,8 @@ void main() {
 
     group('logDartError', () {
       var stackStr = '';
-      test('logs dart error when '
+      test(
+          'logs dart error when '
           'platform implementation exists', () {
         try {
           throw Exception('Test exception');
@@ -551,7 +559,8 @@ void main() {
 
     group('logHandledDartError', () {
       var stackStr = '';
-      test('logs handled dart error when '
+      test(
+          'logs handled dart error when '
           'platform implementation exists', () {
         try {
           throw Exception('Test exception');
@@ -579,7 +588,8 @@ void main() {
         verify(() => embracePlatform.startView(view)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(() => embracePlatform.startView(view)).thenThrow(MockError());
         Embrace.instance.startView(view);
@@ -597,7 +607,8 @@ void main() {
         verify(() => embracePlatform.endView(view)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(() => embracePlatform.endView(view)).thenThrow(MockError());
         Embrace.instance.endView(view);
@@ -617,7 +628,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.setUserIdentifier(userIdentifier),
@@ -634,13 +646,15 @@ void main() {
     });
 
     group('clearUserIdentifier', () {
-      test('clears the user identifier when '
+      test(
+          'clears the user identifier when '
           'platform implementation exists', () {
         Embrace.instance.clearUserIdentifier();
         verify(embracePlatform.clearUserIdentifier).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.clearUserIdentifier).thenThrow(MockError());
         Embrace.instance.clearUserIdentifier();
@@ -661,7 +675,8 @@ void main() {
         verify(() => embracePlatform.setUserName(userName)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.setUserName(userName),
@@ -680,7 +695,8 @@ void main() {
         verify(embracePlatform.clearUserName).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.clearUserName).thenThrow(MockError());
         Embrace.instance.clearUserName();
@@ -698,7 +714,8 @@ void main() {
         verify(() => embracePlatform.setUserEmail(email)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(() => embracePlatform.setUserEmail(email)).thenThrow(MockError());
         Embrace.instance.setUserEmail(email);
@@ -715,7 +732,8 @@ void main() {
         verify(embracePlatform.clearUserEmail).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.clearUserEmail).thenThrow(MockError());
         Embrace.instance.clearUserEmail();
@@ -733,7 +751,8 @@ void main() {
         verify(embracePlatform.setUserAsPayer).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.setUserAsPayer).thenThrow(MockError());
         Embrace.instance.setUserAsPayer();
@@ -751,7 +770,8 @@ void main() {
         verify(embracePlatform.clearUserAsPayer).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.clearUserAsPayer).thenThrow(MockError());
         Embrace.instance.clearUserAsPayer();
@@ -772,7 +792,8 @@ void main() {
         verify(() => embracePlatform.addUserPersona(persona)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.addUserPersona(persona),
@@ -793,7 +814,8 @@ void main() {
         verify(() => embracePlatform.clearUserPersona(persona)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.clearUserPersona(persona),
@@ -815,7 +837,8 @@ void main() {
         verify(embracePlatform.clearAllUserPersonas).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(embracePlatform.clearAllUserPersonas).thenThrow(MockError());
         Embrace.instance.clearAllUserPersonas();
@@ -844,7 +867,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.addSessionProperty(
@@ -871,7 +895,8 @@ void main() {
         verify(() => embracePlatform.removeSessionProperty(key)).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.removeSessionProperty(key),
@@ -905,7 +930,8 @@ void main() {
         ).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(() => embracePlatform.endSession()).thenThrow(MockError());
         Embrace.instance.endSession();
@@ -932,7 +958,8 @@ void main() {
         verify(() => embracePlatform.getLastRunEndState()).called(1);
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(() => embracePlatform.getLastRunEndState()).thenThrow(MockError());
         final state = Embrace.instance.getLastRunEndState();
@@ -958,7 +985,8 @@ void main() {
         },
       );
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () {
         when(
           () => embracePlatform.getCurrentSessionId(),
@@ -984,7 +1012,8 @@ void main() {
         expect(obj, isA<EmbraceSpan?>());
       });
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () async {
         when(() => embracePlatform.startSpan(id)).thenThrow(MockError());
         await Embrace.instance.startSpan(id);
@@ -1022,7 +1051,8 @@ void main() {
         },
       );
 
-      test('logs internal error when platform implementation '
+      test(
+          'logs internal error when platform implementation '
           'throws an error', () async {
         when(
           () => embracePlatform.recordCompletedSpan(

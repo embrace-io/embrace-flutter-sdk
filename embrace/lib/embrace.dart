@@ -11,6 +11,7 @@ export 'src/http_client.dart';
 export 'src/navigation_observer.dart';
 
 @visibleForTesting
+
 /// A variable that can be used to override [Embrace.instance] for
 /// mocking in unit tests. If set to a non-null value, [Embrace.instance]
 /// will return this instead of its default behavior.
@@ -443,9 +444,9 @@ Future<void> _installGlobalErrorHandler(
     // ignore: avoid_dynamic_calls
     (PlatformDispatcher.instance as dynamic).onError =
         (Object exception, StackTrace stackTrace) {
-          _processGlobalZoneError(exception, stackTrace);
-          return false;
-        };
+      _processGlobalZoneError(exception, stackTrace);
+      return false;
+    };
     await action();
   } else {
     runZonedGuarded<void>(() async {

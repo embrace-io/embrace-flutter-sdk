@@ -52,7 +52,8 @@ void main() {
         observer.didPush(route, null);
         verifyNever(() => platform.endView(any()));
       });
-      test('can use custom name for starting view '
+      test(
+          'can use custom name for starting view '
           'when using routeSettingsExtractor', () {
         final observer = EmbraceNavigationObserver(
           routeSettingsExtractor: (route) {
@@ -64,7 +65,8 @@ void main() {
         verify(() => platform.startView('ROUTE')).called(1);
       });
 
-      test('can use custom name for ending view '
+      test(
+          'can use custom name for ending view '
           'when using routeSettingsExtractor', () {
         final observer = EmbraceNavigationObserver(
           routeSettingsExtractor: (route) {
@@ -106,7 +108,8 @@ void main() {
         verifyNever(() => platform.startView(any()));
       });
 
-      test('can use custom name for ending view '
+      test(
+          'can use custom name for ending view '
           'when using routeSettingsExtractor', () {
         final observer = EmbraceNavigationObserver(
           routeSettingsExtractor: (route) {
@@ -118,7 +121,8 @@ void main() {
         verify(() => platform.endView('ROUTE')).called(1);
       });
 
-      test('can use custom name for starting view '
+      test(
+          'can use custom name for starting view '
           'when using routeSettingsExtractor', () {
         final observer = EmbraceNavigationObserver(
           routeSettingsExtractor: (route) {
