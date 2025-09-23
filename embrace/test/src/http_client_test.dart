@@ -49,9 +49,7 @@ void main() {
 
       when(() => response.statusCode).thenReturn(statusCode);
 
-      final embraceClient = EmbraceHttpClient(
-        internalClient: client,
-      );
+      final embraceClient = EmbraceHttpClient(internalClient: client);
       await embraceClient.get(Uri.parse(url));
 
       verify(
@@ -70,12 +68,11 @@ void main() {
     test('uses HttpMethod.other when http method is invalid', () async {
       when(() => response.statusCode).thenReturn(200);
 
-      final embraceClient = EmbraceHttpClient(
-        internalClient: client,
-      );
+      final embraceClient = EmbraceHttpClient(internalClient: client);
 
-      await embraceClient
-          .send(Request('TESTING', Uri.parse('https://embrace.io')));
+      await embraceClient.send(
+        Request('TESTING', Uri.parse('https://embrace.io')),
+      );
 
       verify(
         () => embracePlatform.logNetworkRequest(
@@ -94,9 +91,7 @@ void main() {
       const errorMessage = '__error__';
       when(() => client.send(any())).thenThrow(ClientException(errorMessage));
 
-      final embraceClient = EmbraceHttpClient(
-        internalClient: client,
-      );
+      final embraceClient = EmbraceHttpClient(internalClient: client);
 
       await expectLater(
         () async =>

@@ -85,10 +85,7 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   void addBreadcrumb(String message) {
-    _runCatching(
-      'addBreadcrumb',
-      () => _platform.addBreadcrumb(message),
-    );
+    _runCatching('addBreadcrumb', () => _platform.addBreadcrumb(message));
   }
 
   @override
@@ -102,54 +99,27 @@ class Embrace implements EmbraceFlutterApi {
         logInfo(message, properties: properties);
         break;
       case Severity.warning:
-        logWarning(
-          message,
-          properties: properties,
-        );
+        logWarning(message, properties: properties);
         break;
       case Severity.error:
-        logError(
-          message,
-          properties: properties,
-        );
+        logError(message, properties: properties);
         break;
     }
   }
 
   @override
   void logInfo(String message, {Map<String, String>? properties}) {
-    _runCatching(
-      'logInfo',
-      () => _platform.logInfo(message, properties),
-    );
+    _runCatching('logInfo', () => _platform.logInfo(message, properties));
   }
 
   @override
-  void logWarning(
-    String message, {
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'logWarning',
-      () => _platform.logWarning(
-        message,
-        properties,
-      ),
-    );
+  void logWarning(String message, {Map<String, String>? properties}) {
+    _runCatching('logWarning', () => _platform.logWarning(message, properties));
   }
 
   @override
-  void logError(
-    String message, {
-    Map<String, String>? properties,
-  }) {
-    _runCatching(
-      'logError',
-      () => _platform.logError(
-        message,
-        properties,
-      ),
-    );
+  void logError(String message, {Map<String, String>? properties}) {
+    _runCatching('logError', () => _platform.logError(message, properties));
   }
 
   @override
@@ -212,98 +182,62 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   void startView(String name) {
-    _runCatching(
-      'startView',
-      () => _platform.startView(name),
-    );
+    _runCatching('startView', () => _platform.startView(name));
   }
 
   @override
   void endView(String name) {
-    _runCatching(
-      'endView',
-      () => _platform.endView(name),
-    );
+    _runCatching('endView', () => _platform.endView(name));
   }
 
   @override
   void setUserIdentifier(String id) {
-    _runCatching(
-      'setUserIdentifier',
-      () => _platform.setUserIdentifier(id),
-    );
+    _runCatching('setUserIdentifier', () => _platform.setUserIdentifier(id));
   }
 
   @override
   void clearUserIdentifier() {
-    _runCatching(
-      'clearUserIdentifier',
-      () => _platform.clearUserIdentifier(),
-    );
+    _runCatching('clearUserIdentifier', () => _platform.clearUserIdentifier());
   }
 
   @override
   void setUserName(String name) {
-    _runCatching(
-      'setUserName',
-      () => _platform.setUserName(name),
-    );
+    _runCatching('setUserName', () => _platform.setUserName(name));
   }
 
   @override
   void clearUserName() {
-    _runCatching(
-      'clearUserName',
-      () => _platform.clearUserName(),
-    );
+    _runCatching('clearUserName', () => _platform.clearUserName());
   }
 
   @override
   void setUserEmail(String email) {
-    _runCatching(
-      'setUserEmail',
-      () => _platform.setUserEmail(email),
-    );
+    _runCatching('setUserEmail', () => _platform.setUserEmail(email));
   }
 
   @override
   void clearUserEmail() {
-    _runCatching(
-      'clearUserEmail',
-      () => _platform.clearUserEmail(),
-    );
+    _runCatching('clearUserEmail', () => _platform.clearUserEmail());
   }
 
   @override
   void setUserAsPayer() {
-    _runCatching(
-      'setUserAsPayer',
-      () => _platform.setUserAsPayer(),
-    );
+    _runCatching('setUserAsPayer', () => _platform.setUserAsPayer());
   }
 
   @override
   void clearUserAsPayer() {
-    _runCatching(
-      'clearUserAsPayer',
-      () => _platform.clearUserAsPayer(),
-    );
+    _runCatching('clearUserAsPayer', () => _platform.clearUserAsPayer());
   }
 
   @override
   void addUserPersona(String persona) {
-    _runCatching(
-      'addUserPersona',
-      () => _platform.addUserPersona(persona),
-    );
+    _runCatching('addUserPersona', () => _platform.addUserPersona(persona));
   }
 
   @override
   void clearUserPersona(String persona) {
-    _runCatching(
-      'clearUserPersona',
-      () => _platform.clearUserPersona(persona),
-    );
+    _runCatching('clearUserPersona', () => _platform.clearUserPersona(persona));
   }
 
   @override
@@ -476,8 +410,9 @@ Future<void> _start(
   WidgetsFlutterBinding.ensureInitialized();
 
   // step 2 - attach to the host SDK
-  await EmbracePlatform.instance
-      .attachToHostSdk(enableIntegrationTesting: enableIntegrationTesting);
+  await EmbracePlatform.instance.attachToHostSdk(
+    enableIntegrationTesting: enableIntegrationTesting,
+  );
 
   // step 3 - install a Flutter error handler
   _installFlutterOnError();
@@ -582,10 +517,7 @@ class EmbraceSpanImpl extends EmbraceSpan {
   Future<String?> get traceId async => _platform.getTraceId(id);
 
   @override
-  Future<bool> stop({
-    ErrorCode? errorCode,
-    int? endTimeMs,
-  }) {
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) {
     return _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
   }
 
