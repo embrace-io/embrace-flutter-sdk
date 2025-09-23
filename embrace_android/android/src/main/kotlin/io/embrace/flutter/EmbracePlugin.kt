@@ -258,7 +258,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun MethodCall.getErrorCode(argName: String): ErrorCode? {
         val arg = getStringArgument(argName) ?: return null
-        return when (arg.toLowerCase()) {
+        return when (arg.lowercase()) {
             "failure" -> ErrorCode.FAILURE
             "abandon" -> ErrorCode.USER_ABANDON
             "unknown" -> ErrorCode.UNKNOWN

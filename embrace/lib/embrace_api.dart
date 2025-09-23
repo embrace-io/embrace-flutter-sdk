@@ -93,7 +93,7 @@ enum Severity {
   warning,
 
   /// An error-level log message.
-  error
+  error,
 }
 
 /// Declares the functions that consist of Embrace's public API. You should
@@ -104,16 +104,10 @@ abstract class LogsApi {
   void logInfo(String message, {Map<String, String>? properties});
 
   /// Remotely logs a message at WARNING level
-  void logWarning(
-    String message, {
-    Map<String, String>? properties,
-  });
+  void logWarning(String message, {Map<String, String>? properties});
 
   /// Remotely logs a message at ERROR level
-  void logError(
-    String message, {
-    Map<String, String>? properties,
-  });
+  void logError(String message, {Map<String, String>? properties});
 
   /// Remotely logs a message at the given severity level
   void logMessage(
@@ -415,10 +409,7 @@ abstract class EmbraceSpan {
   /// Stop an active span. Returns true if the span is stopped after the method
   /// returns and false otherwise.
   ///
-  Future<bool> stop({
-    ErrorCode? errorCode,
-    int? endTimeMs,
-  });
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs});
 
   ///
   /// Add an [EmbraceSpanEvent] with the given [name]. If [timestampMs] is null,
@@ -466,10 +457,6 @@ class EmbraceSpanEvent {
 
   /// Produces a map representation of this class
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'timestampMs': timestampMs,
-      'attributes': attributes,
-    };
+    return {'name': name, 'timestampMs': timestampMs, 'attributes': attributes};
   }
 }

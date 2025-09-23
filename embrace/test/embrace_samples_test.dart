@@ -113,26 +113,17 @@ void main() {
 
     group('triggerUncaughtError', () {
       test('throws an error', () {
-        expect(
-          EmbraceSamples.triggerUncaughtError,
-          throwsA(isA<StateError>()),
-        );
+        expect(EmbraceSamples.triggerUncaughtError, throwsA(isA<StateError>()));
       });
     });
     group('triggerUncaughtObject', () {
       test('throws an error with a string instance', () {
-        expect(
-          EmbraceSamples.triggerUncaughtObject,
-          throwsA(isA<String>()),
-        );
+        expect(EmbraceSamples.triggerUncaughtObject, throwsA(isA<String>()));
       });
     });
     group('triggerAssert', () {
       test('throws an assertion error', () {
-        expect(
-          EmbraceSamples.triggerAssert,
-          throwsAssertionError,
-        );
+        expect(EmbraceSamples.triggerAssert, throwsAssertionError);
       });
     });
     group('triggerUncaughtExceptionAsync', () {

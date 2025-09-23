@@ -29,8 +29,9 @@ void main() {
     group('didPush', () {
       test('ends previous view ', () {
         final route = FakeRoute(const RouteSettings(name: 'route'));
-        final previousRoute =
-            FakeRoute(const RouteSettings(name: 'previousRoute'));
+        final previousRoute = FakeRoute(
+          const RouteSettings(name: 'previousRoute'),
+        );
         observer.didPush(route, previousRoute);
 
         verify(() => platform.endView('previousRoute')).called(1);
@@ -38,8 +39,9 @@ void main() {
 
       test('starts new view', () {
         final route = FakeRoute(const RouteSettings(name: 'route'));
-        final previousRoute =
-            FakeRoute(const RouteSettings(name: 'previousRoute'));
+        final previousRoute = FakeRoute(
+          const RouteSettings(name: 'previousRoute'),
+        );
         observer.didPush(route, previousRoute);
 
         verify(() => platform.startView('route')).called(1);
@@ -82,8 +84,9 @@ void main() {
     group('didPop', () {
       test('start back previous view ', () {
         final route = FakeRoute(const RouteSettings(name: 'route'));
-        final previousRoute =
-            FakeRoute(const RouteSettings(name: 'previousRoute'));
+        final previousRoute = FakeRoute(
+          const RouteSettings(name: 'previousRoute'),
+        );
         observer.didPop(route, previousRoute);
 
         verify(() => platform.startView('previousRoute')).called(1);
@@ -91,8 +94,9 @@ void main() {
 
       test('ends new view', () {
         final route = FakeRoute(const RouteSettings(name: 'route'));
-        final previousRoute =
-            FakeRoute(const RouteSettings(name: 'previousRoute'));
+        final previousRoute = FakeRoute(
+          const RouteSettings(name: 'previousRoute'),
+        );
         observer.didPop(route, previousRoute);
 
         verify(() => platform.endView('route')).called(1);

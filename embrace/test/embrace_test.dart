@@ -89,27 +89,24 @@ void main() {
           //
           // So we can only directly test if the global error handling method
           // calls logDartError
-          test(
-            'handles error caught by dispatcher',
-            () async {
-              await Embrace.instance.start(() async {
-                // ignore: avoid_dynamic_calls
-                (PlatformDispatcher.instance as dynamic).onError(
-                  ArgumentError('Mock argument'),
-                  StackTrace.current,
-                );
-              });
-              verify(
-                () => embracePlatform.logDartError(
-                  any(),
-                  'Invalid argument(s): Mock argument',
-                  any(),
-                  any(),
-                  errorType: 'ArgumentError',
-                ),
-              ).called(1);
-            },
-          );
+          test('handles error caught by dispatcher', () async {
+            await Embrace.instance.start(() async {
+              // ignore: avoid_dynamic_calls
+              (PlatformDispatcher.instance as dynamic).onError(
+                ArgumentError('Mock argument'),
+                StackTrace.current,
+              );
+            });
+            verify(
+              () => embracePlatform.logDartError(
+                any(),
+                'Invalid argument(s): Mock argument',
+                any(),
+                any(),
+                errorType: 'ArgumentError',
+              ),
+            ).called(1);
+          });
 
           test('does not inject a new error zone', () async {
             final rootErrorZone = Zone.current.errorZone;
@@ -153,10 +150,8 @@ void main() {
 
           test('handles error caught by a zone', () async {
             await Embrace.instance.start(
-              () => Zone.current.handleUncaughtError(
-                'Error',
-                StackTrace.current,
-              ),
+              () =>
+                  Zone.current.handleUncaughtError('Error', StackTrace.current),
             );
             verify(
               () => embracePlatform.logDartError(
@@ -183,8 +178,10 @@ void main() {
 
       test('attaches to the host sdk when platform implementation exists', () {
         const enableIntegrationTesting = true;
-        Embrace.instance
-            .start(() {}, enableIntegrationTesting: enableIntegrationTesting);
+        Embrace.instance.start(
+          () {},
+          enableIntegrationTesting: enableIntegrationTesting,
+        );
         verify(
           () => embracePlatform.attachToHostSdk(
             enableIntegrationTesting: enableIntegrationTesting,
@@ -203,8 +200,9 @@ void main() {
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.addBreadcrumb(message))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.addBreadcrumb(message),
+        ).thenThrow(MockError());
         Embrace.instance.addBreadcrumb(message);
 
         verify(
@@ -313,10 +311,7 @@ void main() {
         Embrace.instance.logPushNotification(title, body);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'logPushNotification',
-            any(),
-          ),
+          () => embracePlatform.logInternalError('logPushNotification', any()),
         ).called(1);
       });
     });
@@ -334,14 +329,12 @@ void main() {
       });
 
       test('log warning message', () {
-        Embrace.instance
-            .logMessage(message, Severity.warning, properties: properties);
-        verify(
-          () => embracePlatform.logWarning(
-            message,
-            properties,
-          ),
-        ).called(1);
+        Embrace.instance.logMessage(
+          message,
+          Severity.warning,
+          properties: properties,
+        );
+        verify(() => embracePlatform.logWarning(message, properties)).called(1);
       });
 
       test('log error message', () {
@@ -350,12 +343,7 @@ void main() {
           Severity.error,
           properties: properties,
         );
-        verify(
-          () => embracePlatform.logError(
-            message,
-            properties,
-          ),
-        ).called(1);
+        verify(() => embracePlatform.logError(message, properties)).called(1);
       });
     });
 
@@ -370,12 +358,14 @@ void main() {
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.logInfo(message, properties))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.logInfo(message, properties),
+        ).thenThrow(MockError());
         Embrace.instance.logInfo(message, properties: properties);
 
-        verify(() => embracePlatform.logInternalError('logInfo', errorMessage))
-            .called(1);
+        verify(
+          () => embracePlatform.logInternalError('logInfo', errorMessage),
+        ).called(1);
       });
     });
 
@@ -383,37 +373,20 @@ void main() {
       const message = '__message__';
       const properties = {'key': 'value'};
       test('logs a warning when platform implementation exists', () {
-        Embrace.instance.logWarning(
-          message,
-          properties: properties,
-        );
-        verify(
-          () => embracePlatform.logWarning(
-            message,
-            properties,
-          ),
-        ).called(1);
+        Embrace.instance.logWarning(message, properties: properties);
+        verify(() => embracePlatform.logWarning(message, properties)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
         when(
-          () => embracePlatform.logWarning(
-            message,
-            properties,
-          ),
+          () => embracePlatform.logWarning(message, properties),
         ).thenThrow(MockError());
-        Embrace.instance.logWarning(
-          message,
-          properties: properties,
-        );
+        Embrace.instance.logWarning(message, properties: properties);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'logWarning',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('logWarning', errorMessage),
         ).called(1);
       });
     });
@@ -422,37 +395,20 @@ void main() {
       const message = '__message__';
       const properties = {'key': 'value'};
       test('logs an error when platform implementation exists', () {
-        Embrace.instance.logError(
-          message,
-          properties: properties,
-        );
-        verify(
-          () => embracePlatform.logError(
-            message,
-            properties,
-          ),
-        ).called(1);
+        Embrace.instance.logError(message, properties: properties);
+        verify(() => embracePlatform.logError(message, properties)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
         when(
-          () => embracePlatform.logError(
-            message,
-            properties,
-          ),
+          () => embracePlatform.logError(message, properties),
         ).thenThrow(MockError());
-        Embrace.instance.logError(
-          message,
-          properties: properties,
-        );
+        Embrace.instance.logError(message, properties: properties);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'logError',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('logError', errorMessage),
         ).called(1);
       });
     });
@@ -594,10 +550,7 @@ void main() {
           throw Exception('Test exception');
         } catch (error, stack) {
           stackStr = stack.toString();
-          Embrace.instance.logDartError(
-            error,
-            stack,
-          );
+          Embrace.instance.logDartError(error, stack);
         }
         verify(
           () => embracePlatform.logDartError(
@@ -622,10 +575,7 @@ void main() {
           throw Exception('Test exception');
         } catch (error, stack) {
           stackStr = stack.toString();
-          Embrace.instance.logHandledDartError(
-            error,
-            stack,
-          );
+          Embrace.instance.logHandledDartError(error, stack);
         }
         verify(
           () => embracePlatform.logDartError(
@@ -654,10 +604,7 @@ void main() {
         Embrace.instance.startView(view);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'startView',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('startView', errorMessage),
         ).called(1);
       });
     });
@@ -676,10 +623,7 @@ void main() {
         Embrace.instance.endView(view);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'endView',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('endView', errorMessage),
         ).called(1);
       });
     });
@@ -688,15 +632,17 @@ void main() {
       const userIdentifier = '__userIdentifier__';
       test('sets the user name when platform implementation exists', () {
         Embrace.instance.setUserIdentifier(userIdentifier);
-        verify(() => embracePlatform.setUserIdentifier(userIdentifier))
-            .called(1);
+        verify(
+          () => embracePlatform.setUserIdentifier(userIdentifier),
+        ).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.setUserIdentifier(userIdentifier))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.setUserIdentifier(userIdentifier),
+        ).thenThrow(MockError());
         Embrace.instance.setUserIdentifier(userIdentifier);
 
         verify(
@@ -741,15 +687,13 @@ void main() {
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.setUserName(userName))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.setUserName(userName),
+        ).thenThrow(MockError());
         Embrace.instance.setUserName(userName);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'setUserName',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('setUserName', errorMessage),
         ).called(1);
       });
     });
@@ -767,10 +711,7 @@ void main() {
         Embrace.instance.clearUserName();
 
         verify(
-          () => embracePlatform.logInternalError(
-            'clearUserName',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('clearUserName', errorMessage),
         ).called(1);
       });
     });
@@ -789,10 +730,7 @@ void main() {
         Embrace.instance.setUserEmail(email);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'setUserEmail',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('setUserEmail', errorMessage),
         ).called(1);
       });
     });
@@ -810,10 +748,8 @@ void main() {
         Embrace.instance.clearUserEmail();
 
         verify(
-          () => embracePlatform.logInternalError(
-            'clearUserEmail',
-            errorMessage,
-          ),
+          () =>
+              embracePlatform.logInternalError('clearUserEmail', errorMessage),
         ).called(1);
       });
     });
@@ -831,10 +767,8 @@ void main() {
         Embrace.instance.setUserAsPayer();
 
         verify(
-          () => embracePlatform.logInternalError(
-            'setUserAsPayer',
-            errorMessage,
-          ),
+          () =>
+              embracePlatform.logInternalError('setUserAsPayer', errorMessage),
         ).called(1);
       });
     });
@@ -870,15 +804,14 @@ void main() {
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.addUserPersona(persona))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.addUserPersona(persona),
+        ).thenThrow(MockError());
         Embrace.instance.addUserPersona(persona);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'addUserPersona',
-            errorMessage,
-          ),
+          () =>
+              embracePlatform.logInternalError('addUserPersona', errorMessage),
         ).called(1);
       });
     });
@@ -893,8 +826,9 @@ void main() {
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.clearUserPersona(persona))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.clearUserPersona(persona),
+        ).thenThrow(MockError());
         Embrace.instance.clearUserPersona(persona);
 
         verify(
@@ -967,16 +901,15 @@ void main() {
       const key = '__key__';
       test('removes session property when platform implementation exists', () {
         Embrace.instance.removeSessionProperty(key);
-        verify(
-          () => embracePlatform.removeSessionProperty(key),
-        ).called(1);
+        verify(() => embracePlatform.removeSessionProperty(key)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.removeSessionProperty(key))
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.removeSessionProperty(key),
+        ).thenThrow(MockError());
         Embrace.instance.removeSessionProperty(key);
 
         verify(
@@ -1013,10 +946,7 @@ void main() {
         Embrace.instance.endSession();
 
         verify(
-          () => embracePlatform.logInternalError(
-            'endSession',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('endSession', errorMessage),
         ).called(1);
       });
     });
@@ -1034,9 +964,7 @@ void main() {
     group('getLastRunEndState', () {
       test('getLastRunEndState when platform implementation exists', () {
         Embrace.instance.getLastRunEndState();
-        verify(
-          () => embracePlatform.getLastRunEndState(),
-        ).called(1);
+        verify(() => embracePlatform.getLastRunEndState()).called(1);
       });
 
       test(
@@ -1056,21 +984,22 @@ void main() {
       });
     });
     group('getCurrentSessionId', () {
-      test('returns current session ID when platform implementation exists',
-          () {
-        final id = Embrace.instance.getCurrentSessionId();
-        verify(
-          () => embracePlatform.getCurrentSessionId(),
-        ).called(1);
+      test(
+        'returns current session ID when platform implementation exists',
+        () {
+          final id = Embrace.instance.getCurrentSessionId();
+          verify(() => embracePlatform.getCurrentSessionId()).called(1);
 
-        expect(id, isA<Future<String?>>());
-      });
+          expect(id, isA<Future<String?>>());
+        },
+      );
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.getCurrentSessionId())
-            .thenThrow(MockError());
+        when(
+          () => embracePlatform.getCurrentSessionId(),
+        ).thenThrow(MockError());
 
         Embrace.instance.getCurrentSessionId();
 
@@ -1087,9 +1016,7 @@ void main() {
       const id = 'my-span-id';
       test('starts span when platform implementation exists', () async {
         final obj = await Embrace.instance.startSpan(id);
-        verify(
-          () => embracePlatform.startSpan(id),
-        ).called(1);
+        verify(() => embracePlatform.startSpan(id)).called(1);
 
         expect(obj, isA<EmbraceSpan?>());
       });
@@ -1101,10 +1028,7 @@ void main() {
         await Embrace.instance.startSpan(id);
 
         verify(
-          () => embracePlatform.logInternalError(
-            'startSpan',
-            errorMessage,
-          ),
+          () => embracePlatform.logInternalError('startSpan', errorMessage),
         ).called(1);
       });
     });
@@ -1153,22 +1077,28 @@ void main() {
       const id = 'my-span-id';
       const startTimeMs = 100;
       const endTimeMs = 200;
-      test('records completed span when platform implementation exists',
-          () async {
-        when(
-          () => embracePlatform.recordCompletedSpan(
+      test(
+        'records completed span when platform implementation exists',
+        () async {
+          when(
+            () => embracePlatform.recordCompletedSpan(
+              id,
+              startTimeMs,
+              endTimeMs,
+              events: [],
+            ),
+          ).thenAnswer((_) => Future.value(true));
+          await Embrace.instance.recordCompletedSpan<bool>(
             id,
             startTimeMs,
             endTimeMs,
-            events: [],
-          ),
-        ).thenAnswer((_) => Future.value(true));
-        await Embrace.instance
-            .recordCompletedSpan<bool>(id, startTimeMs, endTimeMs);
-        verify(
-          () => embracePlatform.recordCompletedSpan(id, startTimeMs, endTimeMs),
-        ).called(1);
-      });
+          );
+          verify(
+            () =>
+                embracePlatform.recordCompletedSpan(id, startTimeMs, endTimeMs),
+          ).called(1);
+        },
+      );
 
       test(
           'logs internal error when platform implementation '
@@ -1181,8 +1111,12 @@ void main() {
             events: [],
           ),
         ).thenThrow(MockError());
-        await Embrace.instance
-            .recordCompletedSpan<bool>(id, startTimeMs, endTimeMs, events: []);
+        await Embrace.instance.recordCompletedSpan<bool>(
+          id,
+          startTimeMs,
+          endTimeMs,
+          events: [],
+        );
 
         verify(
           () => embracePlatform.logInternalError(
