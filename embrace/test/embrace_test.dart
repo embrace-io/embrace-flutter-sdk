@@ -1035,22 +1035,21 @@ void main() {
 
     group('recordSpan', () {
       const spanName = 'my-span-id';
-      Future<bool> fetchData() async => 
-      Future.delayed(const Duration(seconds: 1), () => true);
-      test(
-          'starts a span, runs a lambda, stops a span',
-          () async {
-          when(
-            () => embracePlatform.recordSpan(
-              spanName,
-              code: fetchData,
-            ),
-          ).thenAnswer((_) => Future.value(true));
-          await Embrace.instance.recordSpan(spanName, code: fetchData);
-          verify(() => embracePlatform.recordSpan(spanName, code: fetchData),
-          ).called(1);
-        });
-      
+      Future<bool> fetchData() async =>
+          Future.delayed(const Duration(seconds: 1), () => true);
+      test('starts a span, runs a lambda, stops a span', () async {
+        when(
+          () => embracePlatform.recordSpan(
+            spanName,
+            code: fetchData,
+          ),
+        ).thenAnswer((_) => Future.value(true));
+        await Embrace.instance.recordSpan(spanName, code: fetchData);
+        verify(
+          () => embracePlatform.recordSpan(spanName, code: fetchData),
+        ).called(1);
+      });
+
       test(
           'logs internal error when platform implementation '
           'throws an error', () async {
