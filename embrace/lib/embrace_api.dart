@@ -378,8 +378,8 @@ abstract class TracingApi {
     throw UnimplementedError('Not implemented yet.');
   }
 
-  /// allows you to pass a lambda in so the runtime of that starts and ends a span.
-  /// It's syntactic sugar that does some nice things like handle exceptions thrown by automatically failing the span.
+  /// Wraps some code in a start and stop span so you can measure the time
+  /// it takes for the code to run
   Future<T> recordSpan<T>(
     String name, {
     EmbraceSpan? parent,
