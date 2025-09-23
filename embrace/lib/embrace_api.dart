@@ -380,7 +380,7 @@ abstract class TracingApi {
 
   /// allows you to pass a lambda in so the runtime of that starts and ends a span.
   /// It's syntactic sugar that does some nice things like handle exceptions thrown by automatically failing the span.
-  Future<bool> recordSpan<T>(
+  Future<T> recordSpan<T>(
     String name, {
     EmbraceSpan? parent,
     Map<String, String>? attributes,
