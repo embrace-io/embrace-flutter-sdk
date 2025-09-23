@@ -594,6 +594,32 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
+  Future<T> recordSpan<T>(
+    String name, {
+    String? parentSpanId,
+    Map<String, String>? attributes,
+    List<Map<String, dynamic>>? events,
+    required Future<T> Function() code,
+  }) async {
+    throwIfNotStarted();
+    final startTimeMs = DateTime.now().millisecondsSinceEpoch;
+    final spanId =
+        await methodChannel.invokeMethod<String>(_startSpanMethodName, {
+      _nameArgName: name,
+      _parentSpanIdArgName: parentSpanId,
+      _startTimeArgName: startTimeMs,
+    });
+    final result = await code();
+    final endTimeMs = DateTime.now().millisecondsSinceEpoch;
+    await methodChannel.invokeMethod(_stopSpanMethodName, {
+      _spanIdArgName: spanId,
+      _parentSpanIdArgName: parentSpanId,
+      _endTimeMsArgName: endTimeMs,
+    });
+    return result;
+  }
+
+  @override
   Future<String?> getTraceId(String spanId) async {
     throwIfNotStarted();
     return methodChannel.invokeMethod<String>(_getTraceIdMethodName, {

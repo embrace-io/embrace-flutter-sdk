@@ -377,6 +377,18 @@ abstract class TracingApi {
   }) {
     throw UnimplementedError('Not implemented yet.');
   }
+
+  /// Wraps some code in a start and stop span so you can measure the time
+  /// it takes for the code to run
+  Future<T> recordSpan<T>(
+    String name, {
+    EmbraceSpan? parent,
+    Map<String, String>? attributes,
+    List<EmbraceSpanEvent>? events,
+    required Future<T> Function() code,
+  }) {
+    throw UnimplementedError('Not implemented yet.');
+  }
 }
 
 /// Represents a Span that can be started and stopped with the appropriate

@@ -368,6 +368,37 @@ class Embrace implements EmbraceFlutterApi {
       defaultValue: false,
     );
   }
+
+  @override
+  Future<T> recordSpan<T>(
+    String name, {
+    EmbraceSpan? parent,
+    Map<String, String>? attributes,
+    List<EmbraceSpanEvent>? events,
+    required Future<T> Function() code,
+  }) async {
+    return _runCatchingAndReturn<T>(
+      'recordSpan',
+      () async {
+        return _platform.recordSpan(
+          name,
+          code: code,
+          parentSpanId: parent?.id,
+          attributes: attributes,
+          events: _convertSpanEvents(events),
+        );
+      },
+      defaultValue: _defaultFor<T>(),
+    );
+  }
+}
+
+T _defaultFor<T>() {
+  if (T == bool) return false as T;
+  if (T == int) return 0 as T;
+  if (T == double) return 0.0 as T;
+  if (T == String) return '' as T;
+  return (null as dynamic) as T;
 }
 
 List<Map<String, dynamic>>? _convertSpanEvents(List<EmbraceSpanEvent>? events) {

@@ -27,6 +27,10 @@ class _TracingApiDemoState extends State<TracingApiDemo> {
                 onPressed: _recordCompletedSpan,
                 child: const Text('Record completed span'),
               ),
+              ElevatedButton(
+                onPressed: _recordSpan,
+                child: const Text('Record span with code block'),
+              ),
             ],
           ),
         ),
@@ -70,5 +74,19 @@ class _TracingApiDemoState extends State<TracingApiDemo> {
         ),
       ],
     );
+  }
+
+  Future<void> _recordSpan() async {
+    final result = await Embrace.instance.recordSpan(
+      'my-recorded-span', 
+      code: () async {
+      print('Hello from within the span!');
+    }, attributes: {'my-span-key': 'my-span-value'}, events: [
+      EmbraceSpanEvent(
+        name: 'my-span-event',
+        attributes: {'my-event-key': 'my-event-value'},
+        timestampMs: DateTime.now().millisecondsSinceEpoch,
+      ),
+    ],);
   }
 }
