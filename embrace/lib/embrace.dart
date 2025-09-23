@@ -388,9 +388,17 @@ class Embrace implements EmbraceFlutterApi {
           events: _convertSpanEvents(events),
         );
       },
-      defaultValue: null as T,
+      defaultValue: _defaultFor<T>(),
     );
   }
+}
+
+T _defaultFor<T>() {
+  if (T == bool) return false as T;
+  if (T == int) return 0 as T;
+  if (T == double) return 0.0 as T;
+  if (T == String) return '' as T;
+  return (null as dynamic) as T;
 }
 
 List<Map<String, dynamic>>? _convertSpanEvents(List<EmbraceSpanEvent>? events) {
