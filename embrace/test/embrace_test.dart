@@ -1065,7 +1065,7 @@ void main() {
 
         verify(
           () => embracePlatform.logInternalError(
-            'recordCompletedSpan',
+            'recordSpan',
             errorMessage,
           ),
         ).called(1);
