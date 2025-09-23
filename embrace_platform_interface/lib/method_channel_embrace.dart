@@ -54,7 +54,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _addSpanEventMethodName = 'addSpanEvent';
   static const String _addSpanAttributeMethodName = 'addSpanAttribute';
   static const String _recordCompletedSpanMethodName = 'recordCompletedSpan';
-  static const String _recordSpanMethodName = 'recordSpan';
   static const String _getTraceIdMethodName = 'getTraceId';
 
   // Parameter Names
@@ -109,7 +108,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _timestampMsArgName = 'timestampMs';
   static const String _eventsArgName = 'events';
   static const String _attributesArgName = 'attributes';
-  static const String _codeArgName = 'code';
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
