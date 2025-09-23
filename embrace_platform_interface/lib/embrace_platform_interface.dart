@@ -340,7 +340,8 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('recordCompletedSpan() has not been implemented');
   }
 
-  /// allows you to pass a lambda in so the runtime of that starts and ends a span
+  /// Surrounds some code with a start and stop span
+  /// so that the code can be measured and a span created for it.
   Future<T> recordSpan<T>(
     String name, {
     String? parentSpanId,
