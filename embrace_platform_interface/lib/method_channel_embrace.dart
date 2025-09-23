@@ -605,12 +605,11 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }) async {
     throwIfNotStarted();
     final startTimeMs = DateTime.now().millisecondsSinceEpoch;
-    final spanId = 
-    await methodChannel.invokeMethod<String>(_startSpanMethodName,
-    {
+    final spanId =
+        await methodChannel.invokeMethod<String>(_startSpanMethodName, {
       _nameArgName: name,
       _parentSpanIdArgName: parentSpanId,
-      _startTimeArgName : startTimeMs,
+      _startTimeArgName: startTimeMs,
     });
     final result = await code();
     final endTimeMs = DateTime.now().millisecondsSinceEpoch;
