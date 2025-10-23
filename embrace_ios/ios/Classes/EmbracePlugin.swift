@@ -1,9 +1,7 @@
 import Flutter
 import UIKit
 import EmbraceIO
-import EmbraceCore
 import OpenTelemetryApi
-import EmbraceOTelInternal
 
 public class EmbracePlugin: NSObject, FlutterPlugin {
 

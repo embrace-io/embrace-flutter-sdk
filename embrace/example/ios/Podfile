@@ -1,5 +1,7 @@
 # Uncomment this line to define a global platform for your project
+source 'https://cdn.cocoapods.org/'
 platform :ios, '13.0'
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -28,6 +30,7 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
+  use_modular_headers!
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
