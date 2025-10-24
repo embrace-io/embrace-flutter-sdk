@@ -1,0 +1,82 @@
+name: Update Native SDKs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1-5"
+
+jobs:
+  update-sdk:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "android"
+            runner: "ubuntu-latest"
+          - platform: "apple"
+            runner: "ubuntu-latest"
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Find latest released version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDK: embrace-${{ matrix.platform }}-sdk
+        run: |
+          latest=$(gh release list --repo embrace-io/${SDK} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[].tagName')
+          echo "LATEST=$latest"
+          echo "LATEST=$latest" >> $GITHUB_ENV
+
+      - name: Find currently used version
+        run: |
+          current=$(/bin/bash scripts/native_sdk_helper.sh get)
+          echo "CURRENT=$current"
+          echo "CURRENT=$current" >> $GITHUB_ENV
+
+      - name: Update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDK: embrace-${{ matrix.platform }}-sdk
+        run: |
+          open_prs=$(gh pr list --label $SDK --state open --json number,title)
+
+          if echo $open_prs | grep $SDK | grep "to ${LATEST}"; then
+            echo "There is already an open pull request to update ${SDK} to ${LATEST}, exiting"
+            exit 0
+          elif [[ $open_prs != "[]" ]]; then
+            echo "There is already open pull request, but it is to a different version"
+            gh pr comment $(echo $open_prs | jq '.[].number') --body "There is a newer ${SDK} version ${LATEST}, close this PR to allow automatic update."
+            exit 0
+          else
+            if [[ $LATEST == $CURRENT ]]; then
+              echo "We are already on version ${LATEST}"
+              exit 0
+            else
+              echo "Need to update ${SDK} from ${CURRENT} to ${LATEST}"
+              /bin/bash scripts/native_sdk_helper.sh set ${{ matrix.platform }} ${LATEST}
+
+              echo "$(date): git status"
+              git status
+
+              echo "$(date): git diff"
+              git diff
+
+              branch="embrace-ci/update-${SDK}/${LATEST}"
+
+              git checkout -b $branch
+              git config --global user.name "embrace-ci[bot]"
+              git config --global user.email "embrace-ci@users.noreply.github.com"
+              git commit --all --message "Update ${SDK} from ${CURRENT} to ${LATEST}"
+              git push origin $branch
+
+              gh pr create --fill --label $SDK
+            fi
+          fi
