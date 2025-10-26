@@ -37,7 +37,7 @@ jobs:
 
       - name: Find currently used version
         run: |
-          current=$(/bin/bash scripts/native_sdk_helper.sh get)
+          current=$(/bin/bash scripts/native_sdk_helper.sh get ${{ matrix.platform }})
           echo "CURRENT=$current"
           echo "CURRENT=$current" >> $GITHUB_ENV
 
