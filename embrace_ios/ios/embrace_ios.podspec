@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'EmbraceIO', '6.8.5'
+  s.dependency 'EmbraceIO', '6.14.1'
   s.platform = :ios, '13.0'
   s.swift_version = '5.0'
 
