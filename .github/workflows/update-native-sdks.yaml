@@ -77,6 +77,6 @@ jobs:
               git commit --all --message "Update ${SDK} from ${CURRENT} to ${LATEST}"
               git push origin $branch
 
-              gh pr create --fill --label $SDK
+              gh pr create --fill --label $SDK --body "See https://github.com/embrace-io/${SDK}/releases/tag/${LATEST}" --reviewer @embrace-io/opensource-${{ matrix.platform }}
             fi
           fi
