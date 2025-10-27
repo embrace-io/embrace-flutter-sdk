@@ -1,5 +1,6 @@
-# Global owners
-* @embrace-io/sdk-flutter
+.github @embrace-io/opensource-devops
+
+* @embrace-io/opensource-flutter
 
 # API surface owners
 embrace/lib/embrace_api.dart @fractalwrench @fnewberg
