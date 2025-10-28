@@ -2,10 +2,8 @@ import Foundation
 import UIKit
 import Flutter
 import EmbraceIO
-import EmbraceCore
-import EmbraceCrash
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
 
     override init() {

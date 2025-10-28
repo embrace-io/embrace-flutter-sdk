@@ -1,7 +1,5 @@
 import Foundation
 import EmbraceIO
-import EmbraceOTelInternal
-import EmbraceSemantics
 import OpenTelemetryApi
 
 class EmbraceSpanRepository {
@@ -107,7 +105,7 @@ class EmbraceSpanRepository {
         }
     }
 
-    private func mapErrorCode(code: String?) -> EmbraceSemantics.SpanErrorCode? {
+    private func mapErrorCode(code: String?) -> SpanErrorCode? {
         if (code == "failure") {
             return .failure
         } else if (code == "abandon") {
