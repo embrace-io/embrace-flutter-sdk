@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'EmbraceIO', '6.14.1'
+  s.dependency 'EmbraceIO', '6.13.2'
   s.dependency 'OpenTelemetry-Swift-Api'
   s.platform = :ios, '13.0'
   s.swift_version = '5.0'
