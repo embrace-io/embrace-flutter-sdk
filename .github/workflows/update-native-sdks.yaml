@@ -31,7 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SDK: embrace-${{ matrix.platform }}-sdk
         run: |
-          latest=$(gh release list --repo embrace-io/${SDK} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[].tagName')
+          latest=$(gh release list --repo embrace-io/${SDK} --exclude-drafts --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest)|.tagName')
           echo "LATEST=$latest"
           echo "LATEST=$latest" >> $GITHUB_ENV
 
@@ -50,10 +50,6 @@ jobs:
 
           if echo $open_prs | grep $SDK | grep "to ${LATEST}"; then
             echo "There is already an open pull request to update ${SDK} to ${LATEST}, exiting"
-            exit 0
-          elif [[ $open_prs != "[]" ]]; then
-            echo "There is already open pull request, but it is to a different version"
-            gh pr comment $(echo $open_prs | jq '.[].number') --body "There is a newer ${SDK} version ${LATEST}, close this PR to allow automatic update."
             exit 0
           else
             if [[ $LATEST == $CURRENT ]]; then
@@ -77,6 +73,7 @@ jobs:
               git commit --all --message "Update ${SDK} from ${CURRENT} to ${LATEST}"
               git push origin $branch
 
-              gh pr create --fill --label $SDK --body "See https://github.com/embrace-io/${SDK}/releases/tag/${LATEST}" --reviewer @embrace-io/opensource-${{ matrix.platform }}
+              gh pr create --fill --label $SDK --body "See https://github.com/embrace-io/${SDK}/releases/tag/${LATEST}"
+              # https://github.com/cli/cli/issues/11360 --reviewer @embrace-io/opensource-${{ matrix.platform }}
             fi
           fi
