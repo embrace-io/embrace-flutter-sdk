@@ -1,4 +1,5 @@
 # 4.3.0
+
 * Updated Embrace Android SDK to 7.9.2
 * Updated Embrace iOS SDK to 6.14.1
 * Added `recordSpan` feature which will run code then record a span and then return the result of the code that was ran
