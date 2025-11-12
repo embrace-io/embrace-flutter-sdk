@@ -40,8 +40,11 @@ verify_dependency () {
     local target_version=$(yq -e '.version' $target_pubspec)
     local dependency_version=$(yq -e $dependency_name $dependency_pubspec)
 
-    if [[ $dependency_version != '>='$target_version* ]]
-    then
+    if [[ "$dependency_version" == "$target_version" \
+     || "$dependency_version" == "^$target_version" \
+     || "$dependency_version" == ">=$target_version"* ]]; then
+    : # OK
+    else
         echo "$dependency_pubspec dependency on $dependency_name ($dependency_version) does not match $target_pubspec version ($target_version)"
         let "error_count+=1"
     fi

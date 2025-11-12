@@ -1,6 +1,6 @@
 name: embrace_android
 description: Android implementation of the embrace plugin as defined by the embrace_platform_interface package.
-version: 4.2.0
+version: 4.3.0
 homepage: https://embrace.io
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -14,7 +14,7 @@ flutter:
         pluginClass: EmbracePlugin
         dartPluginClass: EmbraceAndroid
 dependencies:
-  embrace_platform_interface: ">=4.2.0 <4.3.0"
+  embrace_platform_interface: ">=4.3.0 <4.4.0"
   flutter:
     sdk: flutter
 dev_dependencies:
