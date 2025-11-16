@@ -147,7 +147,7 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run Flutter integration tests
-        uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
+        uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b # v2.35.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           target: default
