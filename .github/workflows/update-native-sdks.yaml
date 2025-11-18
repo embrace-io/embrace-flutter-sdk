@@ -73,7 +73,7 @@ jobs:
               git commit --all --message "Update ${SDK} from ${CURRENT} to ${LATEST}"
               git push origin $branch
 
-              gh pr create --fill --label $SDK --body "See https://github.com/embrace-io/${SDK}/releases/tag/${LATEST}"
-              # https://github.com/cli/cli/issues/11360 --reviewer @embrace-io/opensource-${{ matrix.platform }}
+              gh pr create --fill --label $SDK --body "See https://github.com/embrace-io/${SDK}/releases/tag/${LATEST}" --draft
+              # https://github.com/cli/cli/issues/11360 --reviewer @${{ github.repository_owner }}/opensource-${{ matrix.platform }} --assignee @${{ github.repository_owner }}/opensource-flutter
             fi
           fi
