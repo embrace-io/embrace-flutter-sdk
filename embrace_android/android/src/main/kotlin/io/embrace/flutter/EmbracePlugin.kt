@@ -633,7 +633,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 startSpan(name, parent, startTimeMs)
             }
             else {
-                startSpan(name)
+                startSpan(name, null, startTimeMs)
             }
          }
         result.success(span)
