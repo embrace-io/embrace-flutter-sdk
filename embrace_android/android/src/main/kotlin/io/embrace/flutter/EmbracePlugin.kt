@@ -18,6 +18,7 @@ import io.embrace.android.embracesdk.internal.FlutterInternalInterface
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
 import io.embrace.android.embracesdk.spans.ErrorCode
@@ -184,8 +185,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             if (call.method == EmbraceConstants.TRIGGER_CHANNEL_ERROR_METHOD_NAME) {
                 throw e
             }
-            safeFlutterInterfaceCall {
-                logInternalError(e)
+            safeSdkCall { 
+                Log.e("EmbraceFlutter", e.message ?: "Unknown error", e)
+                logError(e.message ?: "Unknown error")
             }
         }
     }
@@ -576,8 +578,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleLogInternalErrorCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
         val details = call.getStringArgument(EmbraceConstants.DETAILS_ARG_NAME)
-        safeFlutterInterfaceCall {
-            logInternalError(message, details)
+        safeSdkCall { 
+            Log.e(message, details)
+            logError(message)
         }
         result.success(null)
         return
