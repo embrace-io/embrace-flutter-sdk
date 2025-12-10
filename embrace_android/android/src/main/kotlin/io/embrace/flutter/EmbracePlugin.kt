@@ -636,9 +636,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val errorCode = call.getErrorCode(EmbraceConstants.ERROR_CODE_ARG_NAME)
         val endTimeMs: Long? = call.argument(EmbraceConstants.END_TIME_MS_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            stopSpan(spanId, errorCode, endTimeMs)
+        val success = safeSdkCall {  
+            val span = getSpan(spanId)
+            span?.stop(errorCode, endTimeMs)
         }
+
         result.success(success)
     }
 
