@@ -647,8 +647,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val timestampMs: Long? = call.argument(EmbraceConstants.TIMESTAMP_MS_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            addSpanEvent(spanId, name, timestampMs, attributes)
+        val success = safeSdkCall { 
+            val span = getSpan(spanId)
+            span?.addEvent(name, timestampMs, attributes)
         }
         result.success(success)
     }
