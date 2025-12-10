@@ -52,6 +52,7 @@ internal object EmbraceConstants {
     internal const val CLEAR_ALL_USER_PERSONAS_METHOD_NAME : String = "clearAllUserPersonas"
     internal const val LOG_NETWORK_REQUEST_METHOD_NAME : String = "logNetworkRequest"
     internal const val GENERATE_W3C_TRACEPARENT_METHOD_NAME : String = "generateW3cTraceparent"
+    internal const val LOG_INTERNAL_ERROR_METHOD_NAME : String = "logInternalError"
     internal const val LOG_DART_ERROR_METHOD_NAME : String = "logDartError"
     internal const val LOG_PUSH_NOTIFICATION_METHOD_NAME : String = "logPushNotification"
     internal const val ADD_SESSION_PROPERTY_METHOD_NAME : String = "addSessionProperty"
@@ -163,6 +164,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.ADD_SESSION_PROPERTY_METHOD_NAME -> handleAddSessionPropertyCall(call, result)
                 EmbraceConstants.REMOVE_SESSION_PROPERTY_METHOD_NAME -> handleRemoveSessionPropertyCall(call, result)
                 EmbraceConstants.END_SESSION_METHOD_NAME -> handleEndSessionCall(call, result)
+                EmbraceConstants.LOG_INTERNAL_ERROR_METHOD_NAME -> handleLogInternalErrorCall(call, result)
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
                 EmbraceConstants.LOG_PUSH_NOTIFICATION_METHOD_NAME -> handleLogPushNotificationCall(call, result)
                 EmbraceConstants.GET_LAST_RUN_END_STATE_METHOD_NAME -> handleGetLastRunEndStateCall(call, result)
@@ -568,6 +570,17 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
         safeSdkCall {
             endSession(clearUserInfo)
+        }
+        result.success(null)
+        return
+    }
+
+    private fun handleLogInternalErrorCall(call: MethodCall, result: Result) : Unit {
+        val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
+        val details = call.getStringArgument(EmbraceConstants.DETAILS_ARG_NAME)
+        safeSdkCall { 
+            Log.e(message, details)
+            logError(message)
         }
         result.success(null)
         return
