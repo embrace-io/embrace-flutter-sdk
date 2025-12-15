@@ -1,5 +1,8 @@
 {
-    "app_id": "YOUR_APP_ID",
-    "api_token": "YOUR_API_TOKEN",
-    "ndk_enabled": true
-}
+    "app_id": "vxhsz",
+    "api_token": "48c50305c463ff3a53acbf8d7449a0da",
+    "ndk_enabled": true,
+    "sdk_config": {
+      "app_framework": "flutter"
+    }
+  }
