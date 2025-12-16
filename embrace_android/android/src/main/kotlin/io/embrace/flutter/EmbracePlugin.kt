@@ -118,13 +118,6 @@ internal object EmbraceConstants {
     internal const val EVENTS_ARG_NAME : String = "events"
 }
 
-/**
- * Extension function to convert nanoseconds to milliseconds.
- */
-private fun Long.nanosToMillis(): Long {
-    return this / 1_000_000
-}
-
 /** EmbracePlugin */
 public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -726,11 +719,5 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         } else {
             null
         }
-    }
-
-    private fun toStringMap(map: Map<*, *>): Map<String, String> =
-        map.entries
-            .filter { it.key is String && it.value is String }
-            .associate { Pair(it.key.toString(), it.value.toString()) 
     }
 }
