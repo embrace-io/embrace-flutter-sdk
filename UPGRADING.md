@@ -30,7 +30,7 @@ Please make sure not to have a hardcoded version of the Android SDK in the build
 buildscript {
 
     dependencies {
-        classpath "io.embrace:embrace-swazzler:${findProject(':embrace_android').properties['emb_android_sdk']}"
+        classpath "io.embrace:io.embrace.gradle:${findProject(':embrace_android').properties['emb_android_sdk']}"
     }
 }
 ```
