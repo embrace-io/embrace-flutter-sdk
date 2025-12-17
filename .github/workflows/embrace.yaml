@@ -1,7 +1,7 @@
 name: embrace
 
 env:
-  ANDROID_API_LEVEL: 34
+  ANDROID_API_LEVEL: 36
 
 on:
   pull_request:
