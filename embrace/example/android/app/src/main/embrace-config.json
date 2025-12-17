@@ -1,5 +1,8 @@
 {
     "app_id": "YOUR_APP_ID",
     "api_token": "YOUR_API_TOKEN",
-    "ndk_enabled": true
-}
+    "ndk_enabled": true,
+    "sdk_config": {
+      "app_framework": "flutter"
+    }
+  }
