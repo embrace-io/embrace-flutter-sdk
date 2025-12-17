@@ -133,6 +133,9 @@ jobs:
             ~/.android/adb*
           key: avd-${{ runner.os }}-${{ runner.arch }}-api${{ env.ANDROID_API_LEVEL }}
 
+      - name: Re-accept Android SDK licenses (after SDK installs)
+        run: yes | sdkmanager --licenses || true
+
       # Prime the cache by creating the snapshot (do NOT disable snapshots)
       - name: Create AVD + snapshot (cache prime)
         if: ${{ steps.avd-cache.outputs.cache-hit != 'true' }}
