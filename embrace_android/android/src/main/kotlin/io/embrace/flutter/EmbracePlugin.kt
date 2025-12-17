@@ -23,6 +23,7 @@ import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
 import io.embrace.android.embracesdk.spans.EmbraceSpan
 import io.embrace.android.embracesdk.spans.ErrorCode
+import io.embrace.android.embracesdk.spans.EmbraceSpanEvent
 
 internal object EmbraceConstants {
     internal const val METHOD_CHANNEL_ID : String = "embrace"
@@ -117,6 +118,13 @@ internal object EmbraceConstants {
     internal const val TIMESTAMP_MS_ARG_NAME : String = "timestampMs"
     internal const val ATTRIBUTES_ARG_NAME : String = "attributes"
     internal const val EVENTS_ARG_NAME : String = "events"
+}
+
+/**
+ * Extension function to convert nanoseconds to milliseconds.
+ */
+private fun Long.nanosToMillis(): Long {
+    return this / 1_000_000
 }
 
 /** EmbracePlugin */
@@ -685,9 +693,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
         val events = call.getListArgument<Map<String, Any>>(EmbraceConstants.EVENTS_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
-        }
+        val success = safeSdkCall { 
+            val parent = parentSpanId?.let { getSpan(it) }
+            val spanEvents = events.mapNotNull { mapToEvent(it) }
+            recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parent, attributes, spanEvents)
+         }
         result.success(success)
     }
 
@@ -698,5 +708,43 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             span?.traceId
         }
         result.success(traceId)
+    }
+
+    private fun mapToEvent(map: Map<String, Any>): EmbraceSpanEvent? {
+        val name = map["name"]
+        val timestampMs = map["timestampMs"] as? Long?
+        val timestampNanos = (map["timestampNanos"] as? Long?)?.nanosToMillis()
+        val attributes = map["attributes"]
+
+        // If timestampMs is specified but isn't the right type, return and don't create the event
+        if (timestampMs == null && map["timestampMs"] != null) {
+            return null
+        }
+
+        // If timestampMs is valid, use it
+        // else if timestampNanos is valid, use it
+        // else if timestampNanos isn't specified, use the current time in millis
+        // Otherwise, it means we have an invalid type of timestampNanos so we don't create the event
+        val validatedTimeMs = timestampMs ?: timestampNanos ?: if (map["timestampNanos"] == null) {
+            System.currentTimeMillis()
+        } else {
+            return null
+        }
+
+        return if (name is String && attributes is Map<*, *>?) {
+            EmbraceSpanEvent.create(
+                name = name,
+                timestampMs = validatedTimeMs,
+                attributes = attributes?.let { toStringMap(it) }
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun toStringMap(map: Map<*, *>): Map<String, String> =
+        map.entries
+            .filter { it.key is String && it.value is String }
+            .associate { Pair(it.key.toString(), it.value.toString()) 
     }
 }
