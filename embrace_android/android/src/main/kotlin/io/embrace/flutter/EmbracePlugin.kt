@@ -670,9 +670,10 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            addSpanAttribute(spanId, key, value)
-        }
+        val success = safeSdkCall { 
+            val span = getSpan(spanId)
+            span?.addAttribute(key, value)
+         }
         result.success(success)
     }
 
