@@ -21,6 +21,7 @@ import android.os.Looper
 import android.util.Log
 import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
+import io.embrace.android.embracesdk.spans.EmbraceSpan
 import io.embrace.android.embracesdk.spans.ErrorCode
 
 internal object EmbraceConstants {
@@ -629,10 +630,16 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val startTimeMs: Long? = call.argument(EmbraceConstants.START_TIME_MS_ARG_NAME)
-        val spanId = safeFlutterInterfaceCall {
-            startSpan(name, parentSpanId, startTimeMs)
-        }
-        result.success(spanId)
+        val span = safeSdkCall {            
+            if (parentSpanId.isNullOrEmpty() == false) {
+                val parent = getSpan(parentSpanId)
+                startSpan(name, parent, startTimeMs)
+            }
+            else {
+                startSpan(name, null, startTimeMs)
+            }
+         }
+        result.success(span)
     }
 
     private fun handleStopSpan(call: MethodCall, result: Result) {
