@@ -166,12 +166,7 @@ jobs:
             adb devices || true
             flutter --version
             flutter devices || true
-
-            if ! flutter test integration_test -d emulator-5554; then
-              adb logcat -d > emulator_logcat.log 2>&1 || true
-              exit 1
-            fi
-
+            flutter test integration_test -d emulator-5554 || (adb logcat -d > emulator_logcat.log 2>&1 || true; exit 1)
 
       - name: Archive Test Results
         if: ${{ always() }}
