@@ -107,19 +107,13 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      # IMPORTANT: install only what we need, non-interactively (avoids google tv license prompts)
       - name: Install Android SDK packages needed for emulator
         run: |
-          set -euo pipefail
-          SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
-
-          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --install \
+          yes | sdkmanager --install \
             "platform-tools" \
             "platforms;android-${ANDROID_API_LEVEL}" \
             "emulator" \
-            "system-images;android-${ANDROID_API_LEVEL};default;x86_64"
-
-          "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --list_installed || true
+            "system-images;android-${ANDROID_API_LEVEL};default;x86_64" || true
 
       - name: Write Embrace config (from secrets)
         working-directory: embrace/example
