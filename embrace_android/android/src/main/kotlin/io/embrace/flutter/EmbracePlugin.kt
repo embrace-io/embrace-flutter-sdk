@@ -628,7 +628,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val startTimeMs: Long? = call.argument(EmbraceConstants.START_TIME_MS_ARG_NAME)
         val span = safeSdkCall {            
-            if(parentSpanId.isNullOrEmpty() == false) {
+            if (parentSpanId.isNullOrEmpty() == false) {
                 val parent = getSpan(parentSpanId)
                 startSpan(name, parent, startTimeMs)
             }
