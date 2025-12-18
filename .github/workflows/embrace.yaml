@@ -117,6 +117,11 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
+        
+      - name: Setup Android SDK (cmdline-tools)
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 11076708
 
       - name: Install Android SDK packages needed for emulator
         run: |
