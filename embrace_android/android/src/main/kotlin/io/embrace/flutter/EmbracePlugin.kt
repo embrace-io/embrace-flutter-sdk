@@ -11,7 +11,6 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import io.embrace.android.embracesdk.Embrace
-import io.embrace.android.embracesdk.AppFramework
 import io.embrace.android.embracesdk.network.http.HttpMethod
 import io.embrace.android.embracesdk.internal.EmbraceInternalApi
 import io.embrace.android.embracesdk.internal.FlutterInternalInterface
@@ -281,7 +280,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val started = Embrace.getInstance().isStarted
 
         if (!started) {
-            Embrace.getInstance().start(context, AppFramework.FLUTTER)
+            Embrace.getInstance().start(context)
         }
 
         safeFlutterInterfaceCall {
