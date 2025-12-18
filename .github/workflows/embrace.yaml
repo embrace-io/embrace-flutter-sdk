@@ -124,7 +124,7 @@ jobs:
             "platform-tools" \
             "platforms;android-${ANDROID_API_LEVEL}" \
             "emulator" \
-            "system-images;android-${ANDROID_API_LEVEL};default;x86_64" || true
+            "system-images;android-${ANDROID_API_LEVEL};default;x86_64"
 
       - name: Write Embrace config (from secrets)
         working-directory: embrace/example
