@@ -81,10 +81,14 @@ jobs:
 
     steps:
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
-          tool-cache: false
-          android: true
+          remove-dotnet: true
+          remove-haskell: true
+          remove-codeql: true
+          remove-docker-images: true
+          remove-large-packages: true
+          
       - name: Checkout
         uses: actions/checkout@v6
         with:
