@@ -7,10 +7,14 @@ void main() {
 
   group('E2E', () {
     testWidgets('smokeTest', (tester) async {
-      // checks the example app runs
+      print('starting test');
       await app.main();
+      print('starting pump and settle test');
       await tester.pumpAndSettle(const Duration(seconds: 3));
+      print('starting ensure visible errors test');
       await tester.ensureVisible(find.text('Errors'));
-    });
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+    );
   });
 }
