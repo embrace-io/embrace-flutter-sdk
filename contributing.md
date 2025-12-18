@@ -14,11 +14,9 @@ Since you are most likely a developer, provide a ticket that you _yourself_ woul
 
 [File a bug](https://github.com/embrace-io/embrace-flutter-sdk/issues/new/choose)
 
-
 ## Feature Requests
 
 Please try to be precise about how you see the feature working and what problem you are looking to solve. We can't promise that your feature request will be implemented but we will look at it and see how it fits into our roadmap.
-
 
 ## Pull Requests
 
