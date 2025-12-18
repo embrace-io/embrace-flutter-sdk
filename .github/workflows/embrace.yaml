@@ -117,6 +117,9 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
+        
+      - name: Accept Android SDK licenses
+        run: yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
       - name: Write Embrace config (from secrets)
         working-directory: embrace/example
