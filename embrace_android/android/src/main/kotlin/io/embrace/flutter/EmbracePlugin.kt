@@ -578,6 +578,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleEndSessionCall(call: MethodCall, result: Result) : Unit {
         val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
         safeSdkCall {
+            Log.e("Test")
             endSession(clearUserInfo)
         }
         result.success(null)
