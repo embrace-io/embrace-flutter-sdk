@@ -172,7 +172,8 @@ jobs:
             adb devices || true
             flutter --version
             flutter devices || true
-            flutter drive -d emulator-5554 --driver=integration_test/app_test.dart --target=lib/main.dart { adb logcat -d > emulator_logcat.log 2>&1 || true; exit 127; }
+            flutter drive -d emulator-5554 --driver=integration_test/app_test.dart --target=lib/main.dart
+            adb logcat -d > emulator_logcat.log 2>&1 || true
 
 
       - name: Archive Test Results
