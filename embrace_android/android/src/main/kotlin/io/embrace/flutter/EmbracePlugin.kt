@@ -578,7 +578,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleEndSessionCall(call: MethodCall, result: Result) : Unit {
         val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
         safeSdkCall {
-            Log.e("Test")
             endSession(clearUserInfo)
         }
         result.success(null)
@@ -589,7 +588,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
         val details = call.getStringArgument(EmbraceConstants.DETAILS_ARG_NAME)
         safeSdkCall { 
-            Log.e(message, details)
             logError(message)
         }
         result.success(null)
