@@ -17,9 +17,12 @@ import io.embrace.android.embracesdk.internal.FlutterInternalInterface
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
+import io.embrace.android.embracesdk.spans.EmbraceSpan
 import io.embrace.android.embracesdk.spans.ErrorCode
+import io.embrace.android.embracesdk.spans.EmbraceSpanEvent
 
 internal object EmbraceConstants {
     internal const val METHOD_CHANNEL_ID : String = "embrace"
@@ -116,6 +119,13 @@ internal object EmbraceConstants {
     internal const val EVENTS_ARG_NAME : String = "events"
 }
 
+/**
+ * Extension function to convert nanoseconds to milliseconds.
+ */
+private fun Long.nanosToMillis(): Long {
+    return this / 1_000_000
+}
+
 /** EmbracePlugin */
 public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -183,8 +193,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             if (call.method == EmbraceConstants.TRIGGER_CHANNEL_ERROR_METHOD_NAME) {
                 throw e
             }
-            safeFlutterInterfaceCall {
-                logInternalError(e)
+            safeSdkCall { 
+                Log.e("EmbraceFlutter", e.message ?: "Unknown error", e)
+                logError(e.message ?: "Unknown error")
             }
         }
     }
@@ -575,8 +586,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleLogInternalErrorCall(call: MethodCall, result: Result) : Unit {
         val message = call.getStringArgument(EmbraceConstants.MESSAGE_ARG_NAME)
         val details = call.getStringArgument(EmbraceConstants.DETAILS_ARG_NAME)
-        safeFlutterInterfaceCall {
-            logInternalError(message, details)
+        safeSdkCall { 
+            Log.e(message, details)
+            logError(message)
         }
         result.success(null)
         return
@@ -625,19 +637,27 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val startTimeMs: Long? = call.argument(EmbraceConstants.START_TIME_MS_ARG_NAME)
-        val spanId = safeFlutterInterfaceCall {
-            startSpan(name, parentSpanId, startTimeMs)
-        }
-        result.success(spanId)
+        val span = safeSdkCall {            
+            if (parentSpanId.isNullOrEmpty() == false) {
+                val parent = getSpan(parentSpanId)
+                startSpan(name, parent, startTimeMs)
+            }
+            else {
+                startSpan(name, null, startTimeMs)
+            }
+         }
+        result.success(span)
     }
 
     private fun handleStopSpan(call: MethodCall, result: Result) {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val errorCode = call.getErrorCode(EmbraceConstants.ERROR_CODE_ARG_NAME)
         val endTimeMs: Long? = call.argument(EmbraceConstants.END_TIME_MS_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            stopSpan(spanId, errorCode, endTimeMs)
+        val success = safeSdkCall {  
+            val span = getSpan(spanId)
+            span?.stop(errorCode, endTimeMs)
         }
+
         result.success(success)
     }
 
@@ -646,8 +666,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val name = call.getStringArgument(EmbraceConstants.NAME_ARG_NAME)
         val timestampMs: Long? = call.argument(EmbraceConstants.TIMESTAMP_MS_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            addSpanEvent(spanId, name, timestampMs, attributes)
+        val success = safeSdkCall { 
+            val span = getSpan(spanId)
+            span?.addEvent(name, timestampMs, attributes)
         }
         result.success(success)
     }
@@ -656,9 +677,10 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val spanId = call.getStringArgument(EmbraceConstants.SPAN_ID_ARG_NAME)
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            addSpanAttribute(spanId, key, value)
-        }
+        val success = safeSdkCall { 
+            val span = getSpan(spanId)
+            span?.addAttribute(key, value)
+         }
         result.success(success)
     }
 
@@ -670,9 +692,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val parentSpanId: String? = call.argument(EmbraceConstants.PARENT_SPAN_ID_ARG_NAME)
         val attributes = call.getMapArgument<String>(EmbraceConstants.ATTRIBUTES_ARG_NAME)
         val events = call.getListArgument<Map<String, Any>>(EmbraceConstants.EVENTS_ARG_NAME)
-        val success = safeFlutterInterfaceCall {
-            recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parentSpanId, attributes, events)
-        }
+        val success = safeSdkCall { 
+            val parent = parentSpanId?.let { getSpan(it) }
+            val spanEvents = events.mapNotNull { mapToEvent(it) }
+            recordCompletedSpan(name, startTimeMs, endTimeMs, errorCode, parent, attributes, spanEvents)
+         }
         result.success(success)
     }
 
@@ -683,5 +707,43 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             span?.traceId
         }
         result.success(traceId)
+    }
+
+    private fun mapToEvent(map: Map<String, Any>): EmbraceSpanEvent? {
+        val name = map["name"]
+        val timestampMs = map["timestampMs"] as? Long?
+        val timestampNanos = (map["timestampNanos"] as? Long?)?.nanosToMillis()
+        val attributes = map["attributes"]
+
+        // If timestampMs is specified but isn't the right type, return and don't create the event
+        if (timestampMs == null && map["timestampMs"] != null) {
+            return null
+        }
+
+        // If timestampMs is valid, use it
+        // else if timestampNanos is valid, use it
+        // else if timestampNanos isn't specified, use the current time in millis
+        // Otherwise, it means we have an invalid type of timestampNanos so we don't create the event
+        val validatedTimeMs = timestampMs ?: timestampNanos ?: if (map["timestampNanos"] == null) {
+            System.currentTimeMillis()
+        } else {
+            return null
+        }
+
+        return if (name is String && attributes is Map<*, *>?) {
+            EmbraceSpanEvent.create(
+                name = name,
+                timestampMs = validatedTimeMs,
+                attributes = attributes?.let { toStringMap(it) }
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun toStringMap(map: Map<*, *>): Map<String, String> =
+        map.entries
+            .filter { it.key is String && it.value is String }
+            .associate { Pair(it.key.toString(), it.value.toString()) 
     }
 }
