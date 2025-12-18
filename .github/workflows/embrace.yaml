@@ -148,6 +148,12 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-${{ runner.os }}-${{ runner.arch }}-api${{ env.ANDROID_API_LEVEL }}
+          
+      - name: Set Android SDK path (user-writable)
+        run: |
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          mkdir -p "$HOME/android-sdk"
 
       # Prime the cache by creating the snapshot (do NOT disable snapshots)
       - name: Create AVD + snapshot (cache prime)
@@ -172,6 +178,7 @@ jobs:
           cores: 4
           emulator-options: -no-window -no-boot-anim -no-audio -no-metrics
           working-directory: embrace/example
+          sdk-root: ${{ env.ANDROID_SDK_ROOT }}
           script: |
             set -eu
             adb devices || true
