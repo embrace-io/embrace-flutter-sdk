@@ -266,7 +266,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun handleAttachSdkCall(call: MethodCall, result: Result) : Unit {
-        val started = Embrace.getInstance().isStarted
+        val started = Embrace.isStarted
 
         if (!started) {
             Embrace.start(context)
