@@ -1,7 +1,7 @@
 name: embrace
 
 env:
-  ANDROID_API_LEVEL: 36
+  ANDROID_API_LEVEL: 29
 
 on:
   pull_request:
@@ -163,9 +163,8 @@ jobs:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           target: default
           arch: x86_64
-          profile: pixel_5
+          profile: Nexus 6
           cores: 4
-          emulator-options: -no-window -no-boot-anim -no-audio -no-metrics
           working-directory: embrace/example
           script: |
             set -eu
