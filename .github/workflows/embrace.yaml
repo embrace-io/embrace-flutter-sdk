@@ -84,7 +84,7 @@ jobs:
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
-          android: true
+          android: false
           dotnet: true
           haskell: true
           large-packages: true
@@ -117,19 +117,6 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
-        
-      - name: Setup Android SDK (cmdline-tools)
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: 11076708
-
-      - name: Install Android SDK packages needed for emulator
-        run: |
-          yes | sdkmanager --install \
-            "platform-tools" \
-            "platforms;android-${ANDROID_API_LEVEL}" \
-            "emulator" \
-            "system-images;android-${ANDROID_API_LEVEL};default;x86_64"
 
       - name: Write Embrace config (from secrets)
         working-directory: embrace/example
@@ -153,12 +140,6 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-${{ runner.os }}-${{ runner.arch }}-api${{ env.ANDROID_API_LEVEL }}
-          
-      - name: Set Android SDK path (user-writable)
-        run: |
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          mkdir -p "$HOME/android-sdk"
 
       # Prime the cache by creating the snapshot (do NOT disable snapshots)
       - name: Create AVD + snapshot (cache prime)
