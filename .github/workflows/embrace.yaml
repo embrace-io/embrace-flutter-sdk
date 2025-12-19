@@ -150,7 +150,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b # v2.35.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
-          target: default
+          target: google_apis
           arch: x86_64
           profile: pixel_5
           cores: 4
@@ -161,6 +161,9 @@ jobs:
             adb devices || true
             flutter --version
             flutter devices || true
+            adb wait-for-device
+            adb shell getprop sys.boot_completed
+            adb shell input keyevent 82 || true
             flutter test integration_test || { adb logcat -d > emulator_logcat.log 2>&1 || true; exit 127; }
 
       - name: Archive Test Results
