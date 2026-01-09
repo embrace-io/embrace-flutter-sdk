@@ -1,7 +1,7 @@
 name: embrace
 
 env:
-  ANDROID_API_LEVEL: 36
+  ANDROID_API_LEVEL: 34
 
 on:
   pull_request:
@@ -177,7 +177,7 @@ jobs:
             adb devices || true
             flutter --version
             flutter devices || true
-            flutter drive -d emulator-5554 --driver=integration_test/app_test.dart --target=lib/main.dart
+            flutter test -d emulator-5554 integration_test/app_test.dart
             adb logcat -d > emulator_logcat.log 2>&1 || true
 
 
