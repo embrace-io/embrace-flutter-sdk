@@ -281,7 +281,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val started = Embrace.getInstance().isStarted
 
         if (!started) {
-            Embrace.getInstance().start(context, AppFramework.Flutter)
+            Embrace.getInstance().start(context, AppFramework.FLUTTER)
         }
 
         safeFlutterInterfaceCall {
