@@ -64,6 +64,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+            channel: stable
+            flutter-version: '3.38.5'
+            cache: true
       - name: Flutter Doctor
         run: flutter doctor -v
       - name: Tests for release mode
@@ -114,6 +118,7 @@ jobs:
         with:
           channel: stable
           cache: true
+          flutter-version: '3.38.5'
 
       - name: Flutter pub get
         run: flutter pub get
