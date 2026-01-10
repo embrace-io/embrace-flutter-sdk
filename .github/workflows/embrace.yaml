@@ -192,11 +192,11 @@ jobs:
             emulator_logcat.log
           if-no-files-found: ignore
           
-       - name: Upload debug APK
-         uses: actions/upload-artifact@v6
-         with:
-            name: app-debug-apk
-            path: build/app/outputs/flutter-apk/app-debug.apk
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
 
 
   ios:
