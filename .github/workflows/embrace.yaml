@@ -162,15 +162,6 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      - name: Build debug APK
-        run: flutter build apk --debug
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v6
-        with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-
       - name: Run Flutter integration tests
         uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
         with:
@@ -189,6 +180,15 @@ jobs:
             flutter test -d emulator-5554 integration_test/app_test.dart
             adb logcat -d > emulator_logcat.log 2>&1 || true
 
+      - name: Upload APK + logs (even if tests fail)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: android-apk-and-logs
+          path: |
+            embrace/example/build/app/outputs/flutter-apk/*.apk
+            embrace/example/build/app/outputs/apk/**/*.apk
+            embrace/example/emulator_logcat.log
 
       - name: Archive Test Results
         if: ${{ always() }}
