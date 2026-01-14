@@ -1,6 +1,8 @@
-.github @embrace-io/opensource-devops
-
+# Flutter SDK
 * @embrace-io/opensource-flutter
 
-# API surface owners
+# DevOps
+.github @embrace-io/opensource-devops @embrace-io/opensource-flutter
+
+# API Surface Owners
 embrace/lib/embrace_api.dart @fractalwrench @fnewberg
