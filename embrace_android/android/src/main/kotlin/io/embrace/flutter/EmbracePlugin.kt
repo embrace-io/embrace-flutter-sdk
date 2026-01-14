@@ -600,7 +600,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val type = call.getStringArgument(EmbraceConstants.ERROR_TYPE_ARG_NAME)
         val wasHandled = call.getBooleanArgument(EmbraceConstants.ERROR_WAS_HANDLED_ARG_NAME)
 
-        safeFlutterInterfaceCall {
+        safeSdkCall {
             val props = mutableMapOf<String, String>()
             context?.let { props["exception.context"] = it }
             library?.let { props["exception.library"] = it }
@@ -609,7 +609,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             type?.let { props["exception.type"] = it }
             props["emb.exception_handling"]  = if (wasHandled) "handled" else "unhandled"
 
-            Embrace.logMessage(
+            logMessage(
                 severity = Severity.ERROR,
                 message = "Dart error",
                 properties = props
