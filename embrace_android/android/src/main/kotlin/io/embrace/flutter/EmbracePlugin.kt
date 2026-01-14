@@ -283,14 +283,10 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             Embrace.start(context)
         }
 
-        safeFlutterInterfaceCall {
-            val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
-            setEmbraceFlutterSdkVersion(embraceFlutterSdkVersion)
-        }
-        safeFlutterInterfaceCall {
-            val dartRuntimeVersion = call.getStringArgument(EmbraceConstants.DART_RUNTIME_VERSION_ARG_NAME)
-            setDartVersion(dartRuntimeVersion)
-        }
+        val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
+        val dartRuntimeVersion = call.getStringArgument(EmbraceConstants.DART_RUNTIME_VERSION_ARG_NAME)
+        Embrace.addEnvelopeResource("hosted_platform_version", embraceFlutterSdkVersion)
+        Embrace.addEnvelopeResource("hosted_sdk_version", dartRuntimeVersion)
 
         // 'attach' to the Android SDK at this point by requesting any information
         // required by Flutter, and passing any Flutter-specific data down to the
@@ -600,7 +596,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val context = call.getStringArgument(EmbraceConstants.ERROR_CONTEXT_ARG_NAME)
         val library = call.getStringArgument(EmbraceConstants.ERROR_LIBRARY_ARG_NAME)
         val type = call.getStringArgument(EmbraceConstants.ERROR_TYPE_ARG_NAME)
-        
+        val wasHandled = call.getBooleanArgument(EmbraceConstants.ERROR_WAS_HANDLED_ARG_NAME)
+
         safeFlutterInterfaceCall {
             val props = mutableMapOf<String, String>()
             context?.let { props["exception.context"] = it }
@@ -608,6 +605,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             stack?.let { props["exception.stacktrace"] = it }
             message?.let { props["exception.message"] = it }
             type?.let { props["exception.type"] = it }
+            props["emb.exception_handling"]  = if (wasHandled) "handled" else "unhandled"
 
             Embrace.logMessage(
                 severity = Severity.ERROR,
