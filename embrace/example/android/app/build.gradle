@@ -4,7 +4,7 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-apply plugin: "embrace-swazzler"
+apply plugin: "io.embrace.gradle"
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')

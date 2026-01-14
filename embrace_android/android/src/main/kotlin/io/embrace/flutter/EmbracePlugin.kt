@@ -11,19 +11,18 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import io.embrace.android.embracesdk.Embrace
-import io.embrace.android.embracesdk.AppFramework
 import io.embrace.android.embracesdk.network.http.HttpMethod
 import io.embrace.android.embracesdk.internal.EmbraceInternalApi
 import io.embrace.android.embracesdk.internal.FlutterInternalInterface
-
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import io.embrace.android.embracesdk.Severity
 import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
 import io.embrace.android.embracesdk.spans.EmbraceSpan
 import io.embrace.android.embracesdk.spans.ErrorCode
 import io.embrace.android.embracesdk.spans.EmbraceSpanEvent
+
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 
 internal object EmbraceConstants {
     internal const val METHOD_CHANNEL_ID : String = "embrace"
@@ -204,16 +203,16 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     /**
      * Performs a call on the Android SDK safely by wrapping in a try-catch & swallowing any exceptions.
      */
-    private inline fun <reified T> safeSdkCall(action: Embrace.() -> T?): T? {
-        try {
-            val embrace = Embrace.getInstance()
-
-            if (embrace.isStarted) {
-                return embrace.action()
+    private inline fun <T> safeSdkCall(action: Embrace.() -> T?): T? {
+        return try {
+            if (Embrace.isStarted) {
+                Embrace.action()
+            } else {
+                null
             }
-        } catch (ignored: Throwable) {
+        } catch (_: Throwable) {
+            null
         }
-        return null
     }
 
     /**
@@ -278,10 +277,10 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun handleAttachSdkCall(call: MethodCall, result: Result) : Unit {
-        val started = Embrace.getInstance().isStarted
+        val started = Embrace.isStarted
 
         if (!started) {
-            Embrace.getInstance().start(context, AppFramework.FLUTTER)
+            Embrace.start(context)
         }
 
         safeFlutterInterfaceCall {
@@ -601,13 +600,20 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val context = call.getStringArgument(EmbraceConstants.ERROR_CONTEXT_ARG_NAME)
         val library = call.getStringArgument(EmbraceConstants.ERROR_LIBRARY_ARG_NAME)
         val type = call.getStringArgument(EmbraceConstants.ERROR_TYPE_ARG_NAME)
-        val wasHandled = call.getBooleanArgument(EmbraceConstants.ERROR_WAS_HANDLED_ARG_NAME)
+        
         safeFlutterInterfaceCall {
-            if (wasHandled) {
-                logHandledDartException(stack, type, message, context, library)
-            } else {
-                logUnhandledDartException(stack, type, message, context, library)
-            }
+            val props = mutableMapOf<String, String>()
+            context?.let { props["exception.context"] = it }
+            library?.let { props["exception.library"] = it }
+            stack?.let { props["exception.stacktrace"] = it }
+            message?.let { props["exception.message"] = it }
+            type?.let { props["exception.type"] = it }
+
+            Embrace.logMessage(
+                severity = Severity.ERROR,
+                message = "Dart error",
+                properties = props
+            )
         }
         result.success(null)
         return
