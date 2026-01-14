@@ -283,10 +283,12 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             Embrace.start(context)
         }
 
-        val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
-        val dartRuntimeVersion = call.getStringArgument(EmbraceConstants.DART_RUNTIME_VERSION_ARG_NAME)
-        Embrace.addEnvelopeResource("hosted_platform_version", embraceFlutterSdkVersion)
-        Embrace.addEnvelopeResource("hosted_sdk_version", dartRuntimeVersion)
+        safeFlutterInterfaceCall { 
+            val embraceFlutterSdkVersion = call.getStringArgument(EmbraceConstants.EMBRACE_FLUTTER_SDK_VERSION_ARG_NAME)
+            val dartRuntimeVersion = call.getStringArgument(EmbraceConstants.DART_RUNTIME_VERSION_ARG_NAME)
+            addEnvelopeResource("hosted_platform_version", embraceFlutterSdkVersion)
+            addEnvelopeResource("hosted_sdk_version", dartRuntimeVersion) 
+        }
 
         // 'attach' to the Android SDK at this point by requesting any information
         // required by Flutter, and passing any Flutter-specific data down to the
