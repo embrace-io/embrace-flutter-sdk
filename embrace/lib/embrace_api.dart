@@ -25,7 +25,9 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
   /// 
   /// You must also call Embrace.instance.start as soon as possible in your
   /// Android and iOS native code.
-  Future<void> startBackground({bool enableIntegrationTesting = false});
+  Future<void> startBackground({
+    bool enableIntegrationTesting = false,
+  });
 
   /// Manually logs a Dart error or exception to Embrace. You should use this
   /// if you want to capture errors/exceptions and report them to Embrace.
