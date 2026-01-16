@@ -84,6 +84,11 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  Future<void> startBackground({bool enableIntegrationTesting = false}) {
+    return _startBackground(enableIntegrationTesting);
+  }
+
+  @override
   void addBreadcrumb(String message) {
     _runCatching('addBreadcrumb', () => _platform.addBreadcrumb(message));
   }
@@ -433,23 +438,35 @@ Future<T> _runCatchingAndReturn<T>(
   }
 }
 
+bool get _isRootIsolate => RootIsolateToken.instance != null;
+
 Future<void> _start(
   FutureOr<void> Function() action,
   bool enableIntegrationTesting,
 ) async {
-  // step 1 - ensure channels are initialized before calling runApp()
+  await _attach(enableIntegrationTesting);
+
+  if (!_isRootIsolate) {
+    throw StateError(
+      'Embrace.start() must be called from the main (root) isolate. '
+      'For background handlers, use Embrace.instance.startBackground().',
+    );
+  }
+
+  _installFlutterOnError();
+  await _installGlobalErrorHandler(action);
+}
+
+Future<void> _startBackground(bool enableIntegrationTesting) async {
+  await _attach(enableIntegrationTesting);
+}
+
+Future<void> _attach(bool enableIntegrationTesting) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // step 2 - attach to the host SDK
   await EmbracePlatform.instance.attachToHostSdk(
     enableIntegrationTesting: enableIntegrationTesting,
   );
-
-  // step 3 - install a Flutter error handler
-  _installFlutterOnError();
-
-  // step 4 - run everything in a Zone & call runApp() supplied by developer
-  await _installGlobalErrorHandler(action);
 }
 
 /// Installs a Flutter.onError handler to capture uncaught Dart errors/
