@@ -7,7 +7,7 @@ buildscript {
 
     dependencies {
         classpath "io.embrace:embrace-gradle-plugin:${findProject(':embrace_android').properties['emb_android_sdk']}"
-        classpath 'com.android.tools.build:gradle:8.13.2'
+        classpath 'com.android.tools.build:gradle:9.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
