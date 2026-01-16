@@ -22,7 +22,7 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
   });
 
   /// Starts instrumentation of Dart code without installing error handlers.
-  /// 
+  ///
   /// You must also call Embrace.instance.start as soon as possible in your
   /// Android and iOS native code.
   Future<void> startBackground({
