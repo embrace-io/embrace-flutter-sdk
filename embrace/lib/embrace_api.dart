@@ -10,24 +10,40 @@ import 'package:embrace_platform_interface/last_run_end_state.dart';
 /// as new functions may be added in future. Use the Embrace class instead.
 
 abstract class EmbraceFlutterApi implements EmbraceApi {
-  /// Starts instrumentation of Dart code by the Embrace SDK. This should be
-  /// wrap the entire contents of your Dart main() function if you
-  /// wish to capture Dart errors.
+  /// Starts instrumentation of Dart code by the Embrace SDK.
+  ///
+  /// If [action] is provided and error handlers are not disabled, this will
+  /// wrap the action in a guarded zone to capture uncaught Dart errors. This
+  /// should wrap the entire contents of your Dart main() function if you wish
+  /// to capture Dart errors.
+  ///
+  /// If [action] is not provided, you can call [installErrorHandlers] later
+  /// to set up error handling separately. This is useful for background
+  /// isolates or when you need more control over initialization order.
   ///
   /// You must also call Embrace.instance.start as soon as possible in your
   /// Android and iOS native code.
-  Future<void> start(
-    FutureOr<void> Function() action, {
+  Future<void> start([
+    FutureOr<void> Function()? action,
+    @Deprecated('This parameter is obsolete and will be removed in a future release.')
     bool enableIntegrationTesting = false,
-  });
+  ]);
 
-  /// Starts instrumentation of Dart code without installing error handlers.
+  /// Installs global error handlers and runs [action] in a guarded zone to
+  /// capture uncaught Dart errors.
   ///
-  /// You must also call Embrace.instance.start as soon as possible in your
-  /// Android and iOS native code.
-  Future<void> startBackground({
-    bool enableIntegrationTesting = false,
-  });
+  /// Call this after [start] if you called start without an action and want
+  /// to set up error handling. This should wrap the entire contents of your
+  /// Dart main() function.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<void> main() async {
+  ///   await Embrace.instance.start();
+  ///   await Embrace.instance.installErrorHandlers(() => runApp(MyApp()));
+  /// }
+  /// ```
+  Future<void> installErrorHandlers(FutureOr<void> Function() action);
 
   /// Manually logs a Dart error or exception to Embrace. You should use this
   /// if you want to capture errors/exceptions and report them to Embrace.

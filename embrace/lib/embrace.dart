@@ -76,16 +76,17 @@ class Embrace implements EmbraceFlutterApi {
   static Embrace get instance => debugEmbraceOverride ?? _instance;
 
   @override
-  Future<void> start(
-    FutureOr<void> Function() action, {
+  Future<void> start([
+    FutureOr<void> Function()? action,
+    @Deprecated('This parameter is obsolete and will be removed in a future release.')
     bool enableIntegrationTesting = false,
-  }) {
+  ]) {
     return _start(action, enableIntegrationTesting);
   }
 
   @override
-  Future<void> startBackground({bool enableIntegrationTesting = false}) {
-    return _startBackground(enableIntegrationTesting);
+  Future<void> installErrorHandlers(FutureOr<void> Function() action) {
+    return _installErrorHandlers(action);
   }
 
   @override
@@ -438,35 +439,24 @@ Future<T> _runCatchingAndReturn<T>(
   }
 }
 
-bool get _isRootIsolate => RootIsolateToken.instance != null;
-
 Future<void> _start(
-  FutureOr<void> Function() action,
+  FutureOr<void> Function()? action,
   bool enableIntegrationTesting,
 ) async {
-  await _attach(enableIntegrationTesting);
-
-  if (!_isRootIsolate) {
-    throw StateError(
-      'Embrace.start() must be called from the main (root) isolate. '
-      'For background handlers, use Embrace.instance.startBackground().',
-    );
-  }
-
-  _installFlutterOnError();
-  await _installGlobalErrorHandler(action);
-}
-
-Future<void> _startBackground(bool enableIntegrationTesting) async {
-  await _attach(enableIntegrationTesting);
-}
-
-Future<void> _attach(bool enableIntegrationTesting) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await EmbracePlatform.instance.attachToHostSdk(
     enableIntegrationTesting: enableIntegrationTesting,
   );
+
+  if (action != null) {
+    await _installErrorHandlers(action);
+  }
+}
+
+Future<void> _installErrorHandlers(FutureOr<void> Function() action) async {
+  _installFlutterOnError();
+  await _installGlobalErrorHandler(action);
 }
 
 /// Installs a Flutter.onError handler to capture uncaught Dart errors/
