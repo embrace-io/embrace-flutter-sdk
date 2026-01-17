@@ -76,7 +76,7 @@ void main() {
 
       test('calls the supplied action', () async {
         var count = 0;
-        await Embrace.instance.start(() => count++);
+        await Embrace.instance.start(action: () => count++);
         expect(count, 1);
       });
 
@@ -90,7 +90,7 @@ void main() {
           // So we can only directly test if the global error handling method
           // calls logDartError
           test('handles error caught by dispatcher', () async {
-            await Embrace.instance.start(() async {
+            await Embrace.instance.start(action: () async {
               // ignore: avoid_dynamic_calls
               (PlatformDispatcher.instance as dynamic).onError(
                 ArgumentError('Mock argument'),
@@ -111,7 +111,7 @@ void main() {
           test('does not inject a new error zone', () async {
             final rootErrorZone = Zone.current.errorZone;
             late Zone internalErrorZone;
-            await Embrace.instance.start(() async {
+            await Embrace.instance.start(action: () async {
               internalErrorZone = Zone.current.errorZone;
             });
             expect(internalErrorZone, rootErrorZone);
@@ -135,7 +135,7 @@ void main() {
           test('catches error', () async {
             await Embrace.instance.start(
               // ignore: only_throw_errors
-              () => throw 'Error',
+              action: () => throw 'Error',
             );
             verify(
               () => embracePlatform.logDartError(
@@ -150,7 +150,7 @@ void main() {
 
           test('handles error caught by a zone', () async {
             await Embrace.instance.start(
-              () =>
+              action: () =>
                   Zone.current.handleUncaughtError('Error', StackTrace.current),
             );
             verify(
@@ -167,7 +167,7 @@ void main() {
           test('injects a new error zone', () async {
             final rootErrorZone = Zone.current.errorZone;
             late Zone internalErrorZone;
-            await Embrace.instance.start(() async {
+            await Embrace.instance.start(action: () async {
               internalErrorZone = Zone.current.errorZone;
             });
             expect(internalErrorZone, isNot(rootErrorZone));
@@ -179,7 +179,7 @@ void main() {
       test('attaches to the host sdk when platform implementation exists', () {
         const enableIntegrationTesting = true;
         Embrace.instance.start(
-          () {},
+          action: () {},
           enableIntegrationTesting: enableIntegrationTesting,
         );
         verify(

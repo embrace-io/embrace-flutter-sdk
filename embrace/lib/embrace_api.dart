@@ -23,12 +23,12 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
   ///
   /// You must also call Embrace.instance.start as soon as possible in your
   /// Android and iOS native code.
-  Future<void> start([
+  Future<void> start({
     FutureOr<void> Function()? action,
     @Deprecated(
-        'This parameter is obsolete and will be removed in a future release.')
+        'This parameter is obsolete and will be removed in a future release.',)
     bool enableIntegrationTesting = false,
-  ]);
+  });
 
   /// Installs global error handlers and runs [action] in a guarded zone to
   /// capture uncaught Dart errors.
