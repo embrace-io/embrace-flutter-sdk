@@ -78,7 +78,8 @@ class Embrace implements EmbraceFlutterApi {
   @override
   Future<void> start([
     FutureOr<void> Function()? action,
-    @Deprecated('This parameter is obsolete and will be removed in a future release.')
+    @Deprecated(
+        'This parameter is obsolete and will be removed in a future release.')
     bool enableIntegrationTesting = false,
   ]) {
     return _start(action, enableIntegrationTesting);
