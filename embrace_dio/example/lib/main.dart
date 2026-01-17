@@ -6,7 +6,7 @@ import 'package:embrace_dio/embrace_dio.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  await Embrace.instance.start(() => runApp(const EmbraceDioDemo()));
+  await Embrace.instance.start(action: () => runApp(const EmbraceDioDemo()));
 }
 
 class EmbraceDioDemo extends StatelessWidget {

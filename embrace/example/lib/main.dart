@@ -15,7 +15,7 @@ import 'package:embrace_example/views.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  await Embrace.instance.start(() => runApp(const EmbraceDemo()));
+  await Embrace.instance.start(action: () => runApp(const EmbraceDemo()));
 }
 
 class EmbraceDemo extends StatelessWidget {
