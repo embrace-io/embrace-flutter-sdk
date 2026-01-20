@@ -90,13 +90,15 @@ void main() {
           // So we can only directly test if the global error handling method
           // calls logDartError
           test('handles error caught by dispatcher', () async {
-            await Embrace.instance.start(action: () async {
-              // ignore: avoid_dynamic_calls
-              (PlatformDispatcher.instance as dynamic).onError(
-                ArgumentError('Mock argument'),
-                StackTrace.current,
-              );
-            },);
+            await Embrace.instance.start(
+              action: () async {
+                // ignore: avoid_dynamic_calls
+                (PlatformDispatcher.instance as dynamic).onError(
+                  ArgumentError('Mock argument'),
+                  StackTrace.current,
+                );
+              },
+            );
             verify(
               () => embracePlatform.logDartError(
                 any(),
@@ -111,9 +113,11 @@ void main() {
           test('does not inject a new error zone', () async {
             final rootErrorZone = Zone.current.errorZone;
             late Zone internalErrorZone;
-            await Embrace.instance.start(action: () async {
-              internalErrorZone = Zone.current.errorZone;
-            },);
+            await Embrace.instance.start(
+              action: () async {
+                internalErrorZone = Zone.current.errorZone;
+              },
+            );
             expect(internalErrorZone, rootErrorZone);
           });
         },
@@ -167,9 +171,11 @@ void main() {
           test('injects a new error zone', () async {
             final rootErrorZone = Zone.current.errorZone;
             late Zone internalErrorZone;
-            await Embrace.instance.start(action: () async {
-              internalErrorZone = Zone.current.errorZone;
-            },);
+            await Embrace.instance.start(
+              action: () async {
+                internalErrorZone = Zone.current.errorZone;
+              },
+            );
             expect(internalErrorZone, isNot(rootErrorZone));
           });
         },
