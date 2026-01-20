@@ -96,7 +96,7 @@ void main() {
                 ArgumentError('Mock argument'),
                 StackTrace.current,
               );
-            });
+            },);
             verify(
               () => embracePlatform.logDartError(
                 any(),
@@ -113,7 +113,7 @@ void main() {
             late Zone internalErrorZone;
             await Embrace.instance.start(action: () async {
               internalErrorZone = Zone.current.errorZone;
-            });
+            },);
             expect(internalErrorZone, rootErrorZone);
           });
         },
@@ -169,7 +169,7 @@ void main() {
             late Zone internalErrorZone;
             await Embrace.instance.start(action: () async {
               internalErrorZone = Zone.current.errorZone;
-            });
+            },);
             expect(internalErrorZone, isNot(rootErrorZone));
           });
         },
@@ -180,6 +180,7 @@ void main() {
         const enableIntegrationTesting = true;
         Embrace.instance.start(
           action: () {},
+          // ignore: deprecated_member_use_from_same_package
           enableIntegrationTesting: enableIntegrationTesting,
         );
         verify(
