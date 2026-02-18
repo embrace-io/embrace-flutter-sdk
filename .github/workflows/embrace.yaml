@@ -282,7 +282,6 @@ jobs:
       - name: 🐦 Setup Flutter
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
-          flutter-version: '3.38.5'
           channel: stable
           cache: true
       - name: ⬇️ Pub Get
@@ -291,7 +290,7 @@ jobs:
         run: flutter pub global activate pana
       - name: 📊 Verify Pana Score
         run: |
-          PANA=$(pana . --no-warning); PANA_SCORE=$(echo $PANA | sed -n "s/.*Points: \([0-9]*\)\/\([0-9]*\)./\1\/\2/p")
+          PANA=$(pana . --no-warning --dartdoc-version 8.3.4); PANA_SCORE=$(echo $PANA | sed -n "s/.*Points: \([0-9]*\)\/\([0-9]*\)./\1\/\2/p")
           echo "Score: $PANA_SCORE"
           IFS='/'; read -a SCORE_ARR <<< "$PANA_SCORE"; SCORE=${SCORE_ARR[0]}
           if (( SCORE < 140 )); then echo "The minimum score of 140 was not met!"; exit 1; fi
