@@ -282,6 +282,7 @@ jobs:
       - name: 🐦 Setup Flutter
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
+          flutter-version: '3.38.5'
           channel: stable
           cache: true
       - name: ⬇️ Pub Get
