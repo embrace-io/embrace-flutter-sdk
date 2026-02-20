@@ -48,3 +48,6 @@ build/
 .settings
 
 __pycache__/
+
+CLAUDE.md
+specs/

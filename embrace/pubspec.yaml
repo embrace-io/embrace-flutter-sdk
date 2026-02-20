@@ -20,6 +20,7 @@ dependencies:
     sdk: flutter
   http: ">=0.13.3 <2.0.0"
 dev_dependencies:
+  dartdoc: ^8.3.3
   flutter_test:
     sdk: flutter
   mocktail: ">=0.3.0 <2.0.0"

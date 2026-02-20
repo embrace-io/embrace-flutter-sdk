@@ -16,6 +16,7 @@ dependencies:
   plugin_platform_interface: ^2.1.0
   embrace_platform_interface: ">=4.3.0 <4.4.0"
 dev_dependencies:
+  dartdoc: ^8.3.3
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
