@@ -15,7 +15,7 @@ void main() {
       embrace = EmbraceAndroid();
 
       log = <MethodCall>[];
-      TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(embrace.methodChannel, (methodCall) async {
         log.add(methodCall);
         switch (methodCall.method) {

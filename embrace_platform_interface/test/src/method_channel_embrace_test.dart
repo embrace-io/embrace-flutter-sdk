@@ -22,7 +22,11 @@ void main() {
           version: dartVersion,
           operatingSystem: Platform.android,
         ),
-      )..methodChannel.setMockMethodCallHandler((MethodCall methodCall) async {
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        methodChannelEmbrace.methodChannel,
+        (MethodCall methodCall) async {
           log.add(methodCall);
           switch (methodCall.method) {
             case 'getDeviceId':
@@ -42,7 +46,8 @@ void main() {
             default:
               return null;
           }
-        });
+        },
+      );
     });
 
     tearDown(log.clear);
@@ -71,10 +76,13 @@ void main() {
       });
 
       test('returns false if platform returns null', () async {
-        methodChannelEmbrace.methodChannel
-            .setMockMethodCallHandler((MethodCall methodCall) async {
-          return null;
-        });
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          methodChannelEmbrace.methodChannel,
+          (MethodCall methodCall) async {
+            return null;
+          },
+        );
 
         expect(
           await methodChannelEmbrace.attachToHostSdk(
@@ -1205,7 +1213,7 @@ void main() {
       const parentSpanId = '__parentSpanId__';
       const attributes = {'key': 'value'};
       const events = [
-        {'key': 'value'}
+        {'key': 'value'},
       ];
 
       test('invokes recordCompletedSpan method in the method channel',
