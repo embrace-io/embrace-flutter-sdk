@@ -3,12 +3,12 @@ description: A common platform interface for the Embrace plugin that enables pla
 version: 4.3.0
 homepage: https://embrace.io
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=2.0.0"
 dependencies:
   build_runner: ^2.0.0
   build_version: ^2.0.0
-  dartastic_opentelemetry_api: ^0.8.7
+  dartastic_opentelemetry_api: ^0.9.0
   flutter:
     sdk: flutter
   platform: ^3.1.0
