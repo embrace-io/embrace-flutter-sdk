@@ -229,7 +229,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _messageIdArgName: messageId,
       _priorityArgName: priority,
       _hasNotificationArgName: hasNotification,
-      _hasDataArgName: hasData
+      _hasDataArgName: hasData,
     });
   }
 
@@ -557,7 +557,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _spanIdArgName: spanId,
       _nameArgName: name,
       _timestampMsArgName: timestampMs,
-      _attributesArgName: attributes
+      _attributesArgName: attributes,
     }) as bool;
   }
 
@@ -567,7 +567,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     return await methodChannel.invokeMethod(_addSpanAttributeMethodName, {
       _spanIdArgName: spanId,
       _keyArgName: key,
-      _valueArgName: value
+      _valueArgName: value,
     }) as bool;
   }
 
