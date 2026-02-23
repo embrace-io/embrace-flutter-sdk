@@ -9,8 +9,8 @@ import 'package:platform/platform.dart';
 /// part of the public API.
 ///
 /// The returned [Attributes] always include:
-/// - `service.name`: `"embrace-flutter"`
-/// - `service.version`: the current SDK version from [packageVersion]
+/// - `service.name`: the host application name, supplied via [serviceName]
+/// - `service.version`: the host application version, supplied via [serviceVersion]
 /// - `telemetry.sdk.name`: `"embrace-flutter"`
 /// - `telemetry.sdk.version`: the current SDK version from [packageVersion]
 /// - `os.name`: raw OS identifier from [Platform.operatingSystem]
@@ -20,11 +20,15 @@ import 'package:platform/platform.dart';
 ///
 /// [platform] may be supplied to override the default [LocalPlatform], which
 /// is useful in tests.
-Attributes buildEmbraceResource({Platform? platform}) {
+Attributes buildEmbraceResource({
+  required String serviceName,
+  required String serviceVersion,
+  Platform? platform,
+}) {
   final resolvedPlatform = platform ?? const LocalPlatform();
   final attributes = <String, Object>{
-    'service.name': 'embrace-flutter',
-    'service.version': packageVersion,
+    'service.name': serviceName,
+    'service.version': serviceVersion,
     'telemetry.sdk.name': 'embrace-flutter',
     'telemetry.sdk.version': packageVersion,
     'os.name': resolvedPlatform.operatingSystem,
