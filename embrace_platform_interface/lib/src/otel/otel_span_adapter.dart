@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 
-/// Adapts an [EmbraceSpan] to an OTel-compatible span interface.
+/// Adapts an [EmbraceSpanDelegate] to an OTel-compatible span interface.
 ///
-/// Since [EmbraceSpan.traceId] is asynchronous but OTel [SpanContext.traceId]
-/// must be synchronous, construction is asynchronous. Use the [create] factory
-/// to instantiate.
+/// Since [EmbraceSpanDelegate.traceId] is asynchronous but OTel
+/// [SpanContext.traceId] must be synchronous, construction is asynchronous.
+/// Use the [create] factory to instantiate.
 ///
 /// If the native trace ID is null or cannot be parsed as a valid 32-character
 /// hex string, [SpanContext.isValid] will be false (the trace ID bytes will be
@@ -15,7 +15,7 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 class OTelSpanAdapter {
   OTelSpanAdapter._({
     required String name,
-    required EmbraceSpan embraceSpan,
+    required EmbraceSpanDelegate embraceSpan,
     required SpanContext spanContext,
     required DateTime startTime,
   })  : _name = name,
@@ -24,7 +24,7 @@ class OTelSpanAdapter {
         _startTime = startTime;
 
   final String _name;
-  final EmbraceSpan _embraceSpan;
+  final EmbraceSpanDelegate _embraceSpan;
   final SpanContext _spanContext;
   final DateTime _startTime;
 
@@ -33,10 +33,11 @@ class OTelSpanAdapter {
   ErrorCode? _errorCode;
 
   /// Creates an [OTelSpanAdapter] by awaiting the native trace ID from
-  /// [EmbraceSpan.traceId] so that [SpanContext] can be built synchronously.
+  /// [EmbraceSpanDelegate.traceId] so that [SpanContext] can be built
+  /// synchronously.
   static Future<OTelSpanAdapter> create(
     String name,
-    EmbraceSpan embraceSpan,
+    EmbraceSpanDelegate embraceSpan,
   ) async {
     final rawTraceId = await embraceSpan.traceId;
     final spanContext = _buildSpanContext(embraceSpan.id, rawTraceId);
@@ -73,15 +74,15 @@ class OTelSpanAdapter {
   /// The end time of this span, or null if not yet ended.
   DateTime? get endTime => _endTime;
 
-  /// The underlying [EmbraceSpan].
-  EmbraceSpan get embraceSpan => _embraceSpan;
+  /// The underlying [EmbraceSpanDelegate].
+  EmbraceSpanDelegate get embraceSpan => _embraceSpan;
 
   /// Sets a string attribute on the span by delegating to
-  /// [EmbraceSpan.addAttribute].
+  /// [EmbraceSpanDelegate.addAttribute].
   Future<bool> setStringAttribute(String key, String value) =>
       _embraceSpan.addAttribute(key, value);
 
-  /// Adds an event to the span by delegating to [EmbraceSpan.addEvent].
+  /// Adds an event to the span by delegating to [EmbraceSpanDelegate.addEvent].
   Future<bool> addEmbraceEvent(
     String name, {
     int? timestampMs,
@@ -93,7 +94,7 @@ class OTelSpanAdapter {
         attributes: attributes,
       );
 
-  /// Ends this span by delegating to [EmbraceSpan.stop].
+  /// Ends this span by delegating to [EmbraceSpanDelegate.stop].
   ///
   /// After this call, [isRecording] returns false and [status] reflects
   /// the supplied [errorCode]. Returns false if already ended.

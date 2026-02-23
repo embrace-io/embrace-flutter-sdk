@@ -4,8 +4,71 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 
-export 'package:embrace_platform_interface/embrace_platform_interface.dart'
-    show EmbraceSpan, EmbraceSpanEvent;
+/// Represents a Span that can be started and stopped with the appropriate
+/// [ErrorCode] if applicable. This wraps the OpenTelemetry Span
+/// by adding an additional layer for local validation.
+abstract class EmbraceSpan extends EmbraceSpanDelegate {
+  /// Constructor
+  EmbraceSpan(this.id);
+
+  /// ID for this span
+  @override
+  final String id;
+
+  /// ID for the trace this span belongs to
+  @override
+  abstract final Future<String?> traceId;
+
+  /// Stop an active span. Returns true if the span is stopped after the method
+  /// returns and false otherwise.
+  @override
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs});
+
+  /// Add an [EmbraceSpanEvent] with the given [name]. If [timestampMs] is null,
+  /// the current time will be used. Optionally, the specific
+  /// time of the event and a set of attributes can be passed in associated with
+  /// the event. Returns false if the Event was definitely not
+  /// successfully added. Returns true if the validation at the Embrace level
+  /// has passed and the call to add the Event at the
+  /// OpenTelemetry level was successful.
+  @override
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  });
+
+  /// Add the given key-value pair as an Attribute to the Event. Returns false
+  /// if the Attribute was definitely not added. Returns true
+  /// if the validation at the Embrace Level has passed and the call to add the
+  /// Attribute at the OpenTelemetry level was successful.
+  @override
+  Future<bool> addAttribute(String key, String value);
+}
+
+/// Represents an Event in an [EmbraceSpan]
+class EmbraceSpanEvent {
+  /// Constructor
+  EmbraceSpanEvent({
+    required this.name,
+    required this.timestampMs,
+    required this.attributes,
+  });
+
+  /// The name of the event
+  final String name;
+
+  /// The timestamp of the event in milliseconds
+  final int timestampMs;
+
+  /// The attributes of this event
+  final Map<String, String> attributes;
+
+  /// Produces a map representation of this class
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'timestampMs': timestampMs, 'attributes': attributes};
+  }
+}
 
 /// Declares the functions that consist of Embrace's public API - specifically
 /// those that are only declared on Flutter. You should not use

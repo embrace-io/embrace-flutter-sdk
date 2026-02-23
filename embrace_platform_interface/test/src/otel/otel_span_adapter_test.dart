@@ -6,18 +6,18 @@ import 'package:mocktail/mocktail.dart';
 
 import 'otel_test_fixtures.dart';
 
-class MockEmbraceSpan extends Mock implements EmbraceSpan {
-  MockEmbraceSpan(this.id);
+class MockEmbraceSpanDelegate extends Mock implements EmbraceSpanDelegate {
+  MockEmbraceSpanDelegate(this.id);
 
   @override
   final String id;
 }
 
 void main() {
-  late MockEmbraceSpan mockSpan;
+  late MockEmbraceSpanDelegate mockSpan;
 
   setUp(() {
-    mockSpan = MockEmbraceSpan(kTestSpanId);
+    mockSpan = MockEmbraceSpanDelegate(kTestSpanId);
     when(() => mockSpan.traceId).thenAnswer((_) async => kTestTraceId);
     when(
       () => mockSpan.stop(
