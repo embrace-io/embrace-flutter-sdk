@@ -7,21 +7,18 @@ import 'package:embrace_platform_interface/last_run_end_state.dart';
 /// Represents a Span that can be started and stopped with the appropriate
 /// [ErrorCode] if applicable. This wraps the OpenTelemetry Span
 /// by adding an additional layer for local validation.
-abstract class EmbraceSpan extends EmbraceSpanDelegate {
+abstract class EmbraceSpan {
   /// Constructor
   EmbraceSpan(this.id);
 
   /// ID for this span
-  @override
   final String id;
 
   /// ID for the trace this span belongs to
-  @override
   abstract final Future<String?> traceId;
 
   /// Stop an active span. Returns true if the span is stopped after the method
   /// returns and false otherwise.
-  @override
   Future<bool> stop({ErrorCode? errorCode, int? endTimeMs});
 
   /// Add an [EmbraceSpanEvent] with the given [name]. If [timestampMs] is null,
@@ -31,7 +28,6 @@ abstract class EmbraceSpan extends EmbraceSpanDelegate {
   /// successfully added. Returns true if the validation at the Embrace level
   /// has passed and the call to add the Event at the
   /// OpenTelemetry level was successful.
-  @override
   Future<bool> addEvent(
     String name, {
     int? timestampMs,
@@ -42,7 +38,6 @@ abstract class EmbraceSpan extends EmbraceSpanDelegate {
   /// if the Attribute was definitely not added. Returns true
   /// if the validation at the Embrace Level has passed and the call to add the
   /// Attribute at the OpenTelemetry level was successful.
-  @override
   Future<bool> addAttribute(String key, String value);
 }
 
