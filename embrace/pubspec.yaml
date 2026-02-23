@@ -13,7 +13,7 @@ flutter:
       ios:
         default_package: embrace_ios
 dependencies:
-  dartastic_opentelemetry: ^0.8.7
+  dartastic_opentelemetry: ">=0.8.7 <0.10.0"
   embrace_android: ">=4.3.0 <4.4.0"
   embrace_ios: ">=4.3.0 <4.4.0"
   embrace_platform_interface: ">=4.3.0 <4.4.0"
@@ -21,7 +21,7 @@ dependencies:
     sdk: flutter
   http: ">=0.13.3 <2.0.0"
 dev_dependencies:
-  dartdoc: ^8.3.3
+  dartdoc: ">=8.3.3 <10.0.0"
   flutter_test:
     sdk: flutter
   mocktail: ">=0.3.0 <2.0.0"
