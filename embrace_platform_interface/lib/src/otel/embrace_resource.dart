@@ -10,7 +10,8 @@ import 'package:platform/platform.dart';
 ///
 /// The returned [Attributes] always include:
 /// - `service.name`: the host application name, supplied via [serviceName]
-/// - `service.version`: the host application version, supplied via [serviceVersion]
+/// - `service.version`: the host application version, supplied via
+///   [serviceVersion]
 /// - `telemetry.sdk.name`: `"embrace-flutter"`
 /// - `telemetry.sdk.version`: the current SDK version from [packageVersion]
 /// - `os.name`: raw OS identifier from [Platform.operatingSystem]
