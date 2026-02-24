@@ -9,9 +9,8 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 /// [SpanContext.traceId] must be synchronous, construction is asynchronous.
 /// Use the [create] factory to instantiate.
 ///
-/// If the native trace ID is null or cannot be parsed as a valid 32-character
-/// hex string, [SpanContext.isValid] will be false (the trace ID bytes will be
-/// all zeros).
+/// If the native trace ID cannot be parsed as a valid 32-character hex string,
+/// [SpanContext.isValid] will be false (the trace ID bytes will be all zeros).
 class OTelSpanAdapter {
   OTelSpanAdapter._({
     required String name,
@@ -112,10 +111,9 @@ class OTelSpanAdapter {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  static SpanContext _buildSpanContext(String spanId, String? traceId) {
+  static SpanContext _buildSpanContext(String spanId, String traceId) {
     final spanIdBytes = _tryParseHex(spanId, SpanId.spanIdLength);
-    final traceIdBytes =
-        traceId != null ? _tryParseHex(traceId, TraceId.traceIdLength) : null;
+    final traceIdBytes = _tryParseHex(traceId, TraceId.traceIdLength);
 
     return SpanContextCreate.create(
       spanId: SpanIdCreate.create(

@@ -58,8 +58,8 @@ void main() {
       expect(adapter.spanContext.isValid, isTrue);
     });
 
-    test('spanContext is invalid when traceId is null', () async {
-      when(() => mockSpan.traceId).thenAnswer((_) async => null);
+    test('spanContext is invalid when traceId is all zeros', () async {
+      when(() => mockSpan.traceId).thenAnswer((_) async => kInvalidTraceId);
       final adapter = await OTelSpanAdapter.create(kTestSpanName, mockSpan);
       expect(adapter.spanContext.isValid, isFalse);
     });

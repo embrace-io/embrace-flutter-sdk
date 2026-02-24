@@ -14,8 +14,11 @@ abstract class EmbraceSpan {
   /// ID for this span
   final String id;
 
-  /// ID for the trace this span belongs to
-  abstract final Future<String?> traceId;
+  /// ID for the trace this span belongs to.
+  ///
+  /// Returns the all-zeros string if the trace ID is unavailable or invalid,
+  /// consistent with the OTel convention for an invalid trace ID.
+  abstract final Future<String> traceId;
 
   /// Stop an active span. Returns true if the span is stopped after the method
   /// returns and false otherwise.
