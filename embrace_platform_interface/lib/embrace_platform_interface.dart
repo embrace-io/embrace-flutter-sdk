@@ -26,6 +26,36 @@ enum ErrorCode {
   unknown
 }
 
+/// A minimal interface for a span that the OTel span adapter can wrap.
+///
+/// This exists so that OTel adapter code in this package can hold a reference
+/// to a span without depending on `EmbraceSpan`, which is defined in the
+/// higher-level `embrace` package.
+abstract class EmbraceSpanDelegate {
+  /// ID for this span.
+  String get id;
+
+  /// ID for the trace this span belongs to.
+  ///
+  /// Returns the all-zeros string if the trace ID is unavailable or invalid,
+  /// consistent with the OTel convention for an invalid trace ID.
+  Future<String> get traceId;
+
+  /// Stop an active span. Returns true if the span is stopped after the method
+  /// returns and false otherwise.
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs});
+
+  /// Add a span event with the given [name].
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  });
+
+  /// Add the given key-value pair as an attribute to the span.
+  Future<bool> addAttribute(String key, String value);
+}
+
 /// The interface that implementations of embrace must implement.
 ///
 /// Platform implementations should extend this class
