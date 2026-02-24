@@ -7,20 +7,17 @@ import 'otel_test_fixtures.dart';
 void main() {
   group('OtelIdUtils.buildSpanContext', () {
     test('returns valid SpanContext for well-formed IDs', () {
-      final context =
-          OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
+      final context = OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
       expect(context.isValid, isTrue);
     });
 
     test('spanId hex matches input', () {
-      final context =
-          OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
+      final context = OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
       expect(context.spanId.hexString, kTestSpanId);
     });
 
     test('traceId hex matches input', () {
-      final context =
-          OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
+      final context = OtelIdUtils.buildSpanContext(kTestSpanId, kTestTraceId);
       expect(context.traceId.hexString, kTestTraceId);
     });
 
@@ -31,8 +28,7 @@ void main() {
     });
 
     test('returns invalid SpanContext when traceId is wrong length', () {
-      final context =
-          OtelIdUtils.buildSpanContext(kTestSpanId, 'tooshort');
+      final context = OtelIdUtils.buildSpanContext(kTestSpanId, 'tooshort');
       expect(context.isValid, isFalse);
     });
 
@@ -46,8 +42,7 @@ void main() {
     });
 
     test('returns invalid SpanContext when spanId is wrong length', () {
-      final context =
-          OtelIdUtils.buildSpanContext('tooshort', kTestTraceId);
+      final context = OtelIdUtils.buildSpanContext('tooshort', kTestTraceId);
       expect(context.isValid, isFalse);
     });
 
@@ -70,9 +65,8 @@ void main() {
       final result =
           OtelIdUtils.tryParseHex(kTestTraceId, TraceId.traceIdLength);
       expect(result, isNotNull);
-      final hex = result!
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
+      final hex =
+          result!.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
       expect(hex, kTestTraceId);
     });
 
