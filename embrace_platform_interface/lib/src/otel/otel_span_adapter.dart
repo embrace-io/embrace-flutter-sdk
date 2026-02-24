@@ -38,7 +38,8 @@ class OTelSpanAdapter {
     EmbraceSpanDelegate embraceSpan,
   ) async {
     final rawTraceId = await embraceSpan.traceId;
-    final spanContext = OtelIdUtils.buildSpanContext(embraceSpan.id, rawTraceId);
+    final spanContext =
+        OtelIdUtils.buildSpanContext(embraceSpan.id, rawTraceId);
     return OTelSpanAdapter._(
       name: name,
       embraceSpan: embraceSpan,
