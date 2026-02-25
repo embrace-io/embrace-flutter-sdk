@@ -1,5 +1,6 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:embrace_platform_interface/src/otel/error_code_mapping.dart';
 import 'package:embrace_platform_interface/src/otel/otel_id_utils.dart';
 
 /// Adapts an [EmbraceSpanDelegate] to an OTel-compatible span interface.
@@ -64,7 +65,7 @@ class OTelSpanAdapter {
   /// Returns [SpanStatusCode.Error] after [end] with any [ErrorCode].
   SpanStatusCode get status {
     if (!_isEnded) return SpanStatusCode.Unset;
-    return _spanStatusFromErrorCode(_errorCode);
+    return ErrorCodeMapping.toSpanStatus(_errorCode);
   }
 
   /// The start time of this span.
@@ -105,10 +106,5 @@ class OTelSpanAdapter {
         ? DateTime.fromMillisecondsSinceEpoch(endTimeMs)
         : DateTime.now();
     return _embraceSpan.stop(errorCode: errorCode, endTimeMs: endTimeMs);
-  }
-
-  static SpanStatusCode _spanStatusFromErrorCode(ErrorCode? errorCode) {
-    if (errorCode == null) return SpanStatusCode.Ok;
-    return SpanStatusCode.Error;
   }
 }
