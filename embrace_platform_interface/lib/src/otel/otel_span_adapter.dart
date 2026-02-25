@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:embrace_platform_interface/src/otel/otel_id_utils.dart';
 
 /// Adapts an [EmbraceSpanDelegate] to an OTel-compatible span interface.
 ///
@@ -39,7 +38,8 @@ class OTelSpanAdapter {
     EmbraceSpanDelegate embraceSpan,
   ) async {
     final rawTraceId = await embraceSpan.traceId;
-    final spanContext = _buildSpanContext(embraceSpan.id, rawTraceId);
+    final spanContext =
+        OtelIdUtils.buildSpanContext(embraceSpan.id, rawTraceId);
     return OTelSpanAdapter._(
       name: name,
       embraceSpan: embraceSpan,
@@ -105,43 +105,6 @@ class OTelSpanAdapter {
         ? DateTime.fromMillisecondsSinceEpoch(endTimeMs)
         : DateTime.now();
     return _embraceSpan.stop(errorCode: errorCode, endTimeMs: endTimeMs);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
-  static SpanContext _buildSpanContext(String spanId, String traceId) {
-    final spanIdBytes = _tryParseHex(spanId, SpanId.spanIdLength);
-    final traceIdBytes = _tryParseHex(traceId, TraceId.traceIdLength);
-
-    return SpanContextCreate.create(
-      spanId: SpanIdCreate.create(
-        spanIdBytes ?? Uint8List(SpanId.spanIdLength),
-      ),
-      traceId: TraceIdCreate.create(
-        traceIdBytes ?? Uint8List(TraceId.traceIdLength),
-      ),
-      parentSpanId: SpanId.invalidSpanId,
-      traceFlags: TraceFlags.sampled,
-    );
-  }
-
-  /// Parses [hex] into a [Uint8List] of [expectedBytes] length.
-  ///
-  /// Returns null if [hex] is not exactly `expectedBytes * 2` hex characters
-  /// or if any byte pair cannot be parsed.
-  static Uint8List? _tryParseHex(String hex, int expectedBytes) {
-    if (hex.length != expectedBytes * 2) return null;
-    try {
-      final bytes = Uint8List(expectedBytes);
-      for (var i = 0; i < expectedBytes; i++) {
-        bytes[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
-      }
-      return bytes;
-    } catch (_) {
-      return null;
-    }
   }
 
   static SpanStatusCode _spanStatusFromErrorCode(ErrorCode? errorCode) {
