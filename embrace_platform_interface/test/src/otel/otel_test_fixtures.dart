@@ -11,3 +11,31 @@ const String kInvalidTraceId = '00000000000000000000000000000000';
 
 /// Span name used across OTel adapter tests.
 const String kTestSpanName = 'test-span';
+
+/// Start timestamp in milliseconds since epoch (2024-01-01 00:00:00 UTC).
+const int kTestStartTimeMs = 1704067200000;
+
+/// End timestamp in milliseconds since epoch (2024-01-01 00:01:00 UTC).
+const int kTestEndTimeMs = 1704067260000;
+
+/// A sample attribute map for use in tests.
+const Map<String, String> kTestAttributes = {'key': 'value', 'env': 'test'};
+
+/// A raw event list matching the shape used by `recordCompletedSpan`.
+///
+/// Each entry may have:
+/// - `'name'` ([String]) — required
+/// - `'timestampMs'` ([int]?) — optional
+/// - `'attributes'` ([Map<String, String>]?) — optional
+const List<Map<String, dynamic>> kTestRawEvents = [
+  {
+    'name': 'event-one',
+    'timestampMs': 1704067210000,
+    'attributes': {'ek': 'ev'},
+  },
+  {
+    'name': 'event-two',
+    'timestampMs': null,
+    'attributes': null,
+  },
+];
