@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ErrorCodeMapping.toSpanStatus', () {
-    test('null maps to Ok', () {
-      expect(ErrorCodeMapping.toSpanStatus(null), SpanStatusCode.Ok);
+    test('null maps to Unset', () {
+      expect(ErrorCodeMapping.toSpanStatus(null), SpanStatusCode.Unset);
     });
 
     test('failure maps to Error', () {

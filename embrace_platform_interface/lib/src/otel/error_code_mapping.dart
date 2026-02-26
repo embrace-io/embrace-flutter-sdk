@@ -4,7 +4,7 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 /// Bidirectional mapping between [ErrorCode] and OTel [SpanStatusCode].
 ///
 /// Forward mapping ([toSpanStatus]):
-/// - `null` → [SpanStatusCode.Ok]
+/// - `null` → [SpanStatusCode.Unset]
 /// - [ErrorCode.failure] → [SpanStatusCode.Error]
 /// - [ErrorCode.abandon] → [SpanStatusCode.Error]
 /// - [ErrorCode.unknown] → [SpanStatusCode.Error]
@@ -17,10 +17,12 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 abstract final class ErrorCodeMapping {
   /// Maps an [ErrorCode] to an OTel [SpanStatusCode].
   ///
-  /// A `null` [errorCode] (no error) maps to [SpanStatusCode.Ok].
+  /// A `null` [errorCode] (no error) maps to [SpanStatusCode.Unset], per the
+  /// OTel spec which reserves [SpanStatusCode.Ok] for spans that are
+  /// explicitly marked successful.
   /// Any non-null [ErrorCode] maps to [SpanStatusCode.Error].
   static SpanStatusCode toSpanStatus(ErrorCode? errorCode) {
-    if (errorCode == null) return SpanStatusCode.Ok;
+    if (errorCode == null) return SpanStatusCode.Unset;
     return SpanStatusCode.Error;
   }
 
