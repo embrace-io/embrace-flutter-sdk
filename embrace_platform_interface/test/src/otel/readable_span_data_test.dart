@@ -90,12 +90,12 @@ void main() {
       expect(data.endTime, adapter.endTime);
     });
 
-    test('status is Ok when ended with no errorCode', () async {
+    test('status is Unset when ended with no errorCode', () async {
       final adapter = await OTelSpanAdapter.create(kTestSpanName, mockSpan);
       await adapter.end();
       final data =
           ReadableSpanData.fromAdapter(adapter, resource: testResource);
-      expect(data.status, SpanStatusCode.Ok);
+      expect(data.status, SpanStatusCode.Unset);
     });
 
     test('status is Error when ended with ErrorCode.failure', () async {
@@ -230,7 +230,7 @@ void main() {
       );
     });
 
-    test('status is Ok when errorCode is null', () {
+    test('status is Unset when errorCode is null', () {
       final data = ReadableSpanData.fromRaw(
         name: kTestSpanName,
         spanId: kTestSpanId,
@@ -239,7 +239,7 @@ void main() {
         endTimeMs: kTestEndTimeMs,
         resource: testResource,
       );
-      expect(data.status, SpanStatusCode.Ok);
+      expect(data.status, SpanStatusCode.Unset);
     });
 
     test('status is Error when errorCode is ErrorCode.failure', () {
