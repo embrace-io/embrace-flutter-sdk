@@ -138,10 +138,10 @@ void main() {
   });
 
   group('status mapping', () {
-    test('status is Ok after end with no errorCode', () async {
+    test('status is Unset after end with no errorCode', () async {
       final adapter = await OTelSpanAdapter.create(kTestSpanName, mockSpan);
       await adapter.end();
-      expect(adapter.status, SpanStatusCode.Ok);
+      expect(adapter.status, SpanStatusCode.Unset);
     });
 
     test('status is Error after end with ErrorCode.failure', () async {
