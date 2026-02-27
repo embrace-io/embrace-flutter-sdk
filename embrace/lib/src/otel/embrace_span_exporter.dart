@@ -1,5 +1,4 @@
-// ignore: implementation_imports
-import 'package:embrace_platform_interface/src/otel/readable_span_data.dart';
+import 'package:embrace_platform_interface/otel.dart';
 
 /// Abstract exporter for Embrace-specific span data.
 ///

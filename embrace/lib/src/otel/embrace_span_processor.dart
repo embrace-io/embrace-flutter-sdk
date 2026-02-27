@@ -3,10 +3,7 @@ import 'dart:collection';
 
 import 'package:embrace/src/otel/embrace_span_exporter.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
-// ignore: implementation_imports
-import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
-// ignore: implementation_imports
-import 'package:embrace_platform_interface/src/otel/readable_span_data.dart';
+import 'package:embrace_platform_interface/otel.dart';
 
 /// A batching span processor for the Embrace OTel export pipeline.
 ///
