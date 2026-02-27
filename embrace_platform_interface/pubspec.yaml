@@ -8,7 +8,7 @@ environment:
 dependencies:
   build_runner: ^2.0.0
   build_version: ^2.0.0
-  dartastic_opentelemetry_api: ">=0.8.7 <0.10.0"
+  dartastic_opentelemetry_api: ">=0.8.8 <0.10.0"
   flutter:
     sdk: flutter
   platform: ^3.1.0
