@@ -2,6 +2,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/src/otel/embrace_span_exporter.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
+import 'package:embrace/src/otel/export_result.dart';
 // ignore: implementation_imports
 import 'package:embrace_platform_interface/src/otel/readable_span_data.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,8 +39,9 @@ EmbraceSpanProcessor _processorWithExporter(
 
 /// Sets up a [MockEmbraceSpanExporter] to stub all three interface methods.
 void _stubExporter(MockEmbraceSpanExporter exporter) {
-  when(() => exporter.export(any())).thenAnswer((_) async {});
-  when(exporter.forceFlush).thenAnswer((_) async {});
+  when(() => exporter.export(any()))
+      .thenAnswer((_) async => ExportResult.success);
+  when(exporter.forceFlush).thenAnswer((_) async => ExportResult.success);
   when(exporter.shutdown).thenAnswer((_) async {});
 }
 
@@ -140,7 +142,8 @@ void main() {
       await processor.shutdown();
 
       reset(mockExporter);
-      when(() => mockExporter.export(any())).thenAnswer((_) async {});
+      when(() => mockExporter.export(any()))
+          .thenAnswer((_) async => ExportResult.success);
 
       await processor.forceFlush();
       verifyNever(() => mockExporter.export(any()));
@@ -166,6 +169,50 @@ void main() {
           verify(() => mockExporter.export(captureAny())).captured;
       final batch = firstCall.first as List<ReadableSpanData>;
       expect(batch.length, maxBatchSize);
+
+      await processor.shutdown();
+    });
+
+    test('all exporters receive the same batch', () async {
+      final exporter2 = MockEmbraceSpanExporter()..let(_stubExporter);
+
+      final processor = EmbraceSpanProcessor(
+        exporters: [mockExporter, exporter2],
+        config: const EmbraceSpanProcessorConfig(
+          scheduleDelay: Duration(hours: 24),
+        ),
+      );
+
+      await processor.onEnd(_makeSpan('span-1'));
+      await processor.forceFlush();
+
+      verify(() => mockExporter.export(any())).called(1);
+      verify(() => exporter2.export(any())).called(1);
+
+      await processor.shutdown();
+    });
+
+    test('continues to next exporter if one throws during export', () async {
+      final throwingExporter = MockEmbraceSpanExporter();
+      final secondExporter = MockEmbraceSpanExporter()..let(_stubExporter);
+
+      when(() => throwingExporter.export(any()))
+          .thenThrow(Exception('export failed'));
+      when(throwingExporter.forceFlush)
+          .thenAnswer((_) async => ExportResult.success);
+      when(throwingExporter.shutdown).thenAnswer((_) async {});
+
+      final processor = EmbraceSpanProcessor(
+        exporters: [throwingExporter, secondExporter],
+        config: const EmbraceSpanProcessorConfig(
+          scheduleDelay: Duration(hours: 24),
+        ),
+      );
+
+      await processor.onEnd(_makeSpan('span-1'));
+      await processor.forceFlush();
+
+      verify(() => secondExporter.export(any())).called(1);
 
       await processor.shutdown();
     });
@@ -212,57 +259,6 @@ void main() {
     });
   });
 
-  group('EmbraceSpanProcessor.addExporter', () {
-    test('added exporter receives subsequent flushes', () async {
-      final processor = EmbraceSpanProcessor(
-        config: const EmbraceSpanProcessorConfig(
-          scheduleDelay: Duration(hours: 24),
-        ),
-      )..addExporter(mockExporter);
-
-      await processor.onEnd(_makeSpan('span-1'));
-      await processor.forceFlush();
-
-      verify(() => mockExporter.export(any())).called(1);
-
-      await processor.shutdown();
-    });
-
-    test('multiple exporters all receive the same batch', () async {
-      final exporter2 = MockEmbraceSpanExporter()..let(_stubExporter);
-
-      final processor = _processorWithExporter(mockExporter)
-        ..addExporter(exporter2);
-
-      await processor.onEnd(_makeSpan('span-1'));
-      await processor.forceFlush();
-
-      verify(() => mockExporter.export(any())).called(1);
-      verify(() => exporter2.export(any())).called(1);
-
-      await processor.shutdown();
-    });
-
-    test('is a no-op after shutdown', () async {
-      final lateExporter = MockEmbraceSpanExporter();
-      when(() => lateExporter.export(any())).thenAnswer((_) async {});
-      when(lateExporter.shutdown).thenAnswer((_) async {});
-
-      final processor = EmbraceSpanProcessor(
-        config: const EmbraceSpanProcessorConfig(
-          scheduleDelay: Duration(hours: 24),
-        ),
-      );
-      await processor.shutdown();
-
-      processor.addExporter(lateExporter);
-      await processor.onEnd(_makeSpan('span-after-shutdown'));
-
-      verifyNever(() => lateExporter.export(any()));
-      verifyNever(lateExporter.shutdown);
-    });
-  });
-
   group('EmbraceSpanProcessor.onStart', () {
     test('is a no-op and does not interact with exporters', () async {
       final processor = _processorWithExporter(mockExporter);
@@ -283,6 +279,7 @@ void main() {
       expect(config.maxQueueSize, 2048);
       expect(config.maxBatchSize, 512);
       expect(config.scheduleDelay, const Duration(seconds: 5));
+      expect(config.exportTimeout, const Duration(seconds: 30));
     });
 
     test('accepts custom values', () {
@@ -290,10 +287,12 @@ void main() {
         maxQueueSize: 100,
         maxBatchSize: 10,
         scheduleDelay: Duration(seconds: 1),
+        exportTimeout: Duration(seconds: 10),
       );
       expect(config.maxQueueSize, 100);
       expect(config.maxBatchSize, 10);
       expect(config.scheduleDelay, const Duration(seconds: 1));
+      expect(config.exportTimeout, const Duration(seconds: 10));
     });
   });
 }
