@@ -26,8 +26,7 @@ import 'package:embrace_platform_interface/otel.dart';
 class EmbraceSpanProcessor {
   /// Creates a new [EmbraceSpanProcessor].
   ///
-  /// [exporters] — initial list of [EmbraceSpanExporter]s to register.
-  /// Additional exporters can be added later via [addExporter].
+  /// [exporters] — list of [EmbraceSpanExporter]s to register.
   ///
   /// [config] — batch processing configuration. Defaults to
   /// [EmbraceSpanProcessorConfig] with its default values.
@@ -46,14 +45,6 @@ class EmbraceSpanProcessor {
   final Queue<ReadableSpanData> _queue = Queue<ReadableSpanData>();
   bool _isShutdown = false;
   Timer? _timer;
-
-  /// Registers an additional [EmbraceSpanExporter].
-  ///
-  /// No-op if [shutdown] has already been called.
-  void addExporter(EmbraceSpanExporter exporter) {
-    if (_isShutdown) return;
-    _exporters.add(exporter);
-  }
 
   /// Called when a span starts.
   ///
@@ -76,22 +67,23 @@ class EmbraceSpanProcessor {
   ///
   /// Called automatically on the configured
   /// [EmbraceSpanProcessorConfig.scheduleDelay]. May also be called manually
-  /// when an immediate flush is needed. No-op after [shutdown].
+  /// when an immediate flush is needed. Times out after
+  /// [EmbraceSpanProcessorConfig.exportTimeout]. No-op after [shutdown].
   Future<void> forceFlush() async {
     if (_isShutdown) return;
-    await _exportBatch();
+    await _exportBatch().timeout(_config.exportTimeout, onTimeout: () {});
   }
 
   /// Flushes remaining spans, shuts down all exporters, and cancels the timer.
   ///
-  /// After calling [shutdown], [onEnd] and [addExporter] are no-ops and no
-  /// further spans will be exported.
+  /// After calling [shutdown], [onEnd] is a no-op and no further spans will
+  /// be exported.
   Future<void> shutdown() async {
     if (_isShutdown) return;
     _isShutdown = true;
     _timer?.cancel();
     _timer = null;
-    await _exportBatch();
+    await _exportBatch().timeout(_config.exportTimeout, onTimeout: () {});
     for (final exporter in _exporters) {
       await exporter.shutdown();
     }
@@ -104,7 +96,11 @@ class EmbraceSpanProcessor {
       batch.add(_queue.removeFirst());
     }
     for (final exporter in _exporters) {
-      await exporter.export(batch);
+      try {
+        await exporter.export(batch);
+      } catch (_) {
+        // Continue to the next exporter even if one fails.
+      }
     }
   }
 }
