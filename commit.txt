@@ -1,0 +1,10 @@
+Address PR review comments on ReadableSpanData
+
+- Document that ReadableSpanData always represents a completed span
+  (endTime is non-null by construction)
+- Remove internal ticket reference from resource param doc
+- Fix stale doc: null ErrorCode maps to SpanStatusCode.Unset, not Ok
+- Replace DateTime.now() fallback with span endTime for events missing
+  a timestamp — more appropriate for historical/completed spans
+- Clarify millisecond resolution in startTimeMs/endTimeMs docs
+- Update test: null timestampMs now asserts endTime, not DateTime.now()
