@@ -7,9 +7,11 @@ import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
 
 /// Immutable snapshot of a completed span's data, suitable for export.
 ///
+/// [ReadableSpanData] always represents a *completed* span: [endTime] is
+/// always set (non-null by construction).
+///
 /// Two construction paths are supported:
 /// - [ReadableSpanData.fromAdapter] — snapshots a just-ended [OTelSpanAdapter].
-///   Attributes and events are empty because the native SDK owns them.
 /// - [ReadableSpanData.fromRaw] — builds from raw primitive parameters, used
 ///   when replaying historical spans via `recordCompletedSpan`.
 class ReadableSpanData {
@@ -30,8 +32,8 @@ class ReadableSpanData {
   /// must be non-null. Throws an [ArgumentError] if the adapter has not been
   /// ended yet.
   ///
-  /// [resource] should be the result of `buildEmbraceResource(...)` (Ticket
-  /// 1.4). Because the native SDK owns attribute and event state, [attributes]
+  /// [resource] should be the result of `buildEmbraceResource(...)`.
+  /// Because the native SDK owns attribute and event state, [attributes]
   /// and [events] on the resulting [ReadableSpanData] will always be empty.
   factory ReadableSpanData.fromAdapter(
     OTelSpanAdapter adapter, {
@@ -66,14 +68,16 @@ class ReadableSpanData {
   /// characters respectively). Malformed values produce an invalid
   /// [spanContext] ([SpanContext.isValid] == false).
   ///
-  /// [startTimeMs] and [endTimeMs] are milliseconds since epoch.
+  /// [startTimeMs] and [endTimeMs] are milliseconds since the Unix epoch;
+  /// nanosecond precision is not available in Dart's [DateTime].
   ///
   /// [errorCode] is converted to [SpanStatusCode] via [ErrorCodeMapping]:
-  /// `null` → [SpanStatusCode.Ok], any non-null value → [SpanStatusCode.Error].
+  /// `null` → [SpanStatusCode.Unset], any non-null value →
+  /// [SpanStatusCode.Error].
   ///
   /// [events] is a list of raw event maps, each with the keys:
   /// - `'name'` ([String]) — required
-  /// - `'timestampMs'` ([int]?) — optional; defaults to [DateTime.now]
+  /// - `'timestampMs'` ([int]?) — optional; defaults to [endTimeMs] when absent
   /// - `'attributes'` ([Map<String, String>]?) — optional
   factory ReadableSpanData.fromRaw({
     required String name,
@@ -86,14 +90,15 @@ class ReadableSpanData {
     List<Map<String, dynamic>>? events,
     required Attributes resource,
   }) {
+    final endTime = DateTime.fromMillisecondsSinceEpoch(endTimeMs);
     return ReadableSpanData._(
       name: name,
       spanContext: OtelIdUtils.buildSpanContext(spanId, traceId),
       startTime: DateTime.fromMillisecondsSinceEpoch(startTimeMs),
-      endTime: DateTime.fromMillisecondsSinceEpoch(endTimeMs),
+      endTime: endTime,
       status: ErrorCodeMapping.toSpanStatus(errorCode),
       attributes: attributesFromMap(attributes),
-      events: _convertRawEvents(events),
+      events: _convertRawEvents(events, endTime),
       resource: resource,
     );
   }
@@ -108,6 +113,8 @@ class ReadableSpanData {
   final DateTime startTime;
 
   /// The time at which this span ended.
+  ///
+  /// Always non-null: [ReadableSpanData] only represents completed spans.
   final DateTime endTime;
 
   /// The OTel status of this span.
@@ -132,16 +139,18 @@ class ReadableSpanData {
   /// Callers should supply the result of `buildEmbraceResource(...)`.
   final Attributes resource;
 
-  static List<SpanEvent> _convertRawEvents(List<Map<String, dynamic>>? raw) {
+  static List<SpanEvent> _convertRawEvents(
+    List<Map<String, dynamic>>? raw,
+    DateTime endTime,
+  ) {
     if (raw == null || raw.isEmpty) return const [];
     return List.unmodifiable(
       raw.map((e) {
         final eventName = e['name'] as String;
         final tsMs = e['timestampMs'] as int?;
         final eventAttrs = e['attributes'] as Map<String, String>?;
-        final timestamp = tsMs != null
-            ? DateTime.fromMillisecondsSinceEpoch(tsMs)
-            : DateTime.now();
+        final timestamp =
+            tsMs != null ? DateTime.fromMillisecondsSinceEpoch(tsMs) : endTime;
         return SpanEventCreate.create(
           name: eventName,
           timestamp: timestamp,

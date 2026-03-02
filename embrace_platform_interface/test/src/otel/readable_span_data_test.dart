@@ -404,8 +404,7 @@ void main() {
       );
     });
 
-    test('event with null timestampMs gets a non-null timestamp', () {
-      final before = DateTime.now();
+    test('event with null timestampMs uses span endTime', () {
       final data = ReadableSpanData.fromRaw(
         name: kTestSpanName,
         spanId: kTestSpanId,
@@ -415,15 +414,9 @@ void main() {
         events: kTestRawEvents,
         resource: testResource,
       );
-      final after = DateTime.now();
-      final eventTimestamp = data.events.last.timestamp;
       expect(
-        eventTimestamp.isAfter(before) || eventTimestamp == before,
-        isTrue,
-      );
-      expect(
-        eventTimestamp.isBefore(after) || eventTimestamp == after,
-        isTrue,
+        data.events.last.timestamp,
+        DateTime.fromMillisecondsSinceEpoch(kTestEndTimeMs),
       );
     });
 
