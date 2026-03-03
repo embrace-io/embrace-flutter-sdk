@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/src/otel/embrace_span_exporter.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
 import 'package:embrace/src/otel/export_result.dart';
@@ -31,10 +32,15 @@ class EmbraceSpanProcessor {
   ///
   /// [config] — batch processing configuration. Defaults to
   /// [EmbraceSpanProcessorConfig] with its default values.
+  ///
+  /// [resource] — OTel resource attributes describing the host application.
+  /// Used when constructing [ReadableSpanData] for completed native spans.
   EmbraceSpanProcessor({
     List<EmbraceSpanExporter>? exporters,
     EmbraceSpanProcessorConfig config = const EmbraceSpanProcessorConfig(),
-  }) : _config = config {
+    Attributes? resource,
+  })  : _config = config,
+        _resource = resource {
     if (exporters != null) {
       _exporters.addAll(exporters);
     }
@@ -42,10 +48,14 @@ class EmbraceSpanProcessor {
   }
 
   final EmbraceSpanProcessorConfig _config;
+  final Attributes? _resource;
   final List<EmbraceSpanExporter> _exporters = [];
   final Queue<ReadableSpanData> _queue = Queue<ReadableSpanData>();
   bool _isShutdown = false;
   Timer? _timer;
+
+  /// The OTel resource attributes for this processor, or null if not set.
+  Attributes? get resource => _resource;
 
   /// Called when a span starts.
   ///
