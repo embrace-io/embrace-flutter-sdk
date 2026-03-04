@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:embrace/src/otel/embrace_span_exporter.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
+import 'package:embrace/src/otel/export_result.dart';
 import 'package:embrace_platform_interface/otel.dart';
 
 /// A batching span processor for the Embrace OTel export pipeline.
@@ -69,9 +70,16 @@ class EmbraceSpanProcessor {
   /// [EmbraceSpanProcessorConfig.scheduleDelay]. May also be called manually
   /// when an immediate flush is needed. Times out after
   /// [EmbraceSpanProcessorConfig.exportTimeout]. No-op after [shutdown].
-  Future<void> forceFlush() async {
-    if (_isShutdown) return;
-    await _exportBatch().timeout(_config.exportTimeout, onTimeout: () {});
+  ///
+  /// Returns [ExportResult.success] if all exporters succeeded,
+  /// [ExportResult.failure] if any exporter failed, threw, or the operation
+  /// timed out.
+  Future<ExportResult> forceFlush() async {
+    if (_isShutdown) return ExportResult.success;
+    return _exportBatch().timeout(
+      _config.exportTimeout,
+      onTimeout: () => ExportResult.failure,
+    );
   }
 
   /// Flushes remaining spans, shuts down all exporters, and cancels the timer.
@@ -83,24 +91,33 @@ class EmbraceSpanProcessor {
     _isShutdown = true;
     _timer?.cancel();
     _timer = null;
-    await _exportBatch().timeout(_config.exportTimeout, onTimeout: () {});
+    await _exportBatch().timeout(
+      _config.exportTimeout,
+      onTimeout: () => ExportResult.failure,
+    );
     for (final exporter in _exporters) {
       await exporter.shutdown();
     }
   }
 
-  Future<void> _exportBatch() async {
-    if (_queue.isEmpty || _exporters.isEmpty) return;
+  Future<ExportResult> _exportBatch() async {
+    if (_queue.isEmpty || _exporters.isEmpty) return ExportResult.success;
     final batch = <ReadableSpanData>[];
     while (batch.length < _config.maxBatchSize && _queue.isNotEmpty) {
       batch.add(_queue.removeFirst());
     }
+    var result = ExportResult.success;
     for (final exporter in _exporters) {
       try {
-        await exporter.export(batch);
+        final exportResult = await exporter.export(batch);
+        if (exportResult == ExportResult.failure) {
+          result = ExportResult.failure;
+        }
       } catch (_) {
-        // Continue to the next exporter even if one fails.
+        // Continue to the next exporter even if one fails or throws.
+        result = ExportResult.failure;
       }
     }
+    return result;
   }
 }

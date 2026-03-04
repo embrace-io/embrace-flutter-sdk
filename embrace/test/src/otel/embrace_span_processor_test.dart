@@ -210,9 +210,48 @@ void main() {
       );
 
       await processor.onEnd(_makeSpan('span-1'));
-      await processor.forceFlush();
+      final result = await processor.forceFlush();
 
+      expect(result, ExportResult.failure);
       verify(() => secondExporter.export(any())).called(1);
+
+      await processor.shutdown();
+    });
+
+    test('returns failure when an exporter returns failure', () async {
+      final failingExporter = MockEmbraceSpanExporter();
+      final secondExporter = MockEmbraceSpanExporter()..let(_stubExporter);
+
+      when(() => failingExporter.export(any()))
+          .thenAnswer((_) async => ExportResult.failure);
+      when(failingExporter.forceFlush)
+          .thenAnswer((_) async => ExportResult.success);
+      when(failingExporter.shutdown).thenAnswer((_) async {});
+
+      final processor = EmbraceSpanProcessor(
+        exporters: [failingExporter, secondExporter],
+        config: const EmbraceSpanProcessorConfig(
+          scheduleDelay: Duration(hours: 24),
+        ),
+      );
+
+      await processor.onEnd(_makeSpan('span-1'));
+      final result = await processor.forceFlush();
+
+      expect(result, ExportResult.failure);
+      // Both exporters are still called even when the first returns failure.
+      verify(() => failingExporter.export(any())).called(1);
+      verify(() => secondExporter.export(any())).called(1);
+
+      await processor.shutdown();
+    });
+
+    test('returns success when all exporters succeed', () async {
+      final processor = _processorWithExporter(mockExporter);
+      await processor.onEnd(_makeSpan('span-1'));
+      final result = await processor.forceFlush();
+
+      expect(result, ExportResult.success);
 
       await processor.shutdown();
     });
