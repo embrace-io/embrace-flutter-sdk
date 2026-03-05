@@ -93,6 +93,8 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
       'This parameter is obsolete and will be removed in a future release.',
     )
     bool enableIntegrationTesting = false,
+    String serviceName = '',
+    String serviceVersion = '',
   });
 
   /// Installs global error handlers and runs [action] in a guarded zone to
