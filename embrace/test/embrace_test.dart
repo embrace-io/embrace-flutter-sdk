@@ -205,8 +205,7 @@ void main() {
 
       test(
           'span processor resource uses provided serviceName and '
-              'serviceVersion',
-          () async {
+          'serviceVersion', () async {
         await Embrace.instance.start(
           serviceName: 'com.example.test',
           serviceVersion: '1.0.0',
