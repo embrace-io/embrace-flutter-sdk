@@ -7,7 +7,6 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/widgets.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
 export 'src/http_client.dart';
@@ -87,6 +86,8 @@ class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
       'This parameter is obsolete and will be removed in a future release.',
     )
     bool enableIntegrationTesting = false,
+    String serviceName = '',
+    String serviceVersion = '',
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -96,10 +97,9 @@ class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
 
     WidgetsBinding.instance.addObserver(this);
 
-    final packageInfo = await PackageInfo.fromPlatform();
     final resource = buildEmbraceResource(
-      serviceName: packageInfo.packageName,
-      serviceVersion: packageInfo.version,
+      serviceName: serviceName,
+      serviceVersion: serviceVersion,
     );
     _spanProcessor = EmbraceSpanProcessor(resource: resource);
 

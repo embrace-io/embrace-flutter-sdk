@@ -7,7 +7,6 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 /// PlatformDispatcher.onError is available only for Flutter 3.1 and above.
@@ -59,13 +58,6 @@ void main() {
 
     group('start', () {
       setUp(() {
-        PackageInfo.setMockInitialValues(
-          appName: 'TestApp',
-          packageName: 'com.example.test',
-          version: '1.0.0',
-          buildNumber: '1',
-          buildSignature: '',
-        );
         when(
           () => embracePlatform.attachToHostSdk(
             enableIntegrationTesting: any(named: 'enableIntegrationTesting'),
@@ -211,9 +203,14 @@ void main() {
         expect(Embrace.instance.spanProcessorForTesting, isNotNull);
       });
 
-      test('span processor resource uses app packageName and version',
+      test(
+          'span processor resource uses provided serviceName and '
+              'serviceVersion',
           () async {
-        await Embrace.instance.start();
+        await Embrace.instance.start(
+          serviceName: 'com.example.test',
+          serviceVersion: '1.0.0',
+        );
         final resource = Embrace.instance.spanProcessorForTesting?.resource;
         expect(resource, isNotNull);
         expect(
