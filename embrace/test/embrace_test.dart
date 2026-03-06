@@ -3,11 +3,15 @@ import 'dart:ui';
 
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/otel/embrace_span_processor.dart';
+import 'package:embrace/src/otel/embrace_span_processor_config.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+import 'src/otel/test_helpers.dart';
 
 /// PlatformDispatcher.onError is available only for Flutter 3.1 and above.
 /// As there is no way to know the Flutter version that runs the test,
@@ -1159,6 +1163,167 @@ void main() {
       });
     });
 
+    group('span processor wiring', () {
+      late CapturingSpanExporter exporter;
+      late EmbraceSpanProcessor processor;
+
+      setUp(() {
+        exporter = CapturingSpanExporter();
+        processor = EmbraceSpanProcessor(
+          exporters: [exporter],
+          config: const EmbraceSpanProcessorConfig(
+            scheduleDelay: Duration(hours: 24),
+          ),
+        );
+        Embrace.instance.spanProcessorForTesting = processor;
+      });
+
+      tearDown(() async {
+        await processor.shutdown();
+        Embrace.instance.spanProcessorForTesting = null;
+      });
+
+      group('startSpan + stop', () {
+        const spanId = 'a1b2c3d4e5f6a7b8';
+        const traceId = 'abcdef1234567890abcdef1234567890';
+
+        setUp(() {
+          when(
+            () => embracePlatform.startSpan(
+              any(),
+              parentSpanId: any(named: 'parentSpanId'),
+              startTimeMs: any(named: 'startTimeMs'),
+            ),
+          ).thenAnswer((_) async => spanId);
+          when(
+            () => embracePlatform.getTraceId(spanId),
+          ).thenAnswer((_) async => traceId);
+          when(
+            () => embracePlatform.stopSpan(
+              spanId,
+              errorCode: any(named: 'errorCode'),
+              endTimeMs: any(named: 'endTimeMs'),
+            ),
+          ).thenAnswer((_) async => true);
+        });
+
+        test('startSpan does not throw', () async {
+          await Embrace.instance.startSpan('my-span');
+          await pumpEventQueue();
+        });
+
+        test('onEnd is called with correct span data when stop is called',
+            () async {
+          final span = await Embrace.instance.startSpan('my-span');
+          expect(span, isNotNull);
+          await span!.stop();
+          await pumpEventQueue();
+          await processor.forceFlush();
+
+          expect(exporter.captured, hasLength(1));
+          expect(exporter.captured.first.name, equals('my-span'));
+        });
+
+        test('stop does not notify processor when processor is null', () async {
+          Embrace.instance.spanProcessorForTesting = null;
+          final span = await Embrace.instance.startSpan('my-span');
+          expect(span, isNotNull);
+          await span!.stop();
+          await pumpEventQueue();
+
+          expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
+        });
+      });
+
+      group('recordCompletedSpan', () {
+        const spanName = 'completed-span';
+        const startMs = 1000;
+        const endMs = 2000;
+
+        setUp(() {
+          when(
+            () => embracePlatform.recordCompletedSpan(
+              any(),
+              any(),
+              any(),
+              errorCode: any(named: 'errorCode'),
+              parentSpanId: any(named: 'parentSpanId'),
+              attributes: any(named: 'attributes'),
+              events: any(named: 'events'),
+            ),
+          ).thenAnswer((_) async => true);
+        });
+
+        test('onEnd is called with correct span data', () async {
+          await Embrace.instance.recordCompletedSpan<bool>(
+            spanName,
+            startMs,
+            endMs,
+          );
+          await pumpEventQueue();
+          await processor.forceFlush();
+
+          expect(exporter.captured, hasLength(1));
+          final spanData = exporter.captured.first;
+          expect(spanData.name, equals(spanName));
+          expect(
+            spanData.startTime,
+            equals(DateTime.fromMillisecondsSinceEpoch(startMs)),
+          );
+          expect(
+            spanData.endTime,
+            equals(DateTime.fromMillisecondsSinceEpoch(endMs)),
+          );
+        });
+
+        test('onEnd is not called when processor is null', () async {
+          Embrace.instance.spanProcessorForTesting = null;
+          await Embrace.instance
+              .recordCompletedSpan<bool>(spanName, startMs, endMs);
+          await pumpEventQueue();
+
+          expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
+        });
+      });
+
+      group('recordSpan', () {
+        const spanName = 'record-span';
+        Future<bool> testCode() async => true;
+
+        setUp(() {
+          when(
+            () => embracePlatform.recordSpan(
+              spanName,
+              code: testCode,
+              parentSpanId: any(named: 'parentSpanId'),
+              attributes: any(named: 'attributes'),
+              events: any(named: 'events'),
+            ),
+          ).thenAnswer((_) => Future.value(true));
+        });
+
+        test('onEnd is called with correct span name', () async {
+          await Embrace.instance.recordSpan(spanName, code: testCode);
+          await pumpEventQueue();
+          await processor.forceFlush();
+
+          expect(exporter.captured, hasLength(1));
+          expect(exporter.captured.first.name, equals(spanName));
+        });
+
+        test('onEnd is not called when processor is null', () async {
+          Embrace.instance.spanProcessorForTesting = null;
+          await Embrace.instance.recordSpan(spanName, code: testCode);
+          await pumpEventQueue();
+
+          expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
+        });
+      });
+    });
+
     group('EmbraceSpanImpl', () {
       const id = '__id__';
 
@@ -1173,6 +1338,9 @@ void main() {
             endTimeMs: endTimeMs,
           ),
         ).thenAnswer((_) => Future.value(true));
+        when(
+          () => embracePlatform.getTraceId(id),
+        ).thenAnswer((_) async => null);
 
         await event.stop(errorCode: errorCode, endTimeMs: endTimeMs);
         verify(
