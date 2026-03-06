@@ -3,16 +3,15 @@ import 'dart:ui';
 
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
-import 'package:embrace/src/otel/embrace_span_exporter.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
-import 'package:embrace/src/otel/export_result.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
-import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+import 'src/otel/test_helpers.dart';
 
 /// PlatformDispatcher.onError is available only for Flutter 3.1 and above.
 /// As there is no way to know the Flutter version that runs the test,
@@ -27,22 +26,6 @@ class MockEmbracePlatform extends Mock
     implements EmbracePlatform {}
 
 class MockEmbrace extends Mock implements Embrace {}
-
-class CapturingSpanExporter implements EmbraceSpanExporter {
-  final List<ReadableSpanData> captured = [];
-
-  @override
-  Future<ExportResult> export(List<ReadableSpanData> spans) async {
-    captured.addAll(spans);
-    return ExportResult.success;
-  }
-
-  @override
-  Future<ExportResult> forceFlush() async => ExportResult.success;
-
-  @override
-  Future<void> shutdown() async {}
-}
 
 const errorMessage = '__error__';
 
@@ -1242,9 +1225,6 @@ void main() {
         });
 
         test('stop does not notify processor when processor is null', () async {
-          addTearDown(
-            () => Embrace.instance.spanProcessorForTesting = processor,
-          );
           Embrace.instance.spanProcessorForTesting = null;
           final span = await Embrace.instance.startSpan('my-span');
           expect(span, isNotNull);
@@ -1252,6 +1232,7 @@ void main() {
           await pumpEventQueue();
 
           expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
         });
       });
 
@@ -1297,15 +1278,13 @@ void main() {
         });
 
         test('onEnd is not called when processor is null', () async {
-          addTearDown(
-            () => Embrace.instance.spanProcessorForTesting = processor,
-          );
           Embrace.instance.spanProcessorForTesting = null;
           await Embrace.instance
               .recordCompletedSpan<bool>(spanName, startMs, endMs);
           await pumpEventQueue();
 
           expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
         });
       });
 
@@ -1335,14 +1314,12 @@ void main() {
         });
 
         test('onEnd is not called when processor is null', () async {
-          addTearDown(
-            () => Embrace.instance.spanProcessorForTesting = processor,
-          );
           Embrace.instance.spanProcessorForTesting = null;
           await Embrace.instance.recordSpan(spanName, code: testCode);
           await pumpEventQueue();
 
           expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
         });
       });
     });

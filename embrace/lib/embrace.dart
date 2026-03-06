@@ -657,14 +657,12 @@ class EmbraceSpanImpl extends EmbraceSpan {
     String spanName = '',
     DateTime? startTime,
     EmbraceSpanProcessor? processor,
-  })  : name = spanName,
+  })  : _name = spanName,
         _startTime = startTime ?? DateTime.now(),
         _processor = processor;
 
   final EmbracePlatform _platform;
-
-  /// The name of this span.
-  final String name;
+  final String _name;
 
   final DateTime _startTime;
   final EmbraceSpanProcessor? _processor;
@@ -682,22 +680,28 @@ class EmbraceSpanImpl extends EmbraceSpan {
     );
     final processor = _processor;
     if (processor != null) {
-      unawaited(() async {
-        final rawTraceId = await traceId;
-        await processor.onEnd(
-          ReadableSpanData.fromRaw(
-            name: name,
-            spanId: id,
-            traceId: rawTraceId,
-            startTimeMs: _startTime.millisecondsSinceEpoch,
-            endTimeMs: endTimeMs ?? DateTime.now().millisecondsSinceEpoch,
-            errorCode: errorCode,
-            resource: processor.resource,
-          ),
-        );
-      }());
+      unawaited(_notifyProcessorOnEnd(processor, errorCode, endTimeMs));
     }
     return result;
+  }
+
+  Future<void> _notifyProcessorOnEnd(
+    EmbraceSpanProcessor processor,
+    ErrorCode? errorCode,
+    int? endTimeMs,
+  ) async {
+    final rawTraceId = await traceId;
+    await processor.onEnd(
+      ReadableSpanData.fromRaw(
+        name: _name,
+        spanId: id,
+        traceId: rawTraceId,
+        startTimeMs: _startTime.millisecondsSinceEpoch,
+        endTimeMs: endTimeMs ?? DateTime.now().millisecondsSinceEpoch,
+        errorCode: errorCode,
+        resource: processor.resource,
+      ),
+    );
   }
 
   @override
