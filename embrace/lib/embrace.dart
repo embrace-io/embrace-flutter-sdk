@@ -5,6 +5,7 @@ import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
@@ -112,6 +113,14 @@ class Embrace implements EmbraceFlutterApi {
   /// For testing only.
   @visibleForTesting
   EmbraceSpanProcessor? get spanProcessorForTesting => _spanProcessor;
+
+  /// Overrides the span processor for testing.
+  ///
+  /// For testing only — inject a pre-configured processor to verify wiring.
+  @visibleForTesting
+  set spanProcessorForTesting(EmbraceSpanProcessor? processor) {
+    _spanProcessor = processor;
+  }
 
   /// Shuts down the span processor and removes the lifecycle observer.
   ///
@@ -381,7 +390,27 @@ class Embrace implements EmbraceFlutterApi {
           startTimeMs: startTimeMs,
         );
         if (id != null) {
-          return Future.value(EmbraceSpanImpl(id, _platform));
+          final startDateTime = startTimeMs != null
+              ? DateTime.fromMillisecondsSinceEpoch(startTimeMs)
+              : DateTime.now();
+          final impl = EmbraceSpanImpl(
+            id,
+            _platform,
+            spanName: name,
+            startTime: startDateTime,
+            processor: _spanProcessor,
+          );
+          final processor = _spanProcessor;
+          if (processor != null) {
+            unawaited(() async {
+              final adapter = await OTelSpanAdapter.create(
+                name,
+                _SpanDelegate(id, _platform),
+              );
+              processor.onStart(adapter);
+            }());
+          }
+          return Future.value(impl);
         } else {
           return Future.value();
         }
@@ -403,15 +432,35 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<bool>(
       'recordCompletedSpan',
       () async {
-        return _platform.recordCompletedSpan(
+        final convertedEvents = _convertSpanEvents(events);
+        final result = await _platform.recordCompletedSpan(
           name,
           startTimeMs,
           endTimeMs,
           errorCode: errorCode,
           parentSpanId: parent?.id,
           attributes: attributes,
-          events: _convertSpanEvents(events),
+          events: convertedEvents,
         );
+        final processor = _spanProcessor;
+        if (processor != null) {
+          unawaited(
+            processor.onEnd(
+              ReadableSpanData.fromRaw(
+                name: name,
+                spanId: '0' * 16,
+                traceId: '0' * 32,
+                startTimeMs: startTimeMs,
+                endTimeMs: endTimeMs,
+                errorCode: errorCode,
+                attributes: attributes,
+                events: convertedEvents,
+                resource: processor.resource,
+              ),
+            ),
+          );
+        }
+        return result;
       },
       defaultValue: false,
     );
@@ -428,13 +477,33 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<T>(
       'recordSpan',
       () async {
-        return _platform.recordSpan(
+        final startTime = DateTime.now();
+        final convertedEvents = _convertSpanEvents(events);
+        final result = await _platform.recordSpan(
           name,
           code: code,
           parentSpanId: parent?.id,
           attributes: attributes,
-          events: _convertSpanEvents(events),
+          events: convertedEvents,
         );
+        final processor = _spanProcessor;
+        if (processor != null) {
+          unawaited(
+            processor.onEnd(
+              ReadableSpanData.fromRaw(
+                name: name,
+                spanId: '0' * 16,
+                traceId: '0' * 32,
+                startTimeMs: startTime.millisecondsSinceEpoch,
+                endTimeMs: DateTime.now().millisecondsSinceEpoch,
+                attributes: attributes,
+                events: convertedEvents,
+                resource: processor.resource,
+              ),
+            ),
+          );
+        }
+        return result;
       },
       defaultValue: _defaultFor<T>(),
     );
@@ -574,17 +643,53 @@ void _processGlobalZoneError(Object error, StackTrace stack) {
 /// not use this directly as function signatures may change without warning.
 class EmbraceSpanImpl extends EmbraceSpan {
   /// Constructor
-  EmbraceSpanImpl(super.id, this._platform);
+  EmbraceSpanImpl(
+    super.id,
+    this._platform, {
+    String spanName = '',
+    DateTime? startTime,
+    EmbraceSpanProcessor? processor,
+  })  : name = spanName,
+        _startTime = startTime ?? DateTime.now(),
+        _processor = processor;
 
   final EmbracePlatform _platform;
+
+  /// The name of this span.
+  final String name;
+
+  final DateTime _startTime;
+  final EmbraceSpanProcessor? _processor;
 
   @override
   Future<String> get traceId async =>
       await _platform.getTraceId(id) ?? '0' * 32;
 
   @override
-  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) {
-    return _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) async {
+    final result = await _platform.stopSpan(
+      id,
+      errorCode: errorCode,
+      endTimeMs: endTimeMs,
+    );
+    final processor = _processor;
+    if (processor != null) {
+      unawaited(() async {
+        final rawTraceId = await traceId;
+        await processor.onEnd(
+          ReadableSpanData.fromRaw(
+            name: name,
+            spanId: id,
+            traceId: rawTraceId,
+            startTimeMs: _startTime.millisecondsSinceEpoch,
+            endTimeMs: endTimeMs ?? DateTime.now().millisecondsSinceEpoch,
+            errorCode: errorCode,
+            resource: processor.resource,
+          ),
+        );
+      }());
+    }
+    return result;
   }
 
   @override
@@ -605,6 +710,43 @@ class EmbraceSpanImpl extends EmbraceSpan {
   Future<bool> addAttribute(String key, String value) {
     return _platform.addSpanAttribute(id, key, value);
   }
+}
+
+/// Minimal [EmbraceSpanDelegate] implementation that composes a span ID and
+/// platform reference. Used only to create [OTelSpanAdapter] instances during
+/// span processor wiring; not exposed publicly.
+class _SpanDelegate implements EmbraceSpanDelegate {
+  _SpanDelegate(this.id, this._platform);
+
+  @override
+  final String id;
+
+  final EmbracePlatform _platform;
+
+  @override
+  Future<String> get traceId async =>
+      await _platform.getTraceId(id) ?? '0' * 32;
+
+  @override
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) =>
+      _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
+
+  @override
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  }) =>
+      _platform.addSpanEvent(
+        id,
+        name,
+        timestampMs: timestampMs,
+        attributes: attributes,
+      );
+
+  @override
+  Future<bool> addAttribute(String key, String value) =>
+      _platform.addSpanAttribute(id, key, value);
 }
 
 class _LifecycleObserver extends WidgetsBindingObserver {
