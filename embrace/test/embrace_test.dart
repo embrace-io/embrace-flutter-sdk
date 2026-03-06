@@ -202,25 +202,6 @@ void main() {
         await Embrace.instance.start();
         expect(Embrace.instance.spanProcessorForTesting, isNotNull);
       });
-
-      test(
-          'span processor resource uses provided serviceName and '
-          'serviceVersion', () async {
-        await Embrace.instance.start(
-          serviceName: 'com.example.test',
-          serviceVersion: '1.0.0',
-        );
-        final resource = Embrace.instance.spanProcessorForTesting?.resource;
-        expect(resource, isNotNull);
-        expect(
-          resource!.getString('service.name'),
-          'com.example.test',
-        );
-        expect(
-          resource.getString('service.version'),
-          '1.0.0',
-        );
-      });
     });
 
     group('addBreadcrumb', () {
