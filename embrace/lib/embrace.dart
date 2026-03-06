@@ -5,7 +5,6 @@ import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
-import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
@@ -39,11 +38,12 @@ export 'src/navigation_observer.dart';
 Embrace? debugEmbraceOverride;
 
 /// Entry point for the SDK. This class is part of the Embrace Public API.
-class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
+class Embrace implements EmbraceFlutterApi {
   // ignore: empty_constructor_bodies
   Embrace._() {}
   EmbracePlatform get _platform => EmbracePlatform.instance;
   static final Embrace _instance = Embrace._();
+  _LifecycleObserver? _lifecycleObserver;
 
   /// Entry point for the SDK. Use this to call send logs and other information
   /// to Embrace.
@@ -86,8 +86,6 @@ class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
       'This parameter is obsolete and will be removed in a future release.',
     )
     bool enableIntegrationTesting = false,
-    String serviceName = '',
-    String serviceVersion = '',
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -95,24 +93,18 @@ class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
       enableIntegrationTesting: enableIntegrationTesting,
     );
 
-    WidgetsBinding.instance.addObserver(this);
+    _lifecycleObserver = _LifecycleObserver(_onAppDetached);
+    WidgetsBinding.instance.addObserver(_lifecycleObserver!);
 
-    final resource = buildEmbraceResource(
-      serviceName: serviceName,
-      serviceVersion: serviceVersion,
-    );
-    _spanProcessor = EmbraceSpanProcessor(resource: resource);
+    _spanProcessor = EmbraceSpanProcessor();
 
     if (action != null) {
       await _installErrorHandlers(action);
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      _spanProcessor?.shutdown();
-    }
+  void _onAppDetached() {
+    _spanProcessor?.shutdown();
   }
 
   /// The span processor created during [start], or null before start is called.
@@ -128,7 +120,10 @@ class Embrace with WidgetsBindingObserver implements EmbraceFlutterApi {
   Future<void> resetForTesting() async {
     await _spanProcessor?.shutdown();
     _spanProcessor = null;
-    WidgetsBinding.instance.removeObserver(this);
+    if (_lifecycleObserver != null) {
+      WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
+      _lifecycleObserver = null;
+    }
   }
 
   @override
@@ -609,5 +604,18 @@ class EmbraceSpanImpl extends EmbraceSpan {
   @override
   Future<bool> addAttribute(String key, String value) {
     return _platform.addSpanAttribute(id, key, value);
+  }
+}
+
+class _LifecycleObserver extends WidgetsBindingObserver {
+  _LifecycleObserver(this._onDetached);
+
+  final void Function() _onDetached;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      _onDetached();
+    }
   }
 }
