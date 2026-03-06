@@ -400,16 +400,6 @@ class Embrace implements EmbraceFlutterApi {
             startTime: startDateTime,
             processor: _spanProcessor,
           );
-          final processor = _spanProcessor;
-          if (processor != null) {
-            unawaited(() async {
-              final adapter = await OTelSpanAdapter.create(
-                name,
-                _SpanDelegate(id, _platform),
-              );
-              processor.onStart(adapter);
-            }());
-          }
           return Future.value(impl);
         } else {
           return Future.value();
@@ -444,12 +434,16 @@ class Embrace implements EmbraceFlutterApi {
         );
         final processor = _spanProcessor;
         if (processor != null) {
+          // The native SDK owns span and trace IDs for recordCompletedSpan.
+          // There is no API to retrieve them, so the OTel-invalid all-zeros
+          // sentinels are used. Exported spans will not be correlatable with
+          // native telemetry for this code path.
           unawaited(
             processor.onEnd(
               ReadableSpanData.fromRaw(
                 name: name,
-                spanId: '0' * 16,
-                traceId: '0' * 32,
+                spanId: _invalidSpanId,
+                traceId: _invalidTraceId,
                 startTimeMs: startTimeMs,
                 endTimeMs: endTimeMs,
                 errorCode: errorCode,
@@ -486,14 +480,22 @@ class Embrace implements EmbraceFlutterApi {
           attributes: attributes,
           events: convertedEvents,
         );
+        // endTime is captured after the platform call returns. This includes
+        // method-channel round-trip overhead in addition to the user's callback
+        // duration, which is an accepted limitation for this code path.
+        //
+        // The native SDK owns span and trace IDs for recordSpan; the
+        // OTel-invalid all-zeros sentinels are used since there is no API to
+        // retrieve them. Exported spans will not be correlatable with native
+        // telemetry for this code path.
         final processor = _spanProcessor;
         if (processor != null) {
           unawaited(
             processor.onEnd(
               ReadableSpanData.fromRaw(
                 name: name,
-                spanId: '0' * 16,
-                traceId: '0' * 32,
+                spanId: _invalidSpanId,
+                traceId: _invalidTraceId,
                 startTimeMs: startTime.millisecondsSinceEpoch,
                 endTimeMs: DateTime.now().millisecondsSinceEpoch,
                 attributes: attributes,
@@ -628,6 +630,12 @@ void _processFlutterError(FlutterErrorDetails details) {
   );
 }
 
+/// OTel-invalid all-zeros span ID (16 hex chars).
+const _invalidSpanId = '0000000000000000';
+
+/// OTel-invalid all-zeros trace ID (32 hex chars).
+const _invalidTraceId = '00000000000000000000000000000000';
+
 /// Processes an error caught in Embrace's global zone.
 void _processGlobalZoneError(Object error, StackTrace stack) {
   EmbracePlatform.instance.logDartError(
@@ -710,43 +718,6 @@ class EmbraceSpanImpl extends EmbraceSpan {
   Future<bool> addAttribute(String key, String value) {
     return _platform.addSpanAttribute(id, key, value);
   }
-}
-
-/// Minimal [EmbraceSpanDelegate] implementation that composes a span ID and
-/// platform reference. Used only to create [OTelSpanAdapter] instances during
-/// span processor wiring; not exposed publicly.
-class _SpanDelegate implements EmbraceSpanDelegate {
-  _SpanDelegate(this.id, this._platform);
-
-  @override
-  final String id;
-
-  final EmbracePlatform _platform;
-
-  @override
-  Future<String> get traceId async =>
-      await _platform.getTraceId(id) ?? '0' * 32;
-
-  @override
-  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) =>
-      _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
-
-  @override
-  Future<bool> addEvent(
-    String name, {
-    int? timestampMs,
-    Map<String, String>? attributes,
-  }) =>
-      _platform.addSpanEvent(
-        id,
-        name,
-        timestampMs: timestampMs,
-        attributes: attributes,
-      );
-
-  @override
-  Future<bool> addAttribute(String key, String value) =>
-      _platform.addSpanAttribute(id, key, value);
 }
 
 class _LifecycleObserver extends WidgetsBindingObserver {

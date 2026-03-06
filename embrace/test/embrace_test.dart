@@ -9,8 +9,7 @@ import 'package:embrace/src/otel/embrace_span_processor_config.dart';
 import 'package:embrace/src/otel/export_result.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
-// ignore: implementation_imports
-import 'package:embrace_platform_interface/src/otel/readable_span_data.dart';
+import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -1202,7 +1201,7 @@ void main() {
       });
 
       group('startSpan + stop', () {
-        const spanId = 'test-span-id';
+        const spanId = 'a1b2c3d4e5f6a7b8';
         const traceId = 'abcdef1234567890abcdef1234567890';
 
         setUp(() {
@@ -1225,11 +1224,9 @@ void main() {
           ).thenAnswer((_) async => true);
         });
 
-        test('onStart is called when span starts', () async {
-          // onStart is a no-op in the processor, but wiring must not throw
+        test('startSpan does not throw', () async {
           await Embrace.instance.startSpan('my-span');
           await pumpEventQueue();
-          // No exception means onStart wiring executed successfully.
         });
 
         test('onEnd is called with correct span data when stop is called',
@@ -1245,13 +1242,14 @@ void main() {
         });
 
         test('stop does not notify processor when processor is null', () async {
+          addTearDown(
+            () => Embrace.instance.spanProcessorForTesting = processor,
+          );
           Embrace.instance.spanProcessorForTesting = null;
           final span = await Embrace.instance.startSpan('my-span');
           expect(span, isNotNull);
           await span!.stop();
           await pumpEventQueue();
-          // Restore so tearDown can shut down the original processor.
-          Embrace.instance.spanProcessorForTesting = processor;
 
           expect(exporter.captured, isEmpty);
         });
@@ -1299,11 +1297,13 @@ void main() {
         });
 
         test('onEnd is not called when processor is null', () async {
+          addTearDown(
+            () => Embrace.instance.spanProcessorForTesting = processor,
+          );
           Embrace.instance.spanProcessorForTesting = null;
           await Embrace.instance
               .recordCompletedSpan<bool>(spanName, startMs, endMs);
           await pumpEventQueue();
-          Embrace.instance.spanProcessorForTesting = processor;
 
           expect(exporter.captured, isEmpty);
         });
@@ -1318,6 +1318,9 @@ void main() {
             () => embracePlatform.recordSpan(
               spanName,
               code: testCode,
+              parentSpanId: any(named: 'parentSpanId'),
+              attributes: any(named: 'attributes'),
+              events: any(named: 'events'),
             ),
           ).thenAnswer((_) => Future.value(true));
         });
@@ -1332,10 +1335,12 @@ void main() {
         });
 
         test('onEnd is not called when processor is null', () async {
+          addTearDown(
+            () => Embrace.instance.spanProcessorForTesting = processor,
+          );
           Embrace.instance.spanProcessorForTesting = null;
           await Embrace.instance.recordSpan(spanName, code: testCode);
           await pumpEventQueue();
-          Embrace.instance.spanProcessorForTesting = processor;
 
           expect(exporter.captured, isEmpty);
         });
