@@ -1,5 +1,6 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
+import 'package:flutter/foundation.dart';
 
 /// Nullable wrapper so a null adapter can be stored in a non-nullable
 /// [ContextKey].
@@ -54,6 +55,15 @@ class OTelContextUtils {
       return ctx;
     }
     return Context.current;
+  }
+
+  /// Resets internal state for testing.
+  ///
+  /// Call this alongside [Context.resetCurrent] in test tearDown to ensure
+  /// the bootstrap guard is re-evaluated after each test.
+  @visibleForTesting
+  static void resetForTesting() {
+    _bootstrapped = false;
   }
 
   /// Returns the current [OTelSpanAdapter] from [Context.current], or null.

@@ -24,7 +24,10 @@ Future<OTelSpanAdapter> _makeAdapter(
 }
 
 void main() {
-  setUp(Context.resetCurrent);
+  setUp(() {
+    Context.resetCurrent();
+    OTelContextUtils.resetForTesting();
+  });
 
   group('OTelContextUtils.currentSpan', () {
     test('returns null when no span is active', () {
