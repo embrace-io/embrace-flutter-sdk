@@ -384,9 +384,12 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<EmbraceSpan?>(
       'startSpan',
       () async {
+        // Explicit parent takes precedence over the Context current span.
+        final effectiveParentSpanId =
+            parent?.id ?? OTelContextUtils.currentSpan()?.embraceSpan.id;
         final id = await _platform.startSpan(
           name,
-          parentSpanId: parent?.id,
+          parentSpanId: effectiveParentSpanId,
           startTimeMs: startTimeMs,
         );
         if (id != null) {
@@ -400,7 +403,16 @@ class Embrace implements EmbraceFlutterApi {
             startTime: startDateTime,
             processor: _spanProcessor,
           );
-          return Future.value(impl);
+          // Create an OTelSpanAdapter and register it as the current span in
+          // OTel Context. The previous span (if any) is stored so that
+          // stop() can restore it.
+          final adapter = await OTelSpanAdapter.create(
+            name,
+            _SpanImplDelegate(impl),
+          );
+          final previous = OTelContextUtils.setCurrent(adapter);
+          impl.attachOTelContext(adapter, previous);
+          return impl;
         } else {
           return Future.value();
         }
@@ -666,6 +678,18 @@ class EmbraceSpanImpl extends EmbraceSpan {
 
   final DateTime _startTime;
   final EmbraceSpanProcessor? _processor;
+  OTelSpanAdapter? _otelAdapter;
+  OTelSpanAdapter? _previousOtelAdapter;
+
+  /// Attaches OTel context tracking to this span.
+  ///
+  /// [adapter] is the [OTelSpanAdapter] created for this span.
+  /// [previous] is the span that was current before this one started — it
+  /// will be restored to the OTel context when [stop] is called.
+  void attachOTelContext(OTelSpanAdapter adapter, OTelSpanAdapter? previous) {
+    _otelAdapter = adapter;
+    _previousOtelAdapter = previous;
+  }
 
   @override
   Future<String> get traceId async =>
@@ -678,6 +702,10 @@ class EmbraceSpanImpl extends EmbraceSpan {
       errorCode: errorCode,
       endTimeMs: endTimeMs,
     );
+    if (_otelAdapter != null) {
+      OTelContextUtils.restore(_previousOtelAdapter);
+      _otelAdapter = null;
+    }
     final processor = _processor;
     if (processor != null) {
       unawaited(_notifyProcessorOnEnd(processor, errorCode, endTimeMs));
@@ -722,6 +750,36 @@ class EmbraceSpanImpl extends EmbraceSpan {
   Future<bool> addAttribute(String key, String value) {
     return _platform.addSpanAttribute(id, key, value);
   }
+}
+
+/// Adapts an [EmbraceSpanImpl] to [EmbraceSpanDelegate] via composition so
+/// that [OTelSpanAdapter] can wrap it without requiring inheritance.
+class _SpanImplDelegate implements EmbraceSpanDelegate {
+  const _SpanImplDelegate(this._impl);
+
+  final EmbraceSpanImpl _impl;
+
+  @override
+  String get id => _impl.id;
+
+  @override
+  Future<String> get traceId => _impl.traceId;
+
+  @override
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) =>
+      _impl.stop(errorCode: errorCode, endTimeMs: endTimeMs);
+
+  @override
+  Future<bool> addEvent(
+    String name, {
+    int? timestampMs,
+    Map<String, String>? attributes,
+  }) =>
+      _impl.addEvent(name, timestampMs: timestampMs, attributes: attributes);
+
+  @override
+  Future<bool> addAttribute(String key, String value) =>
+      _impl.addAttribute(key, value);
 }
 
 class _LifecycleObserver extends WidgetsBindingObserver {
