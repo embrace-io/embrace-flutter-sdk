@@ -3,7 +3,7 @@ import 'package:embrace/src/otel/export_result.dart';
 import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/foundation.dart';
 
-/// A [EmbraceSpanExporter] that logs span data to the debug console.
+/// A [EmbraceSpanExporter] that logs span data to stdout.
 ///
 /// In debug mode ([kDebugMode]), each exported span is printed with its name,
 /// duration, status, attribute count, and event count. In release mode, this
@@ -18,11 +18,11 @@ import 'package:flutter/foundation.dart';
 /// [Embrace] Span: my-span | duration: 42ms | status: SpanStatusCode.Ok |
 ///   attributes: 3 | events: 1
 /// ```
-class DebugSpanExporter implements EmbraceSpanExporter {
-  /// Creates a [DebugSpanExporter].
+class StdOutSpanExporter implements EmbraceSpanExporter {
+  /// Creates a [StdOutSpanExporter].
   ///
   /// [debugMode] overrides [kDebugMode] for testing purposes.
-  DebugSpanExporter({@visibleForTesting bool? debugMode})
+  StdOutSpanExporter({@visibleForTesting bool? debugMode})
       : _debugMode = debugMode;
 
   final bool? _debugMode;
