@@ -42,7 +42,7 @@ void main() {
     ).thenAnswer((_) async => true);
   }
 
-  void stubGetTraceId(String id) {
+  void stubGetTraceId() {
     when(() => platform.getTraceId(any())).thenAnswer((_) async => traceId);
   }
 
@@ -51,11 +51,13 @@ void main() {
     EmbracePlatform.instance = platform;
     // Reset OTel context between tests.
     Context.resetCurrent();
+    OTelContextUtils.resetForTesting();
   });
 
   tearDown(() async {
     await Embrace.instance.resetForTesting();
     Context.resetCurrent();
+    OTelContextUtils.resetForTesting();
   });
 
   group('Context tracking in startSpan', () {
@@ -71,7 +73,7 @@ void main() {
 
     test('OTelContextUtils.currentSpan is set after startSpan', () async {
       stubStartSpan(parentSpanId);
-      stubGetTraceId(parentSpanId);
+      stubGetTraceId();
 
       expect(OTelContextUtils.currentSpan(), isNull);
 
@@ -87,7 +89,7 @@ void main() {
     test('Context is restored to null after stop() when no parent', () async {
       stubStartSpan(parentSpanId);
       stubStopSpan();
-      stubGetTraceId(parentSpanId);
+      stubGetTraceId();
 
       final span = await Embrace.instance.startSpan('parent-span');
       expect(OTelContextUtils.currentSpan(), isNotNull);
@@ -100,7 +102,7 @@ void main() {
     test('Calling stop() twice does not corrupt the context stack', () async {
       stubStartSpan(parentSpanId);
       stubStopSpan();
-      stubGetTraceId(parentSpanId);
+      stubGetTraceId();
 
       final span = await Embrace.instance.startSpan('parent-span');
       expect(OTelContextUtils.currentSpan(), isNotNull);
