@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
-import 'package:embrace/src/otel/debug_span_exporter.dart';
 import 'package:embrace/src/otel/export_result.dart';
+import 'package:embrace/src/otel/stdout_span_exporter.dart';
 // ignore: implementation_imports
 import 'package:embrace_platform_interface/src/otel/readable_span_data.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,15 +39,15 @@ Future<List<String>> _capturePrint(Future<void> Function() body) async {
 }
 
 void main() {
-  group('DebugSpanExporter — debug mode', () {
+  group('StdOutSpanExporter — debug mode', () {
     test('export returns success', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final result = await exporter.export([_makeSpan()]);
       expect(result, ExportResult.success);
     });
 
     test('prints one line per span', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final lines = await _capturePrint(
         () => exporter
             .export([_makeSpan(name: 'span-a'), _makeSpan(name: 'span-b')]),
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('output contains span name', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final lines = await _capturePrint(
         () => exporter.export([_makeSpan(name: 'my-span')]),
       );
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('output contains duration in milliseconds', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       // endTimeMs - startTimeMs = 42ms
       final lines = await _capturePrint(
         () => exporter.export([_makeSpan(startTimeMs: 1000, endTimeMs: 1042)]),
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('output contains status', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final lines = await _capturePrint(
         () => exporter.export([_makeSpan()]),
       );
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('output contains attribute count', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final lines = await _capturePrint(
         () => exporter.export([
           _makeSpan(attributes: {'key1': 'val1', 'key2': 'val2'}),
@@ -91,7 +91,7 @@ void main() {
     });
 
     test('output contains event count', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       final lines = await _capturePrint(
         () => exporter.export([
           _makeSpan(
@@ -106,19 +106,19 @@ void main() {
     });
 
     test('forceFlush returns success', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       expect(await exporter.forceFlush(), ExportResult.success);
     });
 
     test('shutdown completes without error', () async {
-      final exporter = DebugSpanExporter(debugMode: true);
+      final exporter = StdOutSpanExporter(debugMode: true);
       await expectLater(exporter.shutdown(), completes);
     });
   });
 
-  group('DebugSpanExporter — release mode', () {
+  group('StdOutSpanExporter — release mode', () {
     test('export returns success without printing', () async {
-      final exporter = DebugSpanExporter(debugMode: false);
+      final exporter = StdOutSpanExporter(debugMode: false);
       final lines = await _capturePrint(
         () => exporter.export([_makeSpan(name: 'silent-span')]),
       );
@@ -126,18 +126,18 @@ void main() {
     });
 
     test('export result is success', () async {
-      final exporter = DebugSpanExporter(debugMode: false);
+      final exporter = StdOutSpanExporter(debugMode: false);
       final result = await exporter.export([_makeSpan()]);
       expect(result, ExportResult.success);
     });
 
     test('forceFlush returns success', () async {
-      final exporter = DebugSpanExporter(debugMode: false);
+      final exporter = StdOutSpanExporter(debugMode: false);
       expect(await exporter.forceFlush(), ExportResult.success);
     });
 
     test('shutdown completes without error', () async {
-      final exporter = DebugSpanExporter(debugMode: false);
+      final exporter = StdOutSpanExporter(debugMode: false);
       await expectLater(exporter.shutdown(), completes);
     });
   });
