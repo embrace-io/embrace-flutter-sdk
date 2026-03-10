@@ -4,7 +4,6 @@ import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
-import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -51,13 +50,11 @@ void main() {
     EmbracePlatform.instance = platform;
     // Reset OTel context between tests.
     Context.resetCurrent();
-    OTelContextUtils.resetForTesting();
   });
 
   tearDown(() async {
     await Embrace.instance.resetForTesting();
     Context.resetCurrent();
-    OTelContextUtils.resetForTesting();
   });
 
   group('Context tracking in startSpan', () {
@@ -75,13 +72,16 @@ void main() {
       stubStartSpan(parentSpanId);
       stubGetTraceId();
 
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
 
       await Embrace.instance.startSpan('parent-span');
 
-      expect(OTelContextUtils.currentSpan(), isNotNull);
       expect(
-        OTelContextUtils.currentSpan()!.embraceSpan.id,
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        isNotNull,
+      );
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan()!.embraceSpan.id,
         equals(parentSpanId),
       );
     });
@@ -92,11 +92,14 @@ void main() {
       stubGetTraceId();
 
       final span = await Embrace.instance.startSpan('parent-span');
-      expect(OTelContextUtils.currentSpan(), isNotNull);
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        isNotNull,
+      );
 
       await span!.stop();
 
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
     });
 
     test('Calling stop() twice does not corrupt the context stack', () async {
@@ -105,14 +108,17 @@ void main() {
       stubGetTraceId();
 
       final span = await Embrace.instance.startSpan('parent-span');
-      expect(OTelContextUtils.currentSpan(), isNotNull);
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        isNotNull,
+      );
 
       await span!.stop();
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
 
       // Second stop() must not corrupt the (now-empty) context.
       await span.stop();
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
     });
 
     test('Context restores parent span after child stops', () async {
@@ -132,22 +138,26 @@ void main() {
       when(() => platform.getTraceId(any())).thenAnswer((_) async => traceId);
 
       final parent = await Embrace.instance.startSpan('parent-span');
-      final parentAdapter = OTelContextUtils.currentSpan();
+      final parentAdapter =
+          Embrace.instance.contextUtilsForTesting.currentSpan();
       expect(parentAdapter, isNotNull);
 
       final child = await Embrace.instance.startSpan('child-span');
       expect(
-        OTelContextUtils.currentSpan()!.embraceSpan.id,
+        Embrace.instance.contextUtilsForTesting.currentSpan()!.embraceSpan.id,
         equals(childSpanId),
       );
 
       await child!.stop();
 
       // Context should be restored to the parent adapter.
-      expect(OTelContextUtils.currentSpan(), same(parentAdapter));
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        same(parentAdapter),
+      );
 
       await parent!.stop();
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
     });
 
     test('child startSpan uses Context parent when explicit parent is null',
@@ -228,9 +238,12 @@ void main() {
       // Simulate an async gap.
       await Future<void>.delayed(Duration.zero);
 
-      expect(OTelContextUtils.currentSpan(), isNotNull);
       expect(
-        OTelContextUtils.currentSpan()!.embraceSpan.id,
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        isNotNull,
+      );
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan()!.embraceSpan.id,
         equals(parentSpanId),
       );
     });
@@ -273,7 +286,10 @@ void main() {
         () => platform.generateW3cTraceparent(any(), any()),
       ).thenAnswer((_) async => nativeTraceparent);
 
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(
+        Embrace.instance.contextUtilsForTesting.currentSpan(),
+        isNull,
+      );
 
       final result = await Embrace.instance.generateW3cTraceparent(null, null);
 
@@ -297,7 +313,7 @@ void main() {
       final span = await Embrace.instance.startSpan('parent-span');
       await span!.stop();
 
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(Embrace.instance.contextUtilsForTesting.currentSpan(), isNull);
 
       final result = await Embrace.instance.generateW3cTraceparent(null, null);
 
