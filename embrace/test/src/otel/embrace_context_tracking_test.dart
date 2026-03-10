@@ -235,6 +235,78 @@ void main() {
       );
     });
   });
+
+  group('generateW3cTraceparent with OTel Context', () {
+    setUp(() {
+      Embrace.instance.spanProcessorForTesting = EmbraceSpanProcessor(
+        config: const EmbraceSpanProcessorConfig(
+          scheduleDelay: Duration(hours: 24),
+        ),
+      );
+    });
+
+    test('returns traceparent from Dart-side Context when current span exists',
+        () async {
+      stubStartSpan(parentSpanId);
+      stubGetTraceId();
+
+      await Embrace.instance.startSpan('parent-span');
+
+      final result = await Embrace.instance.generateW3cTraceparent(null, null);
+
+      expect(result, isNotNull);
+      // W3C traceparent format: 00-{traceId}-{spanId}-{flags}
+      expect(result, startsWith('00-'));
+      expect(result, contains(traceId));
+      expect(result, contains(parentSpanId));
+      // Native method should NOT have been called.
+      verifyNever(
+        () => platform.generateW3cTraceparent(any(), any()),
+      );
+    });
+
+    test('falls back to native when no Dart-side span exists in Context',
+        () async {
+      const nativeTraceparent =
+          '00-11223344556677889900aabbccddeeff-aabbccddeeff0011-01';
+      when(
+        () => platform.generateW3cTraceparent(any(), any()),
+      ).thenAnswer((_) async => nativeTraceparent);
+
+      expect(OTelContextUtils.currentSpan(), isNull);
+
+      final result = await Embrace.instance.generateW3cTraceparent(null, null);
+
+      expect(result, equals(nativeTraceparent));
+      verify(
+        () => platform.generateW3cTraceparent(null, null),
+      ).called(1);
+    });
+
+    test('falls back to native after all spans have been stopped', () async {
+      stubStartSpan(parentSpanId);
+      stubStopSpan();
+      stubGetTraceId();
+
+      const nativeTraceparent =
+          '00-11223344556677889900aabbccddeeff-aabbccddeeff0011-01';
+      when(
+        () => platform.generateW3cTraceparent(any(), any()),
+      ).thenAnswer((_) async => nativeTraceparent);
+
+      final span = await Embrace.instance.startSpan('parent-span');
+      await span!.stop();
+
+      expect(OTelContextUtils.currentSpan(), isNull);
+
+      final result = await Embrace.instance.generateW3cTraceparent(null, null);
+
+      expect(result, equals(nativeTraceparent));
+      verify(
+        () => platform.generateW3cTraceparent(null, null),
+      ).called(1);
+    });
+  });
 }
 
 /// A minimal [EmbraceSpan] stub for use as an explicit parent in tests.

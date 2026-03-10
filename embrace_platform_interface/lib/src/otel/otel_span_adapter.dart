@@ -94,6 +94,21 @@ class OTelSpanAdapter {
         attributes: attributes,
       );
 
+  /// Marks this span as ended without delegating to [EmbraceSpanDelegate.stop].
+  ///
+  /// Use this when the native span has already been stopped and only the
+  /// OTel-side state needs to be updated.
+  /// After this call, [isRecording] returns false and [status] reflects
+  /// the supplied [errorCode]. No-op if already ended.
+  void markEnded({ErrorCode? errorCode, int? endTimeMs}) {
+    if (_isEnded) return;
+    _errorCode = errorCode;
+    _isEnded = true;
+    _endTime = endTimeMs != null
+        ? DateTime.fromMillisecondsSinceEpoch(endTimeMs)
+        : DateTime.now();
+  }
+
   /// Ends this span by delegating to [EmbraceSpanDelegate.stop].
   ///
   /// After this call, [isRecording] returns false and [status] reflects

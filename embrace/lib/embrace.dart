@@ -200,6 +200,12 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   Future<String?> generateW3cTraceparent(String? traceId, String? spanId) {
+    // Check Dart-side OTel Context first — use the current span's SpanContext
+    // to generate a traceparent without a native round-trip.
+    final dartTraceparent = OTelContextUtils.currentTraceparent();
+    if (dartTraceparent != null) return Future.value(dartTraceparent);
+
+    // Fall back to native method channel when no Dart-side span exists.
     return _runCatchingAndReturn<String?>(
       'generateW3cTraceparent',
       () => _platform.generateW3cTraceparent(traceId, spanId),
@@ -703,6 +709,7 @@ class EmbraceSpanImpl extends EmbraceSpan {
       endTimeMs: endTimeMs,
     );
     if (_otelAdapter != null) {
+      _otelAdapter!.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
       OTelContextUtils.restore(_previousOtelAdapter);
       _otelAdapter = null;
     }
