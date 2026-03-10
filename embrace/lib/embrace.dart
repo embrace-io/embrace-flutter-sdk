@@ -79,6 +79,7 @@ class Embrace implements EmbraceFlutterApi {
   static Embrace get instance => debugEmbraceOverride ?? _instance;
 
   EmbraceSpanProcessor? _spanProcessor;
+  OTelContextUtils _contextUtils = OTelContextUtils();
 
   @override
   Future<void> start({
@@ -122,6 +123,12 @@ class Embrace implements EmbraceFlutterApi {
     _spanProcessor = processor;
   }
 
+  /// The [OTelContextUtils] instance used for span context tracking.
+  ///
+  /// For testing only — use this to inspect the current span in Context.
+  @visibleForTesting
+  OTelContextUtils get contextUtilsForTesting => _contextUtils;
+
   /// Shuts down the span processor and removes the lifecycle observer.
   ///
   /// For testing only — call in tearDown to clean up singleton state.
@@ -129,6 +136,7 @@ class Embrace implements EmbraceFlutterApi {
   Future<void> resetForTesting() async {
     await _spanProcessor?.shutdown();
     _spanProcessor = null;
+    _contextUtils = OTelContextUtils();
     if (_lifecycleObserver != null) {
       WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
       _lifecycleObserver = null;
@@ -202,7 +210,7 @@ class Embrace implements EmbraceFlutterApi {
   Future<String?> generateW3cTraceparent(String? traceId, String? spanId) {
     // Check Dart-side OTel Context first — use the current span's SpanContext
     // to generate a traceparent without a native round-trip.
-    final dartTraceparent = OTelContextUtils.currentTraceparent();
+    final dartTraceparent = _contextUtils.currentTraceparent();
     if (dartTraceparent != null) return Future.value(dartTraceparent);
 
     // Fall back to native method channel when no Dart-side span exists.
@@ -392,7 +400,7 @@ class Embrace implements EmbraceFlutterApi {
       () async {
         // Explicit parent takes precedence over the Context current span.
         final effectiveParentSpanId =
-            parent?.id ?? OTelContextUtils.currentSpan()?.embraceSpan.id;
+            parent?.id ?? _contextUtils.currentSpan()?.embraceSpan.id;
         final id = await _platform.startSpan(
           name,
           parentSpanId: effectiveParentSpanId,
@@ -416,8 +424,8 @@ class Embrace implements EmbraceFlutterApi {
             name,
             _SpanImplDelegate(impl),
           );
-          final previous = OTelContextUtils.setCurrent(adapter);
-          impl.attachOTelContext(adapter, previous);
+          final previous = _contextUtils.setCurrent(adapter);
+          impl.attachOTelContext(adapter, previous, _contextUtils);
           return impl;
         } else {
           return Future.value();
@@ -686,15 +694,22 @@ class EmbraceSpanImpl extends EmbraceSpan {
   final EmbraceSpanProcessor? _processor;
   OTelSpanAdapter? _otelAdapter;
   OTelSpanAdapter? _previousOtelAdapter;
+  OTelContextUtils? _contextUtils;
 
   /// Attaches OTel context tracking to this span.
   ///
   /// [adapter] is the [OTelSpanAdapter] created for this span.
   /// [previous] is the span that was current before this one started — it
   /// will be restored to the OTel context when [stop] is called.
-  void attachOTelContext(OTelSpanAdapter adapter, OTelSpanAdapter? previous) {
+  /// [contextUtils] is the instance to use for context operations.
+  void attachOTelContext(
+    OTelSpanAdapter adapter,
+    OTelSpanAdapter? previous,
+    OTelContextUtils contextUtils,
+  ) {
     _otelAdapter = adapter;
     _previousOtelAdapter = previous;
+    _contextUtils = contextUtils;
   }
 
   @override
@@ -710,7 +725,7 @@ class EmbraceSpanImpl extends EmbraceSpan {
     );
     if (_otelAdapter != null) {
       _otelAdapter!.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
-      OTelContextUtils.restore(_previousOtelAdapter);
+      _contextUtils?.restore(_previousOtelAdapter);
       _otelAdapter = null;
     }
     final processor = _processor;

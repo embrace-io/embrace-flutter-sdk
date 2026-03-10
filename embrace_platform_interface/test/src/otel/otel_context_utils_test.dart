@@ -24,14 +24,16 @@ Future<OTelSpanAdapter> _makeAdapter(
 }
 
 void main() {
+  late OTelContextUtils contextUtils;
+
   setUp(() {
     Context.resetCurrent();
-    OTelContextUtils.resetForTesting();
+    contextUtils = OTelContextUtils();
   });
 
   group('OTelContextUtils.currentSpan', () {
     test('returns null when no span is active', () {
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(contextUtils.currentSpan(), isNull);
     });
   });
 
@@ -40,75 +42,75 @@ void main() {
         () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
 
-      final previous = OTelContextUtils.setCurrent(adapter);
+      final previous = contextUtils.setCurrent(adapter);
 
       expect(previous, isNull);
-      expect(OTelContextUtils.currentSpan(), same(adapter));
+      expect(contextUtils.currentSpan(), same(adapter));
     });
 
     test('returns previous adapter when one is already current', () async {
       final first = await _makeAdapter(kTestSpanId, 'first');
       final second = await _makeAdapter('b2c3d4e5f6a7b8c9', 'second');
 
-      OTelContextUtils.setCurrent(first);
-      final previous = OTelContextUtils.setCurrent(second);
+      contextUtils.setCurrent(first);
+      final previous = contextUtils.setCurrent(second);
 
       expect(previous, same(first));
-      expect(OTelContextUtils.currentSpan(), same(second));
+      expect(contextUtils.currentSpan(), same(second));
     });
   });
 
   group('OTelContextUtils.restore', () {
     test('currentSpan returns null after adapter is marked ended', () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
-      OTelContextUtils.setCurrent(adapter);
+      contextUtils.setCurrent(adapter);
 
       adapter.markEnded();
-      OTelContextUtils.restore(null);
+      contextUtils.restore(null);
 
-      expect(OTelContextUtils.currentSpan(), isNull);
+      expect(contextUtils.currentSpan(), isNull);
     });
 
     test('reinstates the previous adapter', () async {
       final parent = await _makeAdapter(kTestSpanId, 'parent');
       final child = await _makeAdapter('b2c3d4e5f6a7b8c9', 'child');
 
-      OTelContextUtils.setCurrent(parent);
-      OTelContextUtils.setCurrent(child);
+      contextUtils
+        ..setCurrent(parent)
+        ..setCurrent(child)
+        ..restore(parent);
 
-      OTelContextUtils.restore(parent);
-
-      expect(OTelContextUtils.currentSpan(), same(parent));
+      expect(contextUtils.currentSpan(), same(parent));
     });
   });
 
   group('Context propagation across async gaps', () {
     test('current span is visible after an await', () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
-      OTelContextUtils.setCurrent(adapter);
+      contextUtils.setCurrent(adapter);
 
       // Simulate an async gap.
       await Future<void>.delayed(Duration.zero);
 
-      expect(OTelContextUtils.currentSpan(), same(adapter));
+      expect(contextUtils.currentSpan(), same(adapter));
     });
 
     test('nested spans restore correctly after async gaps', () async {
       final parent = await _makeAdapter(kTestSpanId, 'parent');
       final child = await _makeAdapter('b2c3d4e5f6a7b8c9', 'child');
 
-      OTelContextUtils.setCurrent(parent);
+      contextUtils.setCurrent(parent);
       await Future<void>.delayed(Duration.zero);
 
-      final previous = OTelContextUtils.setCurrent(child);
+      final previous = contextUtils.setCurrent(child);
       await Future<void>.delayed(Duration.zero);
 
-      expect(OTelContextUtils.currentSpan(), same(child));
+      expect(contextUtils.currentSpan(), same(child));
 
-      OTelContextUtils.restore(previous);
+      contextUtils.restore(previous);
       await Future<void>.delayed(Duration.zero);
 
-      expect(OTelContextUtils.currentSpan(), same(parent));
+      expect(contextUtils.currentSpan(), same(parent));
     });
   });
 }

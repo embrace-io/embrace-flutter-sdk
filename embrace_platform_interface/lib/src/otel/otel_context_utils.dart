@@ -1,8 +1,7 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
-import 'package:flutter/foundation.dart';
 
-/// Utilities for storing and restoring [OTelSpanAdapter] in OTel [Context].
+/// Stores and restores [OTelSpanAdapter] in OTel [Context].
 ///
 /// Uses a typed [ContextKey] to track the "current span" in OTel's zone-aware
 /// [Context], enabling automatic parent-child relationships when the explicit
@@ -12,39 +11,37 @@ import 'package:flutter/foundation.dart';
 /// context": a span whose [OTelSpanAdapter.markEnded] has been called is
 /// considered inactive even if it is still stored in the context map.
 ///
+/// Instantiate once and inject where needed. Each instance owns its own
+/// [ContextKey], so two instances do not interfere with each other — this
+/// makes test isolation straightforward: create a fresh instance in setUp.
+///
 /// Usage pattern:
 /// ```dart
 /// // On span start:
-/// final previous = OTelContextUtils.setCurrent(adapter);
-/// spanImpl.attachOTelContext(adapter, previous);
+/// final previous = contextUtils.setCurrent(adapter);
+/// spanImpl.attachOTelContext(adapter, previous, contextUtils);
 ///
 /// // On span end (inside EmbraceSpanImpl.stop):
 /// adapter.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
-/// OTelContextUtils.restore(previousAdapter);
+/// contextUtils.restore(previousAdapter);
 /// ```
 class OTelContextUtils {
-  OTelContextUtils._();
+  /// Creates a new [OTelContextUtils] with its own isolated [ContextKey].
+  OTelContextUtils()
+      : _spanKey = ContextKeyCreate.create<OTelSpanAdapter>(
+          'embrace.current_span',
+          ContextKey.generateContextKeyId(),
+        );
 
-  static final ContextKey<OTelSpanAdapter> _spanKey =
-      ContextKeyCreate.create<OTelSpanAdapter>(
-    'embrace.current_span',
-    ContextKey.generateContextKeyId(),
-  );
+  final ContextKey<OTelSpanAdapter> _spanKey;
 
   /// Whether [Context.current] has been bootstrapped for use without a
   /// fully initialized [OTelFactory].
-  ///
-  /// Once set to true, [Context.current] is guaranteed to have a non-root
-  /// value and can be read safely.
-  static bool _bootstrapped = false;
+  bool _bootstrapped = false;
 
   /// Returns the current [Context], bootstrapping an empty one on first use
   /// if [OTelFactory] has not yet been initialized.
-  ///
-  /// After the first call (or after [Context.resetCurrent] is called in
-  /// tests), [Context.current] will always have a non-null value and can be
-  /// read without going to [Context.root].
-  static Context _safeCurrentContext() {
+  Context _safeCurrentContext() {
     if (!_bootstrapped && OTelFactory.otelFactory == null) {
       _bootstrapped = true;
       final ctx = ContextCreate.create();
@@ -54,20 +51,11 @@ class OTelContextUtils {
     return Context.current;
   }
 
-  /// Resets internal state for testing.
-  ///
-  /// Call this alongside [Context.resetCurrent] in test tearDown to ensure
-  /// the bootstrap guard is re-evaluated after each test.
-  @visibleForTesting
-  static void resetForTesting() {
-    _bootstrapped = false;
-  }
-
   /// Returns the current [OTelSpanAdapter] from [Context.current], or null.
   ///
   /// Returns null if no span is stored in context, or if the stored span's
   /// [OTelSpanAdapter.isRecording] is false (i.e. it has been ended).
-  static OTelSpanAdapter? currentSpan() {
+  OTelSpanAdapter? currentSpan() {
     final adapter = _safeCurrentContext().get(_spanKey);
     if (adapter == null || !adapter.isRecording) return null;
     return adapter;
@@ -78,7 +66,7 @@ class OTelContextUtils {
   /// Returns the previous [OTelSpanAdapter] (may be null if no span was
   /// active). Pass the returned value to [restore] when the span ends to
   /// reinstate the parent span.
-  static OTelSpanAdapter? setCurrent(OTelSpanAdapter adapter) {
+  OTelSpanAdapter? setCurrent(OTelSpanAdapter adapter) {
     final ctx = _safeCurrentContext();
     final previous = ctx.get(_spanKey);
     Context.current = ctx.copyWith(_spanKey, adapter);
@@ -94,7 +82,7 @@ class OTelContextUtils {
   /// Always call [OTelSpanAdapter.markEnded] on the current span before
   /// calling [restore], so that [currentSpan] correctly returns null when
   /// there is no active parent to restore to.
-  static void restore(OTelSpanAdapter? previous) {
+  void restore(OTelSpanAdapter? previous) {
     if (previous == null) return;
     final ctx = _safeCurrentContext();
     Context.current = ctx.copyWith(_spanKey, previous);
@@ -107,7 +95,7 @@ class OTelContextUtils {
   ///
   /// Format: `{version}-{traceId}-{spanId}-{traceFlags}`
   /// Example: `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`
-  static String? currentTraceparent() {
+  String? currentTraceparent() {
     final adapter = currentSpan();
     if (adapter == null) return null;
     final spanContext = adapter.spanContext;
