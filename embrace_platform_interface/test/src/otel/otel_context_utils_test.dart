@@ -59,10 +59,11 @@ void main() {
   });
 
   group('OTelContextUtils.restore', () {
-    test('clears the current span when previous is null', () async {
+    test('currentSpan returns null after adapter is marked ended', () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
       OTelContextUtils.setCurrent(adapter);
 
+      adapter.markEnded();
       OTelContextUtils.restore(null);
 
       expect(OTelContextUtils.currentSpan(), isNull);

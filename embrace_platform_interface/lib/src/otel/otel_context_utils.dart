@@ -2,19 +2,15 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
 import 'package:flutter/foundation.dart';
 
-/// Nullable wrapper so a null adapter can be stored in a non-nullable
-/// [ContextKey].
-class _SpanHolder {
-  const _SpanHolder(this.adapter);
-
-  final OTelSpanAdapter? adapter;
-}
-
 /// Utilities for storing and restoring [OTelSpanAdapter] in OTel [Context].
 ///
 /// Uses a typed [ContextKey] to track the "current span" in OTel's zone-aware
 /// [Context], enabling automatic parent-child relationships when the explicit
 /// `parent` parameter is omitted on `startSpan`.
+///
+/// [OTelSpanAdapter.isRecording] is used as the sentinel for "active in
+/// context": a span whose [OTelSpanAdapter.markEnded] has been called is
+/// considered inactive even if it is still stored in the context map.
 ///
 /// Usage pattern:
 /// ```dart
@@ -23,13 +19,14 @@ class _SpanHolder {
 /// spanImpl.attachOTelContext(adapter, previous);
 ///
 /// // On span end (inside EmbraceSpanImpl.stop):
+/// adapter.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
 /// OTelContextUtils.restore(previousAdapter);
 /// ```
 class OTelContextUtils {
   OTelContextUtils._();
 
-  static final ContextKey<_SpanHolder> _spanKey =
-      ContextKeyCreate.create<_SpanHolder>(
+  static final ContextKey<OTelSpanAdapter> _spanKey =
+      ContextKeyCreate.create<OTelSpanAdapter>(
     'embrace.current_span',
     ContextKey.generateContextKeyId(),
   );
@@ -67,8 +64,14 @@ class OTelContextUtils {
   }
 
   /// Returns the current [OTelSpanAdapter] from [Context.current], or null.
-  static OTelSpanAdapter? currentSpan() =>
-      _safeCurrentContext().get(_spanKey)?.adapter;
+  ///
+  /// Returns null if no span is stored in context, or if the stored span's
+  /// [OTelSpanAdapter.isRecording] is false (i.e. it has been ended).
+  static OTelSpanAdapter? currentSpan() {
+    final adapter = _safeCurrentContext().get(_spanKey);
+    if (adapter == null || !adapter.isRecording) return null;
+    return adapter;
+  }
 
   /// Stores [adapter] in [Context.current] as the current span.
   ///
@@ -77,17 +80,40 @@ class OTelContextUtils {
   /// reinstate the parent span.
   static OTelSpanAdapter? setCurrent(OTelSpanAdapter adapter) {
     final ctx = _safeCurrentContext();
-    final previous = ctx.get(_spanKey)?.adapter;
-    Context.current = ctx.copyWith(_spanKey, _SpanHolder(adapter));
+    final previous = ctx.get(_spanKey);
+    Context.current = ctx.copyWith(_spanKey, adapter);
     return previous;
   }
 
   /// Restores [previous] as the current span in [Context.current].
   ///
-  /// If [previous] is null, the current span is cleared. Pass the value
-  /// returned by [setCurrent] to restore the context on span end.
+  /// If [previous] is null, this is a no-op: [currentSpan] will return null
+  /// because the span still stored in context has already been marked ended
+  /// (via [OTelSpanAdapter.markEnded]) before this call.
+  ///
+  /// Always call [OTelSpanAdapter.markEnded] on the current span before
+  /// calling [restore], so that [currentSpan] correctly returns null when
+  /// there is no active parent to restore to.
   static void restore(OTelSpanAdapter? previous) {
+    if (previous == null) return;
     final ctx = _safeCurrentContext();
-    Context.current = ctx.copyWith(_spanKey, _SpanHolder(previous));
+    Context.current = ctx.copyWith(_spanKey, previous);
+  }
+
+  /// Generates a W3C traceparent string from the current span in Context.
+  ///
+  /// Returns null if there is no current span or if its [SpanContext] is
+  /// invalid (e.g. all-zeros trace/span IDs).
+  ///
+  /// Format: `{version}-{traceId}-{spanId}-{traceFlags}`
+  /// Example: `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`
+  static String? currentTraceparent() {
+    final adapter = currentSpan();
+    if (adapter == null) return null;
+    final spanContext = adapter.spanContext;
+    if (!spanContext.isValid) return null;
+    final flags = spanContext.traceFlags.isSampled ? '01' : '00';
+    return '00-${spanContext.traceId.hexString}-'
+        '${spanContext.spanId.hexString}-$flags';
   }
 }
