@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace/src/otel/embrace_span_processor_config.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -1181,6 +1183,8 @@ void main() {
       tearDown(() async {
         await processor.shutdown();
         Embrace.instance.spanProcessorForTesting = null;
+        Context.resetCurrent();
+        OTelContextUtils.resetForTesting();
       });
 
       group('startSpan + stop', () {
