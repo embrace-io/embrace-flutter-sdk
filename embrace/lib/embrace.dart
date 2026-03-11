@@ -707,7 +707,8 @@ class EmbraceSpanImpl extends EmbraceSpan {
   ) {
     _otelAdapter = adapter;
     _contextUtils = contextUtils;
-    _previousContext = contextUtils.setCurrent(adapter);
+    _previousContext = contextUtils.getCurrent();
+    contextUtils.setCurrent(adapter);
   }
 
   @override
