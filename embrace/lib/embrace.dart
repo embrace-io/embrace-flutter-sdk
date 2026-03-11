@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -424,8 +425,8 @@ class Embrace implements EmbraceFlutterApi {
             name,
             _SpanImplDelegate(impl),
           );
-          final previous = _contextUtils.setCurrent(adapter);
-          impl.attachOTelContext(adapter, previous, _contextUtils);
+          final previousContext = _contextUtils.setCurrent(adapter);
+          impl.attachOTelContext(adapter, previousContext, _contextUtils);
           return impl;
         } else {
           return Future.value();
@@ -693,22 +694,23 @@ class EmbraceSpanImpl extends EmbraceSpan {
   final DateTime _startTime;
   final EmbraceSpanProcessor? _processor;
   OTelSpanAdapter? _otelAdapter;
-  OTelSpanAdapter? _previousOtelAdapter;
+  late Context _previousContext;
   OTelContextUtils? _contextUtils;
 
   /// Attaches OTel context tracking to this span.
   ///
   /// [adapter] is the [OTelSpanAdapter] created for this span.
-  /// [previous] is the span that was current before this one started — it
-  /// will be restored to the OTel context when [stop] is called.
+  /// [previousContext] is the full OTel [Context] that was active before this
+  /// span started — it will be reinstated entirely when [stop] is called,
+  /// following the OTel scope/token pattern.
   /// [contextUtils] is the instance to use for context operations.
   void attachOTelContext(
     OTelSpanAdapter adapter,
-    OTelSpanAdapter? previous,
+    Context previousContext,
     OTelContextUtils contextUtils,
   ) {
     _otelAdapter = adapter;
-    _previousOtelAdapter = previous;
+    _previousContext = previousContext;
     _contextUtils = contextUtils;
   }
 
@@ -725,7 +727,7 @@ class EmbraceSpanImpl extends EmbraceSpan {
     );
     if (_otelAdapter != null) {
       _otelAdapter!.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
-      _contextUtils?.restore(_previousOtelAdapter);
+      _contextUtils?.restore(_previousContext);
       _otelAdapter = null;
     }
     final processor = _processor;
