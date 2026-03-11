@@ -38,13 +38,13 @@ void main() {
   });
 
   group('OTelContextUtils.setCurrent', () {
-    test('stores adapter in Context and returns null when no previous',
+    test('stores adapter in Context and returns the previous Context',
         () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
 
-      final previous = contextUtils.setCurrent(adapter);
+      final previousContext = contextUtils.setCurrent(adapter);
 
-      expect(previous, isNull);
+      expect(previousContext, isA<Context>());
       expect(contextUtils.currentSpan(), same(adapter));
     });
 
@@ -53,20 +53,22 @@ void main() {
       final second = await _makeAdapter('b2c3d4e5f6a7b8c9', 'second');
 
       contextUtils.setCurrent(first);
-      final previous = contextUtils.setCurrent(second);
+      final previousContext = contextUtils.setCurrent(second);
 
-      expect(previous, same(first));
-      expect(contextUtils.currentSpan(), same(second));
+      // Restoring the captured context reinstates the first span.
+      contextUtils.restore(previousContext);
+      expect(contextUtils.currentSpan(), same(first));
     });
   });
 
   group('OTelContextUtils.restore', () {
-    test('currentSpan returns null after adapter is marked ended', () async {
+    test('currentSpan returns null after restoring the pre-span context',
+        () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
-      contextUtils.setCurrent(adapter);
+      final previousContext = contextUtils.setCurrent(adapter);
 
       adapter.markEnded();
-      contextUtils.restore(null);
+      contextUtils.restore(previousContext);
 
       expect(contextUtils.currentSpan(), isNull);
     });
@@ -75,12 +77,14 @@ void main() {
       final parent = await _makeAdapter(kTestSpanId, 'parent');
       final child = await _makeAdapter('b2c3d4e5f6a7b8c9', 'child');
 
-      contextUtils
-        ..setCurrent(parent)
-        ..setCurrent(child)
-        ..restore(parent);
+      final beforeParent = contextUtils.setCurrent(parent);
+      final beforeChild = contextUtils.setCurrent(child);
 
+      contextUtils.restore(beforeChild);
       expect(contextUtils.currentSpan(), same(parent));
+
+      contextUtils.restore(beforeParent);
+      expect(contextUtils.currentSpan(), isNull);
     });
   });
 
@@ -102,12 +106,12 @@ void main() {
       contextUtils.setCurrent(parent);
       await Future<void>.delayed(Duration.zero);
 
-      final previous = contextUtils.setCurrent(child);
+      final beforeChild = contextUtils.setCurrent(child);
       await Future<void>.delayed(Duration.zero);
 
       expect(contextUtils.currentSpan(), same(child));
 
-      contextUtils.restore(previous);
+      contextUtils.restore(beforeChild);
       await Future<void>.delayed(Duration.zero);
 
       expect(contextUtils.currentSpan(), same(parent));

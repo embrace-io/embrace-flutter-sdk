@@ -7,9 +7,10 @@ import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
 /// [Context], enabling automatic parent-child relationships when the explicit
 /// `parent` parameter is omitted on `startSpan`.
 ///
-/// [OTelSpanAdapter.isRecording] is used as the sentinel for "active in
-/// context": a span whose [OTelSpanAdapter.markEnded] has been called is
-/// considered inactive even if it is still stored in the context map.
+/// Follows the OTel attach/detach scope pattern: [setCurrent] returns the full
+/// previous [Context] (the scope token), and [restore] reinstates it entirely.
+/// This ensures any keys added by other OTel components between span start and
+/// stop are not inadvertently dropped.
 ///
 /// Instantiate once and inject where needed. Each instance owns its own
 /// [ContextKey], so two instances do not interfere with each other — this
@@ -18,12 +19,12 @@ import 'package:embrace_platform_interface/src/otel/otel_span_adapter.dart';
 /// Usage pattern:
 /// ```dart
 /// // On span start:
-/// final previous = contextUtils.setCurrent(adapter);
-/// spanImpl.attachOTelContext(adapter, previous, contextUtils);
+/// final previousContext = contextUtils.setCurrent(adapter);
+/// spanImpl.attachOTelContext(adapter, previousContext, contextUtils);
 ///
 /// // On span end (inside EmbraceSpanImpl.stop):
 /// adapter.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
-/// contextUtils.restore(previousAdapter);
+/// contextUtils.restore(previousContext);
 /// ```
 class OTelContextUtils {
   /// Creates a new [OTelContextUtils] with its own isolated [ContextKey].
@@ -52,40 +53,26 @@ class OTelContextUtils {
   }
 
   /// Returns the current [OTelSpanAdapter] from [Context.current], or null.
-  ///
-  /// Returns null if no span is stored in context, or if the stored span's
-  /// [OTelSpanAdapter.isRecording] is false (i.e. it has been ended).
-  OTelSpanAdapter? currentSpan() {
-    final adapter = _safeCurrentContext().get(_spanKey);
-    if (adapter == null || !adapter.isRecording) return null;
-    return adapter;
-  }
+  OTelSpanAdapter? currentSpan() => _safeCurrentContext().get(_spanKey);
 
   /// Stores [adapter] in [Context.current] as the current span.
   ///
-  /// Returns the previous [OTelSpanAdapter] (may be null if no span was
-  /// active). Pass the returned value to [restore] when the span ends to
-  /// reinstate the parent span.
-  OTelSpanAdapter? setCurrent(OTelSpanAdapter adapter) {
-    final ctx = _safeCurrentContext();
-    final previous = ctx.get(_spanKey);
-    Context.current = ctx.copyWith(_spanKey, adapter);
+  /// Returns the previous [Context] before [adapter] was attached. Pass this
+  /// to [restore] when the span ends to reinstate the full previous context,
+  /// following the OTel scope/token pattern.
+  Context setCurrent(OTelSpanAdapter adapter) {
+    final previous = _safeCurrentContext();
+    Context.current = previous.copyWith(_spanKey, adapter);
     return previous;
   }
 
-  /// Restores [previous] as the current span in [Context.current].
+  /// Restores [previous] as [Context.current].
   ///
-  /// If [previous] is null, this is a no-op: [currentSpan] will return null
-  /// because the span still stored in context has already been marked ended
-  /// (via [OTelSpanAdapter.markEnded]) before this call.
-  ///
-  /// Always call [OTelSpanAdapter.markEnded] on the current span before
-  /// calling [restore], so that [currentSpan] correctly returns null when
-  /// there is no active parent to restore to.
-  void restore(OTelSpanAdapter? previous) {
-    if (previous == null) return;
-    final ctx = _safeCurrentContext();
-    Context.current = ctx.copyWith(_spanKey, previous);
+  /// Pass the [Context] returned by [setCurrent] to undo the attach and
+  /// reinstate the full context that was active before the span started.
+  // ignore: use_setters_to_change_properties
+  void restore(Context previous) {
+    Context.current = previous;
   }
 
   /// Generates a W3C traceparent string from the current span in Context.
