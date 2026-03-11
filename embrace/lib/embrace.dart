@@ -425,8 +425,7 @@ class Embrace implements EmbraceFlutterApi {
             name,
             _SpanImplDelegate(impl),
           );
-          final previousContext = _contextUtils.setCurrent(adapter);
-          impl.attachOTelContext(adapter, previousContext, _contextUtils);
+          impl.attachOTelContext(adapter, _contextUtils);
           return impl;
         } else {
           return Future.value();
@@ -697,21 +696,18 @@ class EmbraceSpanImpl extends EmbraceSpan {
   late Context _previousContext;
   OTelContextUtils? _contextUtils;
 
-  /// Attaches OTel context tracking to this span.
+  /// Attaches OTel context tracking to this span and sets it as current.
   ///
-  /// [adapter] is the [OTelSpanAdapter] created for this span.
-  /// [previousContext] is the full OTel [Context] that was active before this
-  /// span started — it will be reinstated entirely when [stop] is called,
+  /// Registers [adapter] as the current span in [contextUtils], storing the
+  /// previous [Context] so it can be fully reinstated when [stop] is called,
   /// following the OTel scope/token pattern.
-  /// [contextUtils] is the instance to use for context operations.
   void attachOTelContext(
     OTelSpanAdapter adapter,
-    Context previousContext,
     OTelContextUtils contextUtils,
   ) {
     _otelAdapter = adapter;
-    _previousContext = previousContext;
     _contextUtils = contextUtils;
+    _previousContext = contextUtils.setCurrent(adapter);
   }
 
   @override
