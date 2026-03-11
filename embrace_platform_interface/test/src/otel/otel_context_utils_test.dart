@@ -38,25 +38,41 @@ void main() {
   });
 
   group('OTelContextUtils.setCurrent', () {
-    test('stores adapter in Context and returns the previous Context',
-        () async {
+    test('stores adapter in Context', () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
 
-      final previousContext = contextUtils.setCurrent(adapter);
+      contextUtils.setCurrent(adapter);
 
-      expect(previousContext, isA<Context>());
       expect(contextUtils.currentSpan(), same(adapter));
     });
 
-    test('returns previous adapter when one is already current', () async {
+    test('does not set Context.spanContext when spanContext is invalid',
+        () async {
+      // kInvalidTraceId (all zeros) produces an invalid SpanContext.
+      final mock = MockEmbraceSpanDelegate(kTestSpanId);
+      when(() => mock.traceId).thenAnswer((_) async => kInvalidTraceId);
+      final adapter = await OTelSpanAdapter.create(kTestSpanName, mock);
+
+      expect(adapter.spanContext.isValid, isFalse);
+
+      contextUtils.setCurrent(adapter);
+
+      // The conditional path (if adapter.spanContext.isValid) must be skipped,
+      // so Context.current.spanContext stays null.
+      expect(Context.current.spanContext, isNull);
+    });
+
+    test('getCurrent before setCurrent captures scope token for restore',
+        () async {
       final first = await _makeAdapter(kTestSpanId, 'first');
       final second = await _makeAdapter('b2c3d4e5f6a7b8c9', 'second');
 
       contextUtils.setCurrent(first);
-      final previousContext = contextUtils.setCurrent(second);
-
+      final previousContext = contextUtils.getCurrent();
       // Restoring the captured context reinstates the first span.
-      contextUtils.restore(previousContext);
+      contextUtils
+        ..setCurrent(second)
+        ..restore(previousContext);
       expect(contextUtils.currentSpan(), same(first));
     });
   });
@@ -65,7 +81,8 @@ void main() {
     test('currentSpan returns null after restoring the pre-span context',
         () async {
       final adapter = await _makeAdapter(kTestSpanId, kTestSpanName);
-      final previousContext = contextUtils.setCurrent(adapter);
+      final previousContext = contextUtils.getCurrent();
+      contextUtils.setCurrent(adapter);
 
       adapter.markEnded();
       contextUtils.restore(previousContext);
@@ -77,10 +94,12 @@ void main() {
       final parent = await _makeAdapter(kTestSpanId, 'parent');
       final child = await _makeAdapter('b2c3d4e5f6a7b8c9', 'child');
 
-      final beforeParent = contextUtils.setCurrent(parent);
-      final beforeChild = contextUtils.setCurrent(child);
-
-      contextUtils.restore(beforeChild);
+      final beforeParent = contextUtils.getCurrent();
+      contextUtils.setCurrent(parent);
+      final beforeChild = contextUtils.getCurrent();
+      contextUtils
+        ..setCurrent(child)
+        ..restore(beforeChild);
       expect(contextUtils.currentSpan(), same(parent));
 
       contextUtils.restore(beforeParent);
@@ -106,7 +125,8 @@ void main() {
       contextUtils.setCurrent(parent);
       await Future<void>.delayed(Duration.zero);
 
-      final beforeChild = contextUtils.setCurrent(child);
+      final beforeChild = contextUtils.getCurrent();
+      contextUtils.setCurrent(child);
       await Future<void>.delayed(Duration.zero);
 
       expect(contextUtils.currentSpan(), same(child));
