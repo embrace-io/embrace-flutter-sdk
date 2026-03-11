@@ -45,9 +45,7 @@ class OTelContextUtils {
   Context _safeCurrentContext() {
     if (!_bootstrapped && OTelFactory.otelFactory == null) {
       _bootstrapped = true;
-      final ctx = ContextCreate.create();
-      Context.current = ctx;
-      return ctx;
+      Context.current = ContextCreate.create();
     }
     return Context.current;
   }
