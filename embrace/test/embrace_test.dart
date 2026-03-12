@@ -38,6 +38,10 @@ class MockError {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() {
+    registerFallbackValue(HttpMethod.get);
+  });
+
   group('Embrace', () {
     late EmbracePlatform embracePlatform;
 
@@ -1319,6 +1323,114 @@ void main() {
           Embrace.instance.spanProcessorForTesting = null;
           await Embrace.instance.recordSpan(spanName, code: testCode);
           await pumpEventQueue();
+
+          expect(exporter.captured, isEmpty);
+          Embrace.instance.spanProcessorForTesting = processor;
+        });
+      });
+
+      group('recordNetworkRequest', () {
+        const url = 'https://api.example.com/users';
+        const method = HttpMethod.post;
+        const startMs = 1000;
+        const endMs = 2000;
+        const bytesSent = 128;
+        const bytesReceived = 512;
+        const statusCode = 201;
+
+        setUp(() {
+          when(
+            () => embracePlatform.logNetworkRequest(
+              url: any(named: 'url'),
+              method: any(named: 'method'),
+              startTime: any(named: 'startTime'),
+              endTime: any(named: 'endTime'),
+              bytesSent: any(named: 'bytesSent'),
+              bytesReceived: any(named: 'bytesReceived'),
+              statusCode: any(named: 'statusCode'),
+              error: any(named: 'error'),
+              traceId: any(named: 'traceId'),
+              w3cTraceparent: any(named: 'w3cTraceparent'),
+            ),
+          ).thenReturn(null);
+        });
+
+        test('onEnd is called with OTel HTTP semantic convention attributes',
+            () async {
+          final request = EmbraceNetworkRequest.fromCompletedRequest(
+            url: url,
+            httpMethod: method,
+            startTime: startMs,
+            endTime: endMs,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            statusCode: statusCode,
+          );
+          Embrace.instance.recordNetworkRequest(request);
+          await pumpEventQueue();
+          await processor.forceFlush();
+
+          expect(exporter.captured, hasLength(1));
+          final spanData = exporter.captured.first;
+          expect(spanData.name, equals('POST'));
+          expect(
+            spanData.startTime,
+            equals(DateTime.fromMillisecondsSinceEpoch(startMs)),
+          );
+          expect(
+            spanData.endTime,
+            equals(DateTime.fromMillisecondsSinceEpoch(endMs)),
+          );
+          final attrs = spanData.attributes;
+          expect(attrs.getString('http.request.method'), equals('POST'));
+          expect(attrs.getString('url.full'), equals(url));
+          expect(
+            attrs.getString('http.response.status_code'),
+            equals('201'),
+          );
+          expect(attrs.getString('http.request.body.size'), equals('128'));
+          expect(attrs.getString('http.response.body.size'), equals('512'));
+          expect(attrs.getString('server.address'), equals('api.example.com'));
+        });
+
+        test('onEnd omits size/status attributes for incomplete request',
+            () async {
+          final request = EmbraceNetworkRequest.fromIncompleteRequest(
+            url: url,
+            httpMethod: method,
+            startTime: startMs,
+            endTime: endMs,
+            errorDetails: 'connection refused',
+          );
+          Embrace.instance.recordNetworkRequest(request);
+          await pumpEventQueue();
+          await processor.forceFlush();
+
+          expect(exporter.captured, hasLength(1));
+          final attrs = exporter.captured.first.attributes;
+          expect(attrs.getString('http.request.method'), equals('POST'));
+          expect(attrs.getString('url.full'), equals(url));
+          expect(attrs.getString('server.address'), equals('api.example.com'));
+          expect(
+            attrs.getString('http.response.status_code'),
+            isNull,
+          );
+          expect(attrs.getString('http.request.body.size'), isNull);
+          expect(attrs.getString('http.response.body.size'), isNull);
+        });
+
+        test('onEnd is not called when processor is null', () {
+          Embrace.instance.spanProcessorForTesting = null;
+          final request = EmbraceNetworkRequest.fromCompletedRequest(
+            url: url,
+            httpMethod: method,
+            startTime: startMs,
+            endTime: endMs,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            statusCode: statusCode,
+          );
+          Embrace.instance.recordNetworkRequest(request);
 
           expect(exporter.captured, isEmpty);
           Embrace.instance.spanProcessorForTesting = processor;
