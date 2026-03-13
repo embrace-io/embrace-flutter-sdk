@@ -5,6 +5,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:embrace_platform_interface/http_method.dart'; // needed for toHttpString() extension
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/widgets.dart';
@@ -192,18 +193,42 @@ class Embrace implements EmbraceFlutterApi {
   void recordNetworkRequest(EmbraceNetworkRequest request) {
     _runCatching(
       'recordNetworkRequest',
-      () => _platform.logNetworkRequest(
-        url: request.url,
-        method: request.httpMethod,
-        startTime: request.startTime,
-        endTime: request.endTime,
-        bytesSent: request.bytesSent,
-        bytesReceived: request.bytesReceived,
-        statusCode: request.statusCode,
-        error: request.errorDetails,
-        traceId: request.traceId,
-        w3cTraceparent: request.w3cTraceparent,
-      ),
+      () {
+        _platform.logNetworkRequest(
+          url: request.url,
+          method: request.httpMethod,
+          startTime: request.startTime,
+          endTime: request.endTime,
+          bytesSent: request.bytesSent,
+          bytesReceived: request.bytesReceived,
+          statusCode: request.statusCode,
+          error: request.errorDetails,
+          traceId: request.traceId,
+          w3cTraceparent: request.w3cTraceparent,
+        );
+        final processor = _spanProcessor;
+        if (processor != null) {
+          unawaited(
+            processor.onEnd(
+              ReadableSpanData.fromRaw(
+                name: request.httpMethod.toHttpString(),
+                spanId: _invalidSpanId,
+                traceId: _invalidTraceId,
+                startTimeMs: request.startTime,
+                endTimeMs: request.endTime,
+                attributes: networkRequestAttributes(
+                  url: request.url,
+                  httpMethod: request.httpMethod,
+                  statusCode: request.statusCode,
+                  bytesSent: request.bytesSent,
+                  bytesReceived: request.bytesReceived,
+                ),
+                resource: processor.resource,
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 
