@@ -113,6 +113,11 @@ class Embrace implements EmbraceFlutterApi {
 
   /// The span processor created during [start], or null before start is called.
   ///
+  /// For use within the embrace package only.
+  EmbraceSpanProcessor? get spanProcessor => _spanProcessor;
+
+  /// The span processor created during [start], or null before start is called.
+  ///
   /// For testing only.
   @visibleForTesting
   EmbraceSpanProcessor? get spanProcessorForTesting => _spanProcessor;

@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:embrace/embrace.dart';
+import 'package:embrace/src/otel/view_span_attributes.dart';
+import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/material.dart';
 
 /// A function that extracts the settings from a route
@@ -51,7 +55,11 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
     return route.settings;
   }
 
-  void _updateView(Route<dynamic>? newRoute, Route<dynamic>? oldRoute) {
+  void _updateView(
+    Route<dynamic>? newRoute,
+    Route<dynamic>? oldRoute,
+    String action,
+  ) {
     if (oldRoute != null) {
       final settings = routeSettingsExtractor?.call(oldRoute);
       final name = settings?.name;
@@ -64,25 +72,49 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
       final name = settings?.name;
       if (name != null) {
         Embrace.instance.startView(name);
+        _emitNavigationSpan(name, action);
       }
+    }
+  }
+
+  void _emitNavigationSpan(String viewName, String action) {
+    final processor = Embrace.instance.spanProcessor;
+    if (processor != null) {
+      final startTimeMs = DateTime.now().millisecondsSinceEpoch;
+      unawaited(
+        processor.onEnd(
+          ReadableSpanData.fromRaw(
+            name: viewName,
+            spanId: _invalidSpanId,
+            traceId: _invalidTraceId,
+            startTimeMs: startTimeMs,
+            endTimeMs: startTimeMs + 1,
+            attributes: viewSpanAttributes(viewName, action),
+            resource: processor.resource,
+          ),
+        ),
+      );
     }
   }
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    _updateView(route, previousRoute);
+    _updateView(route, previousRoute, navigationActionPush);
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    _updateView(newRoute, oldRoute);
+    _updateView(newRoute, oldRoute, navigationActionReplace);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    _updateView(previousRoute, route);
+    _updateView(previousRoute, route, navigationActionPop);
   }
 }
+
+const _invalidSpanId = '0000000000000000';
+const _invalidTraceId = '00000000000000000000000000000000';
