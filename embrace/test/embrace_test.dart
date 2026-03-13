@@ -1436,7 +1436,6 @@ void main() {
           Embrace.instance.spanProcessorForTesting = processor;
         });
       });
-
     });
 
     group('EmbraceSpanImpl', () {
