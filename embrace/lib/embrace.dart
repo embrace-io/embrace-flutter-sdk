@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace_api.dart';
-import 'package:embrace/src/otel/embrace_span_processor.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
-import 'package:embrace_platform_interface/otel.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
@@ -45,7 +42,6 @@ class Embrace implements EmbraceFlutterApi {
   Embrace._() {}
   EmbracePlatform get _platform => EmbracePlatform.instance;
   static final Embrace _instance = Embrace._();
-  _LifecycleObserver? _lifecycleObserver;
 
   /// Entry point for the SDK. Use this to call send logs and other information
   /// to Embrace.
@@ -79,9 +75,6 @@ class Embrace implements EmbraceFlutterApi {
   /// ```
   static Embrace get instance => debugEmbraceOverride ?? _instance;
 
-  EmbraceSpanProcessor? _spanProcessor;
-  OTelContextUtils _contextUtils = OTelContextUtils();
-
   @override
   Future<void> start({
     FutureOr<void> Function()? action,
@@ -89,59 +82,8 @@ class Embrace implements EmbraceFlutterApi {
       'This parameter is obsolete and will be removed in a future release.',
     )
     bool enableIntegrationTesting = false,
-  }) async {
-    WidgetsFlutterBinding.ensureInitialized();
-
-    await EmbracePlatform.instance.attachToHostSdk(
-      enableIntegrationTesting: enableIntegrationTesting,
-    );
-
-    _lifecycleObserver = _LifecycleObserver(_onAppDetached);
-    WidgetsBinding.instance.addObserver(_lifecycleObserver!);
-
-    _spanProcessor = EmbraceSpanProcessor();
-
-    if (action != null) {
-      await _installErrorHandlers(action);
-    }
-  }
-
-  void _onAppDetached() {
-    _spanProcessor?.shutdown();
-  }
-
-  /// The span processor created during [start], or null before start is called.
-  ///
-  /// For testing only.
-  @visibleForTesting
-  EmbraceSpanProcessor? get spanProcessorForTesting => _spanProcessor;
-
-  /// Overrides the span processor for testing.
-  ///
-  /// For testing only — inject a pre-configured processor to verify wiring.
-  @visibleForTesting
-  set spanProcessorForTesting(EmbraceSpanProcessor? processor) {
-    _spanProcessor = processor;
-  }
-
-  /// The [OTelContextUtils] instance used for span context tracking.
-  ///
-  /// For testing only — use this to inspect the current span in Context.
-  @visibleForTesting
-  OTelContextUtils get contextUtilsForTesting => _contextUtils;
-
-  /// Shuts down the span processor and removes the lifecycle observer.
-  ///
-  /// For testing only — call in tearDown to clean up singleton state.
-  @visibleForTesting
-  Future<void> resetForTesting() async {
-    await _spanProcessor?.shutdown();
-    _spanProcessor = null;
-    _contextUtils = OTelContextUtils();
-    if (_lifecycleObserver != null) {
-      WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
-      _lifecycleObserver = null;
-    }
+  }) {
+    return _start(action, enableIntegrationTesting);
   }
 
   @override
@@ -209,12 +151,6 @@ class Embrace implements EmbraceFlutterApi {
 
   @override
   Future<String?> generateW3cTraceparent(String? traceId, String? spanId) {
-    // Check Dart-side OTel Context first — use the current span's SpanContext
-    // to generate a traceparent without a native round-trip.
-    final dartTraceparent = _contextUtils.currentTraceparent();
-    if (dartTraceparent != null) return Future.value(dartTraceparent);
-
-    // Fall back to native method channel when no Dart-side span exists.
     return _runCatchingAndReturn<String?>(
       'generateW3cTraceparent',
       () => _platform.generateW3cTraceparent(traceId, spanId),
@@ -399,34 +335,13 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<EmbraceSpan?>(
       'startSpan',
       () async {
-        // Explicit parent takes precedence over the Context current span.
-        final effectiveParentSpanId =
-            parent?.id ?? _contextUtils.currentSpan()?.embraceSpan.id;
         final id = await _platform.startSpan(
           name,
-          parentSpanId: effectiveParentSpanId,
+          parentSpanId: parent?.id,
           startTimeMs: startTimeMs,
         );
         if (id != null) {
-          final startDateTime = startTimeMs != null
-              ? DateTime.fromMillisecondsSinceEpoch(startTimeMs)
-              : DateTime.now();
-          final impl = EmbraceSpanImpl(
-            id,
-            _platform,
-            spanName: name,
-            startTime: startDateTime,
-            processor: _spanProcessor,
-          );
-          // Create an OTelSpanAdapter and register it as the current span in
-          // OTel Context. The previous span (if any) is stored so that
-          // stop() can restore it.
-          final adapter = await OTelSpanAdapter.create(
-            name,
-            _SpanImplDelegate(impl),
-          );
-          impl.attachOTelContext(adapter, _contextUtils);
-          return impl;
+          return Future.value(EmbraceSpanImpl(id, _platform));
         } else {
           return Future.value();
         }
@@ -448,39 +363,15 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<bool>(
       'recordCompletedSpan',
       () async {
-        final convertedEvents = _convertSpanEvents(events);
-        final result = await _platform.recordCompletedSpan(
+        return _platform.recordCompletedSpan(
           name,
           startTimeMs,
           endTimeMs,
           errorCode: errorCode,
           parentSpanId: parent?.id,
           attributes: attributes,
-          events: convertedEvents,
+          events: _convertSpanEvents(events),
         );
-        final processor = _spanProcessor;
-        if (processor != null) {
-          // The native SDK owns span and trace IDs for recordCompletedSpan.
-          // There is no API to retrieve them, so the OTel-invalid all-zeros
-          // sentinels are used. Exported spans will not be correlatable with
-          // native telemetry for this code path.
-          unawaited(
-            processor.onEnd(
-              ReadableSpanData.fromRaw(
-                name: name,
-                spanId: _invalidSpanId,
-                traceId: _invalidTraceId,
-                startTimeMs: startTimeMs,
-                endTimeMs: endTimeMs,
-                errorCode: errorCode,
-                attributes: attributes,
-                events: convertedEvents,
-                resource: processor.resource,
-              ),
-            ),
-          );
-        }
-        return result;
       },
       defaultValue: false,
     );
@@ -497,41 +388,13 @@ class Embrace implements EmbraceFlutterApi {
     return _runCatchingAndReturn<T>(
       'recordSpan',
       () async {
-        final startTime = DateTime.now();
-        final convertedEvents = _convertSpanEvents(events);
-        final result = await _platform.recordSpan(
+        return _platform.recordSpan(
           name,
           code: code,
           parentSpanId: parent?.id,
           attributes: attributes,
-          events: convertedEvents,
+          events: _convertSpanEvents(events),
         );
-        // endTime is captured after the platform call returns. This includes
-        // method-channel round-trip overhead in addition to the user's callback
-        // duration, which is an accepted limitation for this code path.
-        //
-        // The native SDK owns span and trace IDs for recordSpan; the
-        // OTel-invalid all-zeros sentinels are used since there is no API to
-        // retrieve them. Exported spans will not be correlatable with native
-        // telemetry for this code path.
-        final processor = _spanProcessor;
-        if (processor != null) {
-          unawaited(
-            processor.onEnd(
-              ReadableSpanData.fromRaw(
-                name: name,
-                spanId: _invalidSpanId,
-                traceId: _invalidTraceId,
-                startTimeMs: startTime.millisecondsSinceEpoch,
-                endTimeMs: DateTime.now().millisecondsSinceEpoch,
-                attributes: attributes,
-                events: convertedEvents,
-                resource: processor.resource,
-              ),
-            ),
-          );
-        }
-        return result;
       },
       defaultValue: _defaultFor<T>(),
     );
@@ -575,6 +438,21 @@ Future<T> _runCatchingAndReturn<T>(
   } catch (e) {
     EmbracePlatform.instance.logInternalError(message, e.toString());
     return defaultValue;
+  }
+}
+
+Future<void> _start(
+  FutureOr<void> Function()? action,
+  bool enableIntegrationTesting,
+) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await EmbracePlatform.instance.attachToHostSdk(
+    enableIntegrationTesting: enableIntegrationTesting,
+  );
+
+  if (action != null) {
+    await _installErrorHandlers(action);
   }
 }
 
@@ -656,12 +534,6 @@ void _processFlutterError(FlutterErrorDetails details) {
   );
 }
 
-/// OTel-invalid all-zeros span ID (16 hex chars).
-const _invalidSpanId = '0000000000000000';
-
-/// OTel-invalid all-zeros trace ID (32 hex chars).
-const _invalidTraceId = '00000000000000000000000000000000';
-
 /// Processes an error caught in Embrace's global zone.
 void _processGlobalZoneError(Object error, StackTrace stack) {
   EmbracePlatform.instance.logDartError(
@@ -677,79 +549,16 @@ void _processGlobalZoneError(Object error, StackTrace stack) {
 /// not use this directly as function signatures may change without warning.
 class EmbraceSpanImpl extends EmbraceSpan {
   /// Constructor
-  EmbraceSpanImpl(
-    super.id,
-    this._platform, {
-    String spanName = '',
-    DateTime? startTime,
-    EmbraceSpanProcessor? processor,
-  })  : _name = spanName,
-        _startTime = startTime ?? DateTime.now(),
-        _processor = processor;
+  EmbraceSpanImpl(super.id, this._platform);
 
   final EmbracePlatform _platform;
-  final String _name;
-
-  final DateTime _startTime;
-  final EmbraceSpanProcessor? _processor;
-  OTelSpanAdapter? _otelAdapter;
-  late Context _previousContext;
-  OTelContextUtils? _contextUtils;
-
-  /// Attaches OTel context tracking to this span and sets it as current.
-  ///
-  /// Registers [adapter] as the current span in [contextUtils], storing the
-  /// previous [Context] so it can be fully reinstated when [stop] is called,
-  /// following the OTel scope/token pattern.
-  void attachOTelContext(
-    OTelSpanAdapter adapter,
-    OTelContextUtils contextUtils,
-  ) {
-    _otelAdapter = adapter;
-    _contextUtils = contextUtils;
-    _previousContext = contextUtils.setCurrent(adapter);
-  }
 
   @override
-  Future<String> get traceId async =>
-      await _platform.getTraceId(id) ?? '0' * 32;
+  Future<String?> get traceId async => _platform.getTraceId(id);
 
   @override
-  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) async {
-    final result = await _platform.stopSpan(
-      id,
-      errorCode: errorCode,
-      endTimeMs: endTimeMs,
-    );
-    if (_otelAdapter != null) {
-      _otelAdapter!.markEnded(errorCode: errorCode, endTimeMs: endTimeMs);
-      _contextUtils?.restore(_previousContext);
-      _otelAdapter = null;
-    }
-    final processor = _processor;
-    if (processor != null) {
-      unawaited(_notifyProcessorOnEnd(processor, errorCode, endTimeMs));
-    }
-    return result;
-  }
-
-  Future<void> _notifyProcessorOnEnd(
-    EmbraceSpanProcessor processor,
-    ErrorCode? errorCode,
-    int? endTimeMs,
-  ) async {
-    final rawTraceId = await traceId;
-    await processor.onEnd(
-      ReadableSpanData.fromRaw(
-        name: _name,
-        spanId: id,
-        traceId: rawTraceId,
-        startTimeMs: _startTime.millisecondsSinceEpoch,
-        endTimeMs: endTimeMs ?? DateTime.now().millisecondsSinceEpoch,
-        errorCode: errorCode,
-        resource: processor.resource,
-      ),
-    );
+  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) {
+    return _platform.stopSpan(id, errorCode: errorCode, endTimeMs: endTimeMs);
   }
 
   @override
@@ -769,48 +578,5 @@ class EmbraceSpanImpl extends EmbraceSpan {
   @override
   Future<bool> addAttribute(String key, String value) {
     return _platform.addSpanAttribute(id, key, value);
-  }
-}
-
-/// Adapts an [EmbraceSpanImpl] to [EmbraceSpanDelegate] via composition so
-/// that [OTelSpanAdapter] can wrap it without requiring inheritance.
-class _SpanImplDelegate implements EmbraceSpanDelegate {
-  const _SpanImplDelegate(this._impl);
-
-  final EmbraceSpanImpl _impl;
-
-  @override
-  String get id => _impl.id;
-
-  @override
-  Future<String> get traceId => _impl.traceId;
-
-  @override
-  Future<bool> stop({ErrorCode? errorCode, int? endTimeMs}) =>
-      _impl.stop(errorCode: errorCode, endTimeMs: endTimeMs);
-
-  @override
-  Future<bool> addEvent(
-    String name, {
-    int? timestampMs,
-    Map<String, String>? attributes,
-  }) =>
-      _impl.addEvent(name, timestampMs: timestampMs, attributes: attributes);
-
-  @override
-  Future<bool> addAttribute(String key, String value) =>
-      _impl.addAttribute(key, value);
-}
-
-class _LifecycleObserver extends WidgetsBindingObserver {
-  _LifecycleObserver(this._onDetached);
-
-  final void Function() _onDetached;
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      _onDetached();
-    }
   }
 }
