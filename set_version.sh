@@ -16,6 +16,12 @@ fi
 
 new_version=$1
 
+# Compute next minor version for range constraint e.g. 4.4.0 -> ">=4.4.0 <4.5.0"
+IFS='.' read -r major minor patch <<< "$new_version"
+next_minor=$((minor + 1))
+range_version=">=\${major}.\${minor}.\${patch} <\${major}.\${next_minor}.0"
+caret_version="^\${major}.\${minor}.\${patch}"
+
 declare -r EMBRACE_PUBSPEC_PATH='embrace/pubspec.yaml'
 declare -r EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH='embrace_platform_interface/pubspec.yaml'
 declare -r EMBRACE_ANDROID_PUBSPEC_PATH='embrace_android/pubspec.yaml'
@@ -36,26 +42,25 @@ set_package_version () {
 set_dependency_version () {
     local pubspec_path=$1
     local dependency_name=$2
+    local constraint=$3
 
-    yq -e "$dependency_name = \"$new_version\"" -i $pubspec_path 
+    yq -e "$dependency_name = \"$constraint\"" -i $pubspec_path
 }
 
-set_package_version $EMBRACE_PUBSPEC_PATH 
+set_package_version $EMBRACE_PUBSPEC_PATH
 set_package_version $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 set_package_version $EMBRACE_ANDROID_PUBSPEC_PATH
 set_package_version $EMBRACE_IOS_PUBSPEC_PATH
 set_package_version $EMBRACE_DIO_PUBSPEC_PATH
 
-set_dependency_version $EMBRACE_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_PUBSPEC_PATH $ANDROID_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_PUBSPEC_PATH $IOS_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_ANDROID_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_IOS_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $EMBRACE_DEPENDENCY_NAME
-set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME
+set_dependency_version $EMBRACE_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME "$range_version"
+set_dependency_version $EMBRACE_PUBSPEC_PATH $ANDROID_DEPENDENCY_NAME "$range_version"
+set_dependency_version $EMBRACE_PUBSPEC_PATH $IOS_DEPENDENCY_NAME "$range_version"
+set_dependency_version $EMBRACE_ANDROID_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME "$range_version"
+set_dependency_version $EMBRACE_IOS_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME "$range_version"
+set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $EMBRACE_DEPENDENCY_NAME "$caret_version"
+set_dependency_version $EMBRACE_DIO_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME "$range_version"
 
-# Delete generated version script and regenerate
-cd embrace_platform_interface
-rm lib/src/version.dart
-dart run build_runner build
-cd ..
+# Regenerate version.dart
+echo "// Generated code. Do not modify.
+const packageVersion = '$new_version';" > embrace_platform_interface/lib/src/version.dart
