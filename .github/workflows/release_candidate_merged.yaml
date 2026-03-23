@@ -13,7 +13,7 @@ jobs:
   publish:
     if: contains(github.event.pull_request.labels.*.name, 'release-candidate') && github.event.pull_request.merged == true
     name: Publish Release
-    uses: ./.github/workflows/release.yaml
+    uses: ./.github/workflows/release.yaml # zizmor: ignore[secrets-inherit]
     with:
       dry-run: false
     secrets: inherit

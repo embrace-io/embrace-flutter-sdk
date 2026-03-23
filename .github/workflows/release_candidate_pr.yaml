@@ -10,7 +10,7 @@ jobs:
   rc-publish-dry-run:
     name: Publish Release (dry-run)
     if: contains(github.event.pull_request.labels.*.name, 'release-candidate')
-    uses: ./.github/workflows/release.yaml
+    uses: ./.github/workflows/release.yaml # zizmor: ignore[secrets-inherit]
     with:
       dry-run: true
     secrets: inherit
