@@ -70,6 +70,18 @@ void main() {
         .thenThrow(Exception('Request failed'));
   }
 
+  void mockHttpErrorAnswer(int statusCode) {
+    final httpResponse = ResponseBody.fromString(
+      '',
+      statusCode,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+    when(() => _mockAdapter.fetch(any(), any(), any()))
+        .thenAnswer((_) async => httpResponse);
+  }
+
   void verifySuccesfulHttpRequest(
     HttpMethod httpMethod,
     int bytesSent,
@@ -158,6 +170,50 @@ void main() {
 
       verifyFailedHttpRequest(HttpMethod.get);
     });
+    test('GET request with 401 response records status code', () async {
+      mockHttpErrorAnswer(401);
+
+      try {
+        // ignore: inference_failure_on_function_invocation
+        await _dio.get('/test_url');
+      } catch (dioError) {
+        // The error is expected
+      }
+
+      verify(
+        () => _embracePlatform.logNetworkRequest(
+          url: '/test_url',
+          method: HttpMethod.get,
+          startTime: any(named: 'startTime', that: _isRecentTimestamp),
+          endTime: any(named: 'endTime', that: _isRecentTimestamp),
+          bytesSent: 0,
+          bytesReceived: 0,
+          statusCode: 401,
+        ),
+      ).called(1);
+    });
+    test('GET request with 500 response records status code', () async {
+      mockHttpErrorAnswer(500);
+
+      try {
+        // ignore: inference_failure_on_function_invocation
+        await _dio.get('/test_url');
+      } catch (dioError) {
+        // The error is expected
+      }
+
+      verify(
+        () => _embracePlatform.logNetworkRequest(
+          url: '/test_url',
+          method: HttpMethod.get,
+          startTime: any(named: 'startTime', that: _isRecentTimestamp),
+          endTime: any(named: 'endTime', that: _isRecentTimestamp),
+          bytesSent: 0,
+          bytesReceived: 0,
+          statusCode: 500,
+        ),
+      ).called(1);
+    });
   });
 
   group('POST requests', () {
@@ -170,6 +226,16 @@ void main() {
         '/test_url',
         data: json.encode(body),
       );
+
+      verifySuccesfulHttpRequest(HttpMethod.post, 44, 28);
+    });
+    test('Successful POST request with Map body calculates bytesSent',
+        () async {
+      mockSuccessfulAnswer();
+
+      final body = {'param': 'this is a param in the POST body'};
+      // ignore: inference_failure_on_function_invocation
+      await _dio.post('/test_url', data: body);
 
       verifySuccesfulHttpRequest(HttpMethod.post, 44, 28);
     });
