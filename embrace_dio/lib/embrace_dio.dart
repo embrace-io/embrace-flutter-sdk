@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
@@ -35,12 +36,8 @@ class EmbraceInterceptor extends Interceptor {
       final method = httpMethodFromString(request.method);
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
-      var bytesSent = 0;
       final w3cTraceparent = await _addTraceparentHeader(request);
-
-      if (request.data is String) {
-        bytesSent = (request.data as String).length;
-      }
+      final bytesSent = _calculateBytesSent(request);
       var bytesReceived = 0;
       final header = response.headers.value(_contentLengthHeaderName);
       if (header != null) {
@@ -90,23 +87,77 @@ class EmbraceInterceptor extends Interceptor {
       final startTime = _startTimes[request] ?? 0;
       final endTime = DateTime.now().millisecondsSinceEpoch;
       final w3cTraceparent = await _addTraceparentHeader(request);
+      final response = err.response;
 
-      Embrace.instance.recordNetworkRequest(
-        EmbraceNetworkRequest.fromIncompleteRequest(
-          url: url,
-          httpMethod: method,
-          startTime: startTime,
-          endTime: endTime,
-          errorDetails: err.message?.toString() ?? '',
-          w3cTraceparent: w3cTraceparent,
-        ),
-      );
+      if (response?.statusCode != null) {
+        final bytesSent = _calculateBytesSent(request);
+        var bytesReceived = 0;
+        final header = response!.headers.value(_contentLengthHeaderName);
+
+        if (header != null) {
+          try {
+            bytesReceived = int.parse(header);
+          } catch (formatException) {
+            EmbracePlatform.instance.logInternalError(
+              'Could not parse Content-Length header',
+              formatException.toString(),
+            );
+          }
+        } else if (response.data != null) {
+          if (request.responseType == ResponseType.plain ||
+              request.responseType == ResponseType.json) {
+            bytesReceived = response.data.toString().length;
+          }
+        }
+
+        Embrace.instance.recordNetworkRequest(
+          EmbraceNetworkRequest.fromCompletedRequest(
+            url: url,
+            httpMethod: method,
+            startTime: startTime,
+            endTime: endTime,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived,
+            statusCode: response.statusCode!,
+            w3cTraceparent: w3cTraceparent,
+          ),
+        );
+      } else {
+        Embrace.instance.recordNetworkRequest(
+          EmbraceNetworkRequest.fromIncompleteRequest(
+            url: url,
+            httpMethod: method,
+            startTime: startTime,
+            endTime: endTime,
+            errorDetails: err.message?.toString() ?? '',
+            w3cTraceparent: w3cTraceparent,
+          ),
+        );
+      }
     } catch (e) {
       EmbracePlatform.instance
           .logInternalError('Could not capture network error', e.toString());
     } finally {
       handler.next(err);
     }
+  }
+
+  int _calculateBytesSent(RequestOptions request) {
+    final data = request.data;
+
+    if (data is String) {
+      return data.length;
+    } else if (data is List<int>) {
+      return data.length;
+    } else if (data is Map || data is List) {
+      try {
+        return jsonEncode(data).length;
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    return 0;
   }
 
   Future<String?> _addTraceparentHeader(
