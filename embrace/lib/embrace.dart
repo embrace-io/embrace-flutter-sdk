@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
+    hide Severity;
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/widgets.dart';
@@ -450,6 +453,12 @@ Future<void> _start(
   await EmbracePlatform.instance.attachToHostSdk(
     enableIntegrationTesting: enableIntegrationTesting,
   );
+
+  if (OTelFactory.otelFactory == null) {
+    OTelAPI.initialize(
+      oTelFactoryCreationFunction: EmbraceOTelFactory.new,
+    );
+  }
 
   if (action != null) {
     await _installErrorHandlers(action);
