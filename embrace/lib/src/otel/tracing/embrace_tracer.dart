@@ -78,6 +78,9 @@ class EmbraceTracer implements APITracer {
       kind: kind,
     );
 
+    if (attributes != null) span.addAttributes(attributes);
+    links?.forEach(span.addSpanLink);
+
     Context.current = effectiveContext.setCurrentSpan(span);
     return span;
   }
@@ -124,7 +127,7 @@ class EmbraceTracer implements APITracer {
       startTimeMs: startTime?.millisecondsSinceEpoch,
     );
 
-    return EmbraceOTelSpan(
+    final span = EmbraceOTelSpan(
       name: name,
       nativeSpanId: nativeSpanId,
       spanContext: otelSpanContext,
@@ -133,6 +136,12 @@ class EmbraceTracer implements APITracer {
       kind: kind,
       startTime: startTime,
     );
+
+    if (attributes != null) span.addAttributes(attributes);
+    links?.forEach(span.addSpanLink);
+    spanEvents?.forEach(span.addEvent);
+
+    return span;
   }
 
   @override
