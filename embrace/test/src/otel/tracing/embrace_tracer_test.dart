@@ -23,6 +23,27 @@ void _stubStartSpan(MockEmbracePlatform platform) {
   ).thenAnswer((_) async => 'span-id-123');
 }
 
+void _stubSpanMutations(MockEmbracePlatform platform) {
+  when(
+    () => platform.addSpanAttribute(any(), any(), any()),
+  ).thenAnswer((_) async => true);
+
+  when(
+    () => platform.addSpanEvent(
+      any(),
+      any(),
+      timestampMs: any(named: 'timestampMs'),
+      attributes: any(named: 'attributes'),
+    ),
+  ).thenAnswer((_) async => true);
+
+  when(
+    () => platform.addSpanLink(any(), any(), any(), any()),
+  ).thenAnswer((_) async => true);
+}
+
+Future<void> _pump() => Future.microtask(() {});
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -102,6 +123,43 @@ void main() {
 
         expect(span, isA<APISpan>());
       });
+
+      test('forwards attributes to addSpanAttribute', () async {
+        _stubStartSpan(platform);
+        _stubSpanMutations(platform);
+
+        tracer.startSpan('op', attributes: Attributes.of({'k': 'v'}));
+        await _pump();
+
+        verify(
+          () => platform.addSpanAttribute('span-id-123', 'k', 'v'),
+        ).called(1);
+      });
+
+      test('forwards links to addSpanLink', () async {
+        _stubStartSpan(platform);
+        _stubSpanMutations(platform);
+
+        final linkedTraceId = OTelFactory.otelFactory!.traceId();
+        final linkedSpanId = OTelFactory.otelFactory!.spanId();
+        final linkedContext = OTelFactory.otelFactory!.spanContext(
+          traceId: linkedTraceId,
+          spanId: linkedSpanId,
+          parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
+        );
+        final link = SpanLinkCreate.create(spanContext: linkedContext);
+        tracer.startSpan('op', links: [link]);
+        await _pump();
+
+        verify(
+          () => platform.addSpanLink(
+            'span-id-123',
+            linkedTraceId.toString(),
+            linkedSpanId.toString(),
+            any(),
+          ),
+        ).called(1);
+      });
     });
 
     group('createSpan', () {
@@ -163,6 +221,64 @@ void main() {
         final span = tracer.createSpan(name: 'op');
 
         expect(span, isA<APISpan>());
+      });
+
+      test('forwards attributes to addSpanAttribute', () async {
+        _stubStartSpan(platform);
+        _stubSpanMutations(platform);
+
+        tracer.createSpan(name: 'op', attributes: Attributes.of({'k': 'v'}));
+        await _pump();
+
+        verify(
+          () => platform.addSpanAttribute('span-id-123', 'k', 'v'),
+        ).called(1);
+      });
+
+      test('forwards links to addSpanLink', () async {
+        _stubStartSpan(platform);
+        _stubSpanMutations(platform);
+
+        final linkedTraceId = OTelFactory.otelFactory!.traceId();
+        final linkedSpanId = OTelFactory.otelFactory!.spanId();
+        final linkedContext = OTelFactory.otelFactory!.spanContext(
+          traceId: linkedTraceId,
+          spanId: linkedSpanId,
+          parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
+        );
+        final link = SpanLinkCreate.create(spanContext: linkedContext);
+        tracer.createSpan(name: 'op', links: [link]);
+        await _pump();
+
+        verify(
+          () => platform.addSpanLink(
+            'span-id-123',
+            linkedTraceId.toString(),
+            linkedSpanId.toString(),
+            any(),
+          ),
+        ).called(1);
+      });
+
+      test('forwards spanEvents to addSpanEvent', () async {
+        _stubStartSpan(platform);
+        _stubSpanMutations(platform);
+
+        final event = SpanEventCreate.create(
+          name: 'my-event',
+          timestamp: DateTime.now(),
+        );
+        tracer.createSpan(name: 'op', spanEvents: [event]);
+        await _pump();
+
+        verify(
+          () => platform.addSpanEvent(
+            'span-id-123',
+            'my-event',
+            timestampMs: any(named: 'timestampMs'),
+            attributes: any(named: 'attributes'),
+          ),
+        ).called(1);
       });
     });
 

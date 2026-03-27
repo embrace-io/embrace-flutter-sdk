@@ -41,6 +41,12 @@ void main() {
               return true;
             case 'addSpanAttribute':
               return true;
+            case 'setSpanStatus':
+              return true;
+            case 'updateSpanName':
+              return true;
+            case 'addSpanLink':
+              return true;
             case 'recordCompletedSpan':
               return true;
             default:
@@ -1200,6 +1206,146 @@ void main() {
       test('throws StateError if not started', () {
         expect(
           () => methodChannelEmbrace.addSpanAttribute(spanId, key, value),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('setSpanStatus', () {
+      const spanId = '__spanId__';
+      const description = '__description__';
+
+      test('invokes setSpanStatus with error status and description', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.setSpanStatus(
+          spanId,
+          SpanStatusCode.error,
+          description: description,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'setSpanStatus',
+              arguments: {
+                'spanId': spanId,
+                'statusCode': 'error',
+                'description': description,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('omits description when not provided', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.setSpanStatus(
+          spanId,
+          SpanStatusCode.ok,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'setSpanStatus',
+              arguments: {
+                'spanId': spanId,
+                'statusCode': 'ok',
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.setSpanStatus(
+            spanId,
+            SpanStatusCode.error,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('updateSpanName', () {
+      const spanId = '__spanId__';
+      const name = '__name__';
+
+      test('invokes updateSpanName method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.updateSpanName(spanId, name);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'updateSpanName',
+              arguments: {
+                'spanId': spanId,
+                'name': name,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.updateSpanName(spanId, name),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('addSpanLink', () {
+      const spanId = '__spanId__';
+      const linkedTraceId = '__linkedTraceId__';
+      const linkedSpanId = '__linkedSpanId__';
+      const attributes = {'key': 'value'};
+
+      test('invokes addSpanLink method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        await methodChannelEmbrace.addSpanLink(
+          spanId,
+          linkedTraceId,
+          linkedSpanId,
+          attributes,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addSpanLink',
+              arguments: {
+                'spanId': spanId,
+                'linkedTraceId': linkedTraceId,
+                'linkedSpanId': linkedSpanId,
+                'attributes': attributes,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.addSpanLink(
+            spanId,
+            linkedTraceId,
+            linkedSpanId,
+            attributes,
+          ),
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);
