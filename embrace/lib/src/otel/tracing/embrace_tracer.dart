@@ -58,7 +58,6 @@ class EmbraceTracer implements APITracer {
         name,
         parentSpanId:
             _resolveParentSpanId(parentSpan: parentSpan, context: context),
-        kind: kind.name,
       ),
     );
 
@@ -110,7 +109,6 @@ class EmbraceTracer implements APITracer {
         parentSpanId:
             _resolveParentSpanId(parentSpan: parentSpan, context: context),
         startTimeMs: startTime?.millisecondsSinceEpoch,
-        kind: kind.name,
       ),
     );
 
