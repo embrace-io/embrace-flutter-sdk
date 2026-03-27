@@ -139,19 +139,19 @@ class EmbraceOTelSpan implements otel.APISpan {
 
   @override
   void setStringListAttribute<T>(String name, List<String> value) =>
-      _setAttribute(name, value.toString());
+      _setAttribute(name, value.join(','));
 
   @override
   void setBoolListAttribute(String name, List<bool> value) =>
-      _setAttribute(name, value.toString());
+      _setAttribute(name, value.join(','));
 
   @override
   void setIntListAttribute(String name, List<int> value) =>
-      _setAttribute(name, value.toString());
+      _setAttribute(name, value.join(','));
 
   @override
   void setDoubleListAttribute(String name, List<double> value) =>
-      _setAttribute(name, value.toString());
+      _setAttribute(name, value.join(','));
 
   @override
   void addAttributes(otel.Attributes attrs) {
