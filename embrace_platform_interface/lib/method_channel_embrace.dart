@@ -55,6 +55,9 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _addSpanAttributeMethodName = 'addSpanAttribute';
   static const String _recordCompletedSpanMethodName = 'recordCompletedSpan';
   static const String _getTraceIdMethodName = 'getTraceId';
+  static const String _setSpanStatusMethodName = 'setSpanStatus';
+  static const String _updateSpanNameMethodName = 'updateSpanName';
+  static const String _addSpanLinkMethodName = 'addSpanLink';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -109,6 +112,9 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _eventsArgName = 'events';
   static const String _attributesArgName = 'attributes';
   static const String _kindArgName = 'kind';
+  static const String _descriptionArgName = 'description';
+  static const String _linkedTraceIdArgName = 'linkedTraceId';
+  static const String _linkedSpanIdArgName = 'linkedSpanId';
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
@@ -627,6 +633,45 @@ class MethodChannelEmbrace extends EmbracePlatform {
     return methodChannel.invokeMethod<String>(_getTraceIdMethodName, {
       _spanIdArgName: spanId,
     });
+  }
+
+  @override
+  Future<bool> setSpanStatus(
+    String spanId,
+    SpanStatusCode statusCode, {
+    String? description,
+  }) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_setSpanStatusMethodName, {
+      _spanIdArgName: spanId,
+      _statusCodeArgName: statusCode.name,
+      if (description != null) _descriptionArgName: description,
+    }) as bool;
+  }
+
+  @override
+  Future<bool> updateSpanName(String spanId, String name) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_updateSpanNameMethodName, {
+      _spanIdArgName: spanId,
+      _nameArgName: name,
+    }) as bool;
+  }
+
+  @override
+  Future<bool> addSpanLink(
+    String spanId,
+    String linkedTraceId,
+    String linkedSpanId,
+    Map<String, String> attributes,
+  ) async {
+    throwIfNotStarted();
+    return await methodChannel.invokeMethod(_addSpanLinkMethodName, {
+      _spanIdArgName: spanId,
+      _linkedTraceIdArgName: linkedTraceId,
+      _linkedSpanIdArgName: linkedSpanId,
+      _attributesArgName: attributes,
+    }) as bool;
   }
 
   /// Throws a [StateError] if the SDK has not been started.
