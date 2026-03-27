@@ -523,14 +523,13 @@ class MethodChannelEmbrace extends EmbracePlatform {
     String name, {
     String? parentSpanId,
     int? startTimeMs,
-    String? kind,
   }) async {
     throwIfNotStarted();
     return methodChannel.invokeMethod(_startSpanMethodName, {
       _nameArgName: name,
       _parentSpanIdArgName: parentSpanId,
       _startTimeMsArgName: startTimeMs,
-      _kindArgName: kind ?? 'internal',
+      _kindArgName: 'internal',
     });
   }
 
