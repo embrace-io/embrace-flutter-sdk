@@ -94,11 +94,13 @@ class EmbraceOTelSpan implements otel.APISpan {
   @override
   otel.SpanKind get kind => _kind;
 
-  /// Returns an empty unmodifiable list — span events are owned by the native SDK.
+  /// Returns an empty unmodifiable list — span events are owned by the
+  /// native SDK.
   @override
   List<otel.SpanEvent>? get spanEvents => const [];
 
-  /// Returns an empty unmodifiable list — span links are owned by the native SDK.
+  /// Returns an empty unmodifiable list — span links are owned by the
+  /// native SDK.
   @override
   List<otel.SpanLink>? get spanLinks => const [];
 
