@@ -145,6 +145,38 @@ void main() {
         ).called(1);
       });
 
+      test('setStringListAttribute joins with comma', () async {
+        span.setStringListAttribute<String>('k', ['a', 'b', 'c']);
+        await _pump();
+        verify(
+          () => platform.addSpanAttribute(_spanId, 'k', 'a,b,c'),
+        ).called(1);
+      });
+
+      test('setBoolListAttribute joins with comma', () async {
+        span.setBoolListAttribute('k', [true, false, true]);
+        await _pump();
+        verify(
+          () => platform.addSpanAttribute(_spanId, 'k', 'true,false,true'),
+        ).called(1);
+      });
+
+      test('setIntListAttribute joins with comma', () async {
+        span.setIntListAttribute('k', [1, 2, 3]);
+        await _pump();
+        verify(
+          () => platform.addSpanAttribute(_spanId, 'k', '1,2,3'),
+        ).called(1);
+      });
+
+      test('setDoubleListAttribute joins with comma', () async {
+        span.setDoubleListAttribute('k', [1.1, 2.2, 3.3]);
+        await _pump();
+        verify(
+          () => platform.addSpanAttribute(_spanId, 'k', '1.1,2.2,3.3'),
+        ).called(1);
+      });
+
       test('attribute setters are no-ops after end', () async {
         span
           ..end()
@@ -342,6 +374,25 @@ void main() {
             {'link-key': 'link-val'},
           ),
         ).called(1);
+      });
+    });
+
+    group('updateName', () {
+      test('calls updateSpanName and updates name getter', () async {
+        span.updateName('new-name');
+        await _pump();
+        expect(span.name, 'new-name');
+        verify(
+          () => platform.updateSpanName(_spanId, 'new-name'),
+        ).called(1);
+      });
+
+      test('is a no-op after end', () async {
+        span
+          ..end()
+          ..updateName('too-late');
+        await _pump();
+        verifyNever(() => platform.updateSpanName(any(), any()));
       });
     });
 
