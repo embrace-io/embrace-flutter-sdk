@@ -19,7 +19,6 @@ void _stubStartSpan(MockEmbracePlatform platform) {
       any(),
       parentSpanId: any(named: 'parentSpanId'),
       startTimeMs: any(named: 'startTimeMs'),
-      kind: any(named: 'kind'),
     ),
   ).thenAnswer((_) async => 'span-id-123');
 }
@@ -50,24 +49,12 @@ void main() {
 
   group('EmbraceTracer', () {
     group('startSpan', () {
-      test('calls platform with name and default kind', () {
+      test('calls platform with name', () {
         _stubStartSpan(platform);
 
         tracer.startSpan('op');
 
-        verify(
-          () => platform.startSpan('op', kind: 'internal'),
-        ).called(1);
-      });
-
-      test('passes kind: client when SpanKind.client is given', () {
-        _stubStartSpan(platform);
-
-        tracer.startSpan('op', kind: SpanKind.client);
-
-        verify(
-          () => platform.startSpan('op', kind: 'client'),
-        ).called(1);
+        verify(() => platform.startSpan('op')).called(1);
       });
 
       test('passes parentSpanId when explicit parentSpan is given', () {
@@ -82,7 +69,6 @@ void main() {
           () => platform.startSpan(
             'child',
             parentSpanId: expectedParentId,
-            kind: 'internal',
           ),
         ).called(1);
       });
@@ -92,9 +78,7 @@ void main() {
 
         tracer.startSpan('root');
 
-        verify(
-          () => platform.startSpan('root', kind: 'internal'),
-        ).called(1);
+        verify(() => platform.startSpan('root')).called(1);
       });
 
       test('returns a no-op span without calling platform when disabled', () {
@@ -107,7 +91,6 @@ void main() {
             any(),
             parentSpanId: any(named: 'parentSpanId'),
             startTimeMs: any(named: 'startTimeMs'),
-            kind: any(named: 'kind'),
           ),
         );
       });
@@ -122,24 +105,12 @@ void main() {
     });
 
     group('createSpan', () {
-      test('calls platform with name and default kind', () {
+      test('calls platform with name', () {
         _stubStartSpan(platform);
 
         tracer.createSpan(name: 'op');
 
-        verify(
-          () => platform.startSpan('op', kind: 'internal'),
-        ).called(1);
-      });
-
-      test('passes kind: server when SpanKind.server is given', () {
-        _stubStartSpan(platform);
-
-        tracer.createSpan(name: 'op', kind: SpanKind.server);
-
-        verify(
-          () => platform.startSpan('op', kind: 'server'),
-        ).called(1);
+        verify(() => platform.startSpan('op')).called(1);
       });
 
       test('passes startTimeMs when startTime is given', () {
@@ -152,7 +123,6 @@ void main() {
           () => platform.startSpan(
             'op',
             startTimeMs: 1234567890,
-            kind: 'internal',
           ),
         ).called(1);
       });
@@ -169,7 +139,6 @@ void main() {
           () => platform.startSpan(
             'child',
             parentSpanId: expectedParentId,
-            kind: 'internal',
           ),
         ).called(1);
       });
@@ -184,7 +153,6 @@ void main() {
             any(),
             parentSpanId: any(named: 'parentSpanId'),
             startTimeMs: any(named: 'startTimeMs'),
-            kind: any(named: 'kind'),
           ),
         );
       });

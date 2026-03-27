@@ -298,7 +298,6 @@ abstract class EmbracePlatform extends PlatformInterface {
     String name, {
     String? parentSpanId,
     int? startTimeMs,
-    String? kind,
   }) {
     throw UnimplementedError('startSpan() has not been implemented');
   }
