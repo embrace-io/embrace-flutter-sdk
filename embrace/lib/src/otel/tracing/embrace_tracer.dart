@@ -51,14 +51,12 @@ class EmbraceTracer implements APITracer {
       );
     }
 
-    final effectiveParent =
-        parentSpan ?? context?.span ?? Context.current.span;
-    final parentSpanId = effectiveParent?.spanContext.spanId.toString();
-
+    // The native Embrace SDK manages this span's lifecycle independently;
+    // we don't need the returned span ID in the Dart layer.
     unawaited(
       EmbracePlatform.instance.startSpan(
         name,
-        parentSpanId: parentSpanId,
+        parentSpanId: _resolveParentSpanId(parentSpan: parentSpan, context: context),
         kind: kind.name,
       ),
     );
@@ -103,14 +101,12 @@ class EmbraceTracer implements APITracer {
       );
     }
 
-    final effectiveParent =
-        parentSpan ?? context?.span ?? Context.current.span;
-    final parentSpanId = effectiveParent?.spanContext.spanId.toString();
-
+    // The native Embrace SDK manages this span's lifecycle independently;
+    // we don't need the returned span ID in the Dart layer.
     unawaited(
       EmbracePlatform.instance.startSpan(
         name,
-        parentSpanId: parentSpanId,
+        parentSpanId: _resolveParentSpanId(parentSpan: parentSpan, context: context),
         startTimeMs: startTime?.millisecondsSinceEpoch,
         kind: kind.name,
       ),
@@ -155,4 +151,9 @@ class EmbraceTracer implements APITracer {
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
       _delegate.withSpanAsync(span, fn);
+
+  String? _resolveParentSpanId({APISpan? parentSpan, Context? context}) {
+    final effectiveParent = parentSpan ?? context?.span ?? Context.current.span;
+    return effectiveParent?.spanContext.spanId.toString();
+  }
 }

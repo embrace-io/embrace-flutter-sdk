@@ -31,6 +31,10 @@ class EmbraceTracerProvider implements APITracerProvider {
   bool _enabled;
   bool _isShutdown;
 
+  /// Returns the single [EmbraceTracer] instance regardless of [name],
+  /// [version], [schemaUrl], or [attributes]. All instrumentation shares one
+  /// tracer because span creation is delegated entirely to the native Embrace
+  /// SDK, which does not distinguish between OTel instrumentation scopes.
   @override
   APITracer getTracer(
     String name, {
