@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:embrace/src/otel/tracing/embrace_otel_span.dart';
 import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:meta/meta.dart';
@@ -8,9 +9,8 @@ import 'package:meta/meta.dart';
 /// Embrace implementation of [APITracer].
 ///
 /// Overrides [startSpan] and [createSpan] to forward span creation to the
-/// native Embrace SDK via [EmbracePlatform]. All other tracing operations
-/// (context management, span linking, etc.) delegate to a no-op [APITracer]
-/// instance.
+/// native Embrace SDK via [EmbracePlatform] and return an [EmbraceOTelSpan]
+/// that routes subsequent operations through the platform channel.
 ///
 /// When [enabled] is false, both methods return a no-op span without calling
 /// the platform.
@@ -19,10 +19,13 @@ class EmbraceTracer implements APITracer {
   /// Creates an [EmbraceTracer] backed by [provider].
   EmbraceTracer({required EmbraceTracerProvider provider})
       : _provider = provider,
-        _delegate = TracerCreate.create(name: 'embrace');
+        _delegate = TracerCreate.create(name: 'embrace'),
+        _instrumentationScope =
+            InstrumentationScopeCreate.create(name: 'embrace');
 
   final EmbraceTracerProvider _provider;
   final APITracer _delegate;
+  final InstrumentationScope _instrumentationScope;
 
   @override
   bool get enabled => _provider.enabled && !_provider.isShutdown;
@@ -51,26 +54,32 @@ class EmbraceTracer implements APITracer {
       );
     }
 
-    // The native Embrace SDK manages this span's lifecycle independently;
-    // we don't need the returned span ID in the Dart layer.
-    unawaited(
-      EmbracePlatform.instance.startSpan(
-        name,
-        parentSpanId:
-            _resolveParentSpanId(parentSpan: parentSpan, context: context),
-      ),
+    final previousContext = Context.current;
+    final effectiveContext = context ?? Context.current;
+    final otelSpanContext = _buildSpanContext(
+      parentSpan: parentSpan,
+      context: effectiveContext,
+      spanContext: spanContext,
     );
 
-    return _delegate.startSpan(
+    final nativeSpanId = EmbracePlatform.instance.startSpan(
       name,
-      context: context,
-      spanContext: spanContext,
+      parentSpanId:
+          _resolveParentSpanId(parentSpan: parentSpan, context: context),
+    );
+
+    final span = EmbraceOTelSpan(
+      name: name,
+      nativeSpanId: nativeSpanId,
+      spanContext: otelSpanContext,
+      instrumentationScope: _instrumentationScope,
+      previousContext: previousContext,
       parentSpan: parentSpan,
       kind: kind,
-      attributes: attributes,
-      links: links,
-      isRecording: isRecording,
     );
+
+    Context.current = effectiveContext.setCurrentSpan(span);
+    return span;
   }
 
   @override
@@ -101,28 +110,28 @@ class EmbraceTracer implements APITracer {
       );
     }
 
-    // The native Embrace SDK manages this span's lifecycle independently;
-    // we don't need the returned span ID in the Dart layer.
-    unawaited(
-      EmbracePlatform.instance.startSpan(
-        name,
-        parentSpanId:
-            _resolveParentSpanId(parentSpan: parentSpan, context: context),
-        startTimeMs: startTime?.millisecondsSinceEpoch,
-      ),
+    final effectiveContext = context ?? Context.current;
+    final otelSpanContext = _buildSpanContext(
+      parentSpan: parentSpan,
+      context: effectiveContext,
+      spanContext: spanContext,
     );
 
-    return _delegate.createSpan(
+    final nativeSpanId = EmbracePlatform.instance.startSpan(
+      name,
+      parentSpanId:
+          _resolveParentSpanId(parentSpan: parentSpan, context: context),
+      startTimeMs: startTime?.millisecondsSinceEpoch,
+    );
+
+    return EmbraceOTelSpan(
       name: name,
-      spanContext: spanContext,
+      nativeSpanId: nativeSpanId,
+      spanContext: otelSpanContext,
+      instrumentationScope: _instrumentationScope,
       parentSpan: parentSpan,
       kind: kind,
-      attributes: attributes,
-      links: links,
-      spanEvents: spanEvents,
       startTime: startTime,
-      isRecording: isRecording,
-      context: context,
     );
   }
 
@@ -150,6 +159,33 @@ class EmbraceTracer implements APITracer {
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
       _delegate.withSpanAsync(span, fn);
+
+  SpanContext _buildSpanContext({
+    APISpan? parentSpan,
+    Context? context,
+    SpanContext? spanContext,
+  }) {
+    if (spanContext != null && spanContext.isValid) return spanContext;
+
+    final effectiveContext = context ?? Context.current;
+    final effectiveParent = parentSpan ?? effectiveContext.span;
+
+    if (effectiveParent != null) {
+      return OTelFactory.otelFactory!.spanContext(
+        traceId: effectiveParent.spanContext.traceId,
+        spanId: OTelFactory.otelFactory!.spanId(),
+        parentSpanId: effectiveParent.spanContext.spanId,
+        traceFlags: effectiveParent.spanContext.traceFlags,
+        traceState: effectiveParent.spanContext.traceState,
+      );
+    }
+
+    return OTelFactory.otelFactory!.spanContext(
+      traceId: OTelFactory.otelFactory!.traceId(),
+      spanId: OTelFactory.otelFactory!.spanId(),
+      parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
+    );
+  }
 
   String? _resolveParentSpanId({APISpan? parentSpan, Context? context}) {
     final effectiveParent = parentSpan ?? context?.span ?? Context.current.span;
