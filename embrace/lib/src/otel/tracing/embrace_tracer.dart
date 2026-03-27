@@ -56,7 +56,8 @@ class EmbraceTracer implements APITracer {
     unawaited(
       EmbracePlatform.instance.startSpan(
         name,
-        parentSpanId: _resolveParentSpanId(parentSpan: parentSpan, context: context),
+        parentSpanId:
+            _resolveParentSpanId(parentSpan: parentSpan, context: context),
         kind: kind.name,
       ),
     );
@@ -106,7 +107,8 @@ class EmbraceTracer implements APITracer {
     unawaited(
       EmbracePlatform.instance.startSpan(
         name,
-        parentSpanId: _resolveParentSpanId(parentSpan: parentSpan, context: context),
+        parentSpanId:
+            _resolveParentSpanId(parentSpan: parentSpan, context: context),
         startTimeMs: startTime?.millisecondsSinceEpoch,
         kind: kind.name,
       ),
@@ -145,8 +147,7 @@ class EmbraceTracer implements APITracer {
   APISpan? get currentSpan => _delegate.currentSpan;
 
   @override
-  T withSpan<T>(APISpan span, T Function() fn) =>
-      _delegate.withSpan(span, fn);
+  T withSpan<T>(APISpan span, T Function() fn) => _delegate.withSpan(span, fn);
 
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
