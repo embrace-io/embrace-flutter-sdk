@@ -26,6 +26,18 @@ enum ErrorCode {
   unknown
 }
 
+/// The status of an OTel span.
+enum SpanStatusCode {
+  /// The default status — no status has been set.
+  unset,
+
+  /// The span completed successfully.
+  ok,
+
+  /// The span completed with an error.
+  error,
+}
+
 /// The interface that implementations of embrace must implement.
 ///
 /// Platform implementations should extend this class
@@ -369,5 +381,33 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError(
       'getTraceId() has not been implemented',
     );
+  }
+
+  /// Sets the status of an active span.
+  ///
+  /// [description] is only relevant when [statusCode] is
+  /// [SpanStatusCode.error].
+  Future<bool> setSpanStatus(
+    String spanId,
+    SpanStatusCode statusCode, {
+    String? description,
+  }) {
+    throw UnimplementedError('setSpanStatus() has not been implemented');
+  }
+
+  /// Updates the name of an active span.
+  Future<bool> updateSpanName(String spanId, String name) {
+    throw UnimplementedError('updateSpanName() has not been implemented');
+  }
+
+  /// Adds a link from an active span to the span identified by
+  /// [linkedTraceId] and [linkedSpanId].
+  Future<bool> addSpanLink(
+    String spanId,
+    String linkedTraceId,
+    String linkedSpanId,
+    Map<String, String> attributes,
+  ) {
+    throw UnimplementedError('addSpanLink() has not been implemented');
   }
 }
