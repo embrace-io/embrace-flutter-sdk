@@ -108,6 +108,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _timestampMsArgName = 'timestampMs';
   static const String _eventsArgName = 'events';
   static const String _attributesArgName = 'attributes';
+  static const String _kindArgName = 'kind';
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
@@ -528,6 +529,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _nameArgName: name,
       _parentSpanIdArgName: parentSpanId,
       _startTimeMsArgName: startTimeMs,
+      _kindArgName: 'internal',
     });
   }
 
