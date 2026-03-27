@@ -1064,6 +1064,7 @@ void main() {
                 'name': name,
                 'parentSpanId': parentSpanId,
                 'startTimeMs': startTimeMs,
+                'kind': 'internal',
               },
             ),
           ),

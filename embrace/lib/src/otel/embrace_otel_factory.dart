@@ -1,4 +1,5 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
 import 'package:meta/meta.dart';
 
 /// Embrace implementation of [OTelFactory].
@@ -19,4 +20,17 @@ class EmbraceOTelFactory extends OTelAPIFactory {
     required super.apiServiceName,
     required super.apiServiceVersion,
   }) : super(factoryFactory: EmbraceOTelFactory.new);
+
+  @override
+  APITracerProvider tracerProvider({
+    required String endpoint,
+    String serviceName = OTelAPI.defaultServiceName,
+    String? serviceVersion = OTelAPI.defaultServiceVersion,
+  }) {
+    return EmbraceTracerProvider(
+      endpoint: endpoint,
+      serviceName: serviceName,
+      serviceVersion: serviceVersion,
+    );
+  }
 }
