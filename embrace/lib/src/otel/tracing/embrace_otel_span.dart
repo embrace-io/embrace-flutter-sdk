@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     as otel;
+import 'package:embrace/src/otel/context/otel_context_utils.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:meta/meta.dart';
 
@@ -318,7 +319,7 @@ class EmbraceOTelSpan implements otel.APISpan {
         ),
       ),
     );
-    if (_previousContext != null) otel.Context.current = _previousContext!;
+    if (_previousContext != null) OTelContextUtils.restore(_previousContext!);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

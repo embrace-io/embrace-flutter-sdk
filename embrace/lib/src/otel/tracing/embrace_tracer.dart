@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:embrace/src/otel/context/otel_context_utils.dart';
 import 'package:embrace/src/otel/tracing/embrace_otel_span.dart';
 import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -54,6 +55,11 @@ class EmbraceTracer implements APITracer {
       );
     }
 
+    // Capture the active context before the span exists so it can be stored
+    // on the span for restoration in end(). OTelContextUtils.attachSpan also
+    // captures Context.current internally, so its return value would equal
+    // previousContext — but the span must be constructed first, making this
+    // ordering unavoidable.
     final previousContext = Context.current;
     final effectiveContext = context ?? Context.current;
     final otelSpanContext = _buildSpanContext(
@@ -81,7 +87,7 @@ class EmbraceTracer implements APITracer {
     if (attributes != null) span.addAttributes(attributes);
     links?.forEach(span.addSpanLink);
 
-    Context.current = effectiveContext.setCurrentSpan(span);
+    OTelContextUtils.attachSpan(span);
     return span;
   }
 
@@ -160,14 +166,21 @@ class EmbraceTracer implements APITracer {
   set attributes(Attributes? value) => _delegate.attributes = value;
 
   @override
-  APISpan? get currentSpan => _delegate.currentSpan;
+  APISpan? get currentSpan => OTelContextUtils.currentSpan();
 
   @override
-  T withSpan<T>(APISpan span, T Function() fn) => _delegate.withSpan(span, fn);
+  T withSpan<T>(APISpan span, T Function() fn) {
+    final previous = OTelContextUtils.attachSpan(span);
+    try {
+      return fn();
+    } finally {
+      OTelContextUtils.restore(previous);
+    }
+  }
 
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
-      _delegate.withSpanAsync(span, fn);
+      Context.current.withSpan(span).run(fn);
 
   SpanContext _buildSpanContext({
     APISpan? parentSpan,

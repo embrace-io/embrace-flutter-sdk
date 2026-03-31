@@ -1,6 +1,8 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace.dart';
 // ignore: implementation_imports
+import 'package:embrace/src/otel/context/otel_context_utils.dart';
+// ignore: implementation_imports
 import 'package:embrace/src/otel/tracing/embrace_tracer.dart';
 // ignore: implementation_imports
 import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
@@ -296,6 +298,91 @@ void main() {
       await provider.shutdown();
 
       expect(tracer.enabled, isFalse);
+    });
+  });
+
+  group('context management', () {
+    setUp(() {
+      _stubStartSpan(platform);
+      when(
+        () => platform.stopSpan(any(), endTimeMs: any(named: 'endTimeMs')),
+      ).thenAnswer((_) async => true);
+    });
+
+    test('startSpan makes span current in context', () {
+      final span = tracer.startSpan('op');
+
+      expect(OTelContextUtils.currentSpan(), same(span));
+    });
+
+    test('after span.end(), previous span is current again', () {
+      final span = tracer.startSpan('op');
+      expect(OTelContextUtils.currentSpan(), same(span));
+
+      span.end();
+
+      expect(OTelContextUtils.currentSpan(), isNull);
+    });
+
+    test('nested startSpan produces correct parent chain', () {
+      final parent = tracer.startSpan('parent');
+      final child = tracer.startSpan('child');
+
+      expect(OTelContextUtils.currentSpan(), same(child));
+
+      child.end();
+      expect(OTelContextUtils.currentSpan(), same(parent));
+
+      parent.end();
+      expect(OTelContextUtils.currentSpan(), isNull);
+    });
+
+    test('createSpan does not push span to context', () {
+      tracer.createSpan(name: 'op');
+
+      expect(OTelContextUtils.currentSpan(), isNull);
+    });
+
+    test('withSpan sets span as current for the duration of fn', () {
+      final span = tracer.startSpan('outer');
+      APISpan? capturedSpan;
+
+      tracer.withSpan(span, () {
+        capturedSpan = OTelContextUtils.currentSpan();
+      });
+
+      expect(capturedSpan, same(span));
+    });
+
+    test('withSpan restores context after fn returns', () {
+      final span = tracer.startSpan('outer');
+      final beforeWith = OTelContextUtils.currentSpan();
+
+      tracer.withSpan(span, () {});
+
+      expect(OTelContextUtils.currentSpan(), same(beforeWith));
+    });
+
+    test('withSpanAsync propagates context across await boundaries', () async {
+      final span = tracer.startSpan('op');
+      APISpan? capturedSpan;
+
+      await tracer.withSpanAsync(span, () async {
+        await Future.microtask(() {});
+        capturedSpan = OTelContextUtils.currentSpan();
+      });
+
+      expect(capturedSpan, same(span));
+    });
+
+    test('currentSpan returns null when no span is active', () {
+      expect(tracer.currentSpan, isNull);
+    });
+
+    test('currentSpan reflects the active span', () {
+      final span = tracer.startSpan('op');
+
+      expect(tracer.currentSpan, same(span));
     });
   });
 }
