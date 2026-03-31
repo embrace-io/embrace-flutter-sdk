@@ -112,12 +112,16 @@ void main() {
       expect(W3cTraceContext.extract('00-abc'), isNull);
     });
 
-    test('returns null for wrong version', () {
+    test('parses header with non-00 version', () {
       final span = tracer.createSpan(name: 'test');
       final sc = span.spanContext;
-      final header = 'ff-${sc.traceId}-${sc.spanId}-01';
+      final header = 'ff-${sc.traceId.hexString}-${sc.spanId.hexString}-01';
 
-      expect(W3cTraceContext.extract(header), isNull);
+      final extracted = W3cTraceContext.extract(header);
+
+      expect(extracted, isNotNull);
+      expect(extracted!.traceId, sc.traceId);
+      expect(extracted.spanId, sc.spanId);
     });
 
     test('returns null for traceId with wrong length', () {
