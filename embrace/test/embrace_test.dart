@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
+    as otel;
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -40,6 +42,9 @@ void main() {
       embracePlatform = MockEmbracePlatform();
       EmbracePlatform.instance = embracePlatform;
     });
+
+    // ignore: invalid_use_of_visible_for_testing_member
+    tearDown(otel.OTelAPI.reset);
 
     group('instance', () {
       test('can be overridden with debugEmbraceOverride', () {
