@@ -111,7 +111,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _timestampMsArgName = 'timestampMs';
   static const String _eventsArgName = 'events';
   static const String _attributesArgName = 'attributes';
-  static const String _kindArgName = 'kind';
   static const String _descriptionArgName = 'description';
   static const String _linkedTraceIdArgName = 'linkedTraceId';
   static const String _linkedSpanIdArgName = 'linkedSpanId';
@@ -535,7 +534,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _nameArgName: name,
       _parentSpanIdArgName: parentSpanId,
       _startTimeMsArgName: startTimeMs,
-      _kindArgName: 'internal',
     });
   }
 
