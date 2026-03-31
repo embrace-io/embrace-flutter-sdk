@@ -18,21 +18,23 @@ class W3cTraceContext {
     if (!spanContext.isValid) return null;
     final flags =
         spanContext.traceFlags.asByte.toRadixString(16).padLeft(2, '0');
-    return '$_version-${spanContext.traceId}-${spanContext.spanId}-$flags';
+    final traceId = spanContext.traceId.hexString;
+    final spanId = spanContext.spanId.hexString;
+    return '$_version-$traceId-$spanId-$flags';
   }
 
   /// Parses a W3C `traceparent` header value into a [SpanContext].
   ///
-  /// Returns `null` if [header] is null or does not conform to the spec.
+  /// Returns `null` if [header] is null, has the wrong number of segments,
+  /// invalid field lengths, or non-hex characters. The version field is
+  /// ignored.
   static SpanContext? extract(String? header) {
     if (header == null) return null;
     final parts = header.split('-');
     if (parts.length != 4) return null;
-    final version = parts[0];
     final traceIdHex = parts[1];
     final spanIdHex = parts[2];
     final flagsHex = parts[3];
-    if (version != _version) return null;
     if (traceIdHex.length != 32) return null;
     if (spanIdHex.length != 16) return null;
     if (flagsHex.length != 2) return null;
@@ -62,8 +64,8 @@ class W3cTraceContext {
   static Future<void> injectCurrent(Map<String, String> headers) async {
     final spanContext = OTelContextUtils.currentSpanContext();
     if (spanContext == null || !spanContext.isValid) return;
-    final traceIdHex = spanContext.traceId.toString();
-    final spanIdHex = spanContext.spanId.toString();
+    final traceIdHex = spanContext.traceId.hexString;
+    final spanIdHex = spanContext.spanId.hexString;
     var value = await EmbracePlatform.instance
         .generateW3cTraceparent(traceIdHex, spanIdHex);
     value ??= fromSpanContext(spanContext);
