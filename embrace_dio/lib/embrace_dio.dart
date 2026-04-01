@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/embrace_otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 
@@ -25,7 +26,7 @@ class EmbraceInterceptor extends Interceptor {
   ) {
     _startTimes[options] = DateTime.now().millisecondsSinceEpoch;
     if (!options.headers.containsKey('traceparent')) {
-      W3cTraceContext.injectCurrentSync(options.headers.cast<String, String>());
+      W3cTraceContext.injectCurrentSync(options.headers);
     }
     handler.next(options);
   }

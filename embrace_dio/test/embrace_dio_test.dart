@@ -389,5 +389,34 @@ void main() {
         ),
       ).called(1);
     });
+
+    test('traceparent header value matches active span traceId and spanId',
+        () async {
+      final tracer = OTelAPI.tracerProvider().getTracer('test');
+      final span = tracer.startSpan('test');
+      final sc = span.spanContext;
+      final flags =
+          sc.traceFlags.asByte.toRadixString(16).padLeft(2, '0');
+      final expected =
+          '00-${sc.traceId.hexString}-${sc.spanId.hexString}-$flags';
+
+      // ignore: inference_failure_on_function_invocation
+      await dio.get('/test_url');
+
+      verify(
+        () => platform.logNetworkRequest(
+          url: '/test_url',
+          method: HttpMethod.get,
+          startTime: any(named: 'startTime'),
+          endTime: any(named: 'endTime'),
+          bytesSent: any(named: 'bytesSent'),
+          bytesReceived: any(named: 'bytesReceived'),
+          statusCode: any(named: 'statusCode'),
+          w3cTraceparent: expected,
+        ),
+      ).called(1);
+
+      span.end();
+    });
   });
 }
