@@ -385,7 +385,7 @@ void main() {
           bytesSent: any(named: 'bytesSent'),
           bytesReceived: any(named: 'bytesReceived'),
           statusCode: any(named: 'statusCode'),
-          w3cTraceparent: null,
+          w3cTraceparent: any(named: 'w3cTraceparent', that: isNull),
         ),
       ).called(1);
     });
