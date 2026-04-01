@@ -88,8 +88,8 @@ void main() {
         verify(
           () => platform.addSpanExporter(
             endpoint: endpoint,
-            headers: null,
-            timeoutSeconds: null,
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
           ),
         ).called(1);
       });

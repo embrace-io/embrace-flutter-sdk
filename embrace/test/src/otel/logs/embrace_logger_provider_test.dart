@@ -68,8 +68,8 @@ void main() {
         verify(
           () => platform.addLogRecordExporter(
             endpoint: endpoint,
-            headers: null,
-            timeoutSeconds: null,
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
           ),
         ).called(1);
       });
