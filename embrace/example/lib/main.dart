@@ -15,7 +15,28 @@ import 'package:embrace_example/views.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  await Embrace.instance.start(action: () => runApp(const EmbraceDemo()));
+  await Embrace.instance.start();
+
+  // Send completed spans to your OTLP-compatible backend.
+  Embrace.instance.addSpanExporter(
+    endpoint: 'https://otlp.example.com/v1/traces',
+    headers: [
+      {'x-api-key': 'YOUR_API_KEY'},
+    ],
+    timeoutSeconds: 30,
+  );
+
+  // Send log records to your OTLP-compatible backend.
+  Embrace.instance.addLogRecordExporter(
+    endpoint: 'https://otlp.example.com/v1/logs',
+    headers: [
+      {'x-api-key': 'YOUR_API_KEY'},
+    ],
+    timeoutSeconds: 30,
+  );
+
+  await Embrace.instance
+      .installErrorHandlers(() => runApp(const EmbraceDemo()));
 }
 
 class EmbraceDemo extends StatelessWidget {
