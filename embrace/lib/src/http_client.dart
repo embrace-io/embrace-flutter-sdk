@@ -1,5 +1,6 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/otel/propagation/w3c_trace_context.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:http/http.dart';
 
@@ -41,11 +42,16 @@ class EmbraceHttpClient extends BaseClient {
     final start = DateTime.now();
     final method = httpMethodFromString(request.method);
 
-    final w3cTraceparent = request.headers['traceparent'] ??
-        await Embrace.instance.generateW3cTraceparent(null, null);
-    if (w3cTraceparent != null) {
-      request.headers.putIfAbsent('traceparent', () => w3cTraceparent);
+    if (!request.headers.containsKey('traceparent')) {
+      await W3cTraceContext.injectCurrent(request.headers);
     }
+    if (!request.headers.containsKey('traceparent')) {
+      final native = await Embrace.instance.generateW3cTraceparent(null, null);
+      if (native != null) {
+        request.headers['traceparent'] = native;
+      }
+    }
+    final w3cTraceparent = request.headers['traceparent'];
 
     try {
       final response = await _internalClient.send(request);
