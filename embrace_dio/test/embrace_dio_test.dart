@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace_dio/embrace_dio.dart';
@@ -300,6 +301,93 @@ void main() {
       }
 
       verifyFailedHttpRequest(HttpMethod.delete);
+    });
+  });
+
+  group('OTel traceparent injection', () {
+    late MockEmbracePlatform platform;
+    late MockClientAdapter mockAdapter;
+    late Dio dio;
+
+    setUp(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      platform = MockEmbracePlatform();
+      EmbracePlatform.instance = platform;
+      when(
+        () => platform.attachToHostSdk(
+          enableIntegrationTesting: any(named: 'enableIntegrationTesting'),
+        ),
+      ).thenAnswer((_) async => true);
+      when(
+        () => platform.startSpan(
+          any(),
+          parentSpanId: any(named: 'parentSpanId'),
+          startTimeMs: any(named: 'startTimeMs'),
+        ),
+      ).thenAnswer((_) async => 'test-span-id');
+      when(
+        () => platform.stopSpan(any(), endTimeMs: any(named: 'endTimeMs')),
+      ).thenAnswer((_) async => true);
+
+      await Embrace.instance.start();
+
+      mockAdapter = MockClientAdapter();
+      when(() => mockAdapter.fetch(any(), any(), any())).thenAnswer(
+        (_) async => ResponseBody.fromString(
+          '',
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.textPlainContentType],
+          },
+        ),
+      );
+      dio = Dio()
+        ..httpClientAdapter = mockAdapter
+        ..interceptors.add(EmbraceInterceptor());
+    });
+
+    // ignore: invalid_use_of_visible_for_testing_member
+    tearDown(OTelAPI.reset);
+
+    test('injects traceparent when OTel span is active', () async {
+      final tracer = OTelAPI.tracerProvider().getTracer('test');
+      final span = tracer.startSpan('test');
+
+      // ignore: inference_failure_on_function_invocation
+      await dio.get('/test_url');
+
+      verify(
+        () => platform.logNetworkRequest(
+          url: '/test_url',
+          method: HttpMethod.get,
+          startTime: any(named: 'startTime'),
+          endTime: any(named: 'endTime'),
+          bytesSent: any(named: 'bytesSent'),
+          bytesReceived: any(named: 'bytesReceived'),
+          statusCode: any(named: 'statusCode'),
+          w3cTraceparent: any(named: 'w3cTraceparent', that: isNotNull),
+        ),
+      ).called(1);
+
+      span.end();
+    });
+
+    test('does not inject traceparent when no span is active', () async {
+      // ignore: inference_failure_on_function_invocation
+      await dio.get('/test_url');
+
+      verify(
+        () => platform.logNetworkRequest(
+          url: '/test_url',
+          method: HttpMethod.get,
+          startTime: any(named: 'startTime'),
+          endTime: any(named: 'endTime'),
+          bytesSent: any(named: 'bytesSent'),
+          bytesReceived: any(named: 'bytesReceived'),
+          statusCode: any(named: 'statusCode'),
+          w3cTraceparent: null,
+        ),
+      ).called(1);
     });
   });
 }

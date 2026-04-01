@@ -18,12 +18,15 @@ class EmbraceInterceptor extends Interceptor {
   final _startTimes = HashMap<RequestOptions, int>();
 
   @override
-  // ignore: avoid_void_async, strict_raw_type
+  // ignore: strict_raw_type
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
-  ) async {
+  ) {
     _startTimes[options] = DateTime.now().millisecondsSinceEpoch;
+    if (!options.headers.containsKey('traceparent')) {
+      W3cTraceContext.injectCurrentSync(options.headers.cast<String, String>());
+    }
     handler.next(options);
   }
 
