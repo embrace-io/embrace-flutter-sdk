@@ -395,8 +395,7 @@ void main() {
       final tracer = OTelAPI.tracerProvider().getTracer('test');
       final span = tracer.startSpan('test');
       final sc = span.spanContext;
-      final flags =
-          sc.traceFlags.asByte.toRadixString(16).padLeft(2, '0');
+      final flags = sc.traceFlags.asByte.toRadixString(16).padLeft(2, '0');
       final expected =
           '00-${sc.traceId.hexString}-${sc.spanId.hexString}-$flags';
 
