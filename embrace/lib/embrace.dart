@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
 export 'src/http_client.dart';
 export 'src/navigation_observer.dart';
+export 'src/otel/propagation/w3c_trace_context.dart';
 
 @visibleForTesting
 
