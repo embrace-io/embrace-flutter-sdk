@@ -1,4 +1,5 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:embrace/src/otel/logs/embrace_logger.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:meta/meta.dart';
 
@@ -34,6 +35,7 @@ class EmbraceLoggerProvider implements APILoggerProvider {
   bool _isShutdown;
 
   final List<_LogExporterConfig> _pendingLogExporters = [];
+  final Map<String, EmbraceLogger> _loggerCache = {};
 
   /// Adds an OTLP HTTP log record exporter.
   ///
@@ -81,23 +83,30 @@ class EmbraceLoggerProvider implements APILoggerProvider {
   // ── APILoggerProvider interface ──────────────────────────────────────────
 
   @override
-  APILogger getLogger(
+  EmbraceLogger getLogger(
     String name, {
     String? version,
     String? schemaUrl,
     Attributes? attributes,
-  }) =>
-      LoggerCreate.create(
+  }) {
+    final key = '$name:$version';
+    return _loggerCache.putIfAbsent(
+      key,
+      () => EmbraceLogger(
         name: name,
+        provider: this,
         version: version,
         schemaUrl: schemaUrl,
         attributes: attributes,
-      );
+      ),
+    );
+  }
 
   @override
   Future<bool> shutdown() async {
     _isShutdown = true;
     _enabled = false;
+    _loggerCache.clear();
     return true;
   }
 
