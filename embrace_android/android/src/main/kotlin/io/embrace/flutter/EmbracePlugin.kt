@@ -738,11 +738,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             val builder = OtlpHttpSpanExporter.builder().setEndpoint(endpoint)
             val headers = call.getListArgument<Map<String, String>>(EmbraceConstants.HEADERS_ARG_NAME)
             headers.forEach { header ->
-                val key = header["key"]
-                val token = header["token"]
-                if (key != null && token != null) {
-                    builder.addHeader(key, token)
-                }
+                header.forEach { (key, value) -> builder.addHeader(key, value) }
             }
             val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
             timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }
@@ -761,11 +757,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             val builder = OtlpHttpLogRecordExporter.builder().setEndpoint(endpoint)
             val headers = call.getListArgument<Map<String, String>>(EmbraceConstants.HEADERS_ARG_NAME)
             headers.forEach { header ->
-                val key = header["key"]
-                val token = header["token"]
-                if (key != null && token != null) {
-                    builder.addHeader(key, token)
-                }
+                header.forEach { (key, value) -> builder.addHeader(key, value) }
             }
             val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
             timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }

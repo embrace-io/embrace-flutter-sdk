@@ -68,8 +68,8 @@ void main() {
         verify(
           () => platform.addLogRecordExporter(
             endpoint: endpoint,
-            headers: null,
-            timeoutSeconds: null,
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
           ),
         ).called(1);
       });
@@ -109,15 +109,15 @@ void main() {
           ),
         ).thenReturn(null);
 
-        provider.addLogRecordExporter(
-          endpoint: endpoint,
-          headers: [
-            {'X-Api-Key': 'secret'},
-          ],
-          timeoutSeconds: 15,
-        );
-
-        provider.flushPendingExporters();
+        provider
+          ..addLogRecordExporter(
+            endpoint: endpoint,
+            headers: [
+              {'X-Api-Key': 'secret'},
+            ],
+            timeoutSeconds: 15,
+          )
+          ..flushPendingExporters();
 
         verify(
           () => platform.addLogRecordExporter(
@@ -140,9 +140,10 @@ void main() {
           ),
         ).thenReturn(null);
 
-        provider.addLogRecordExporter(endpoint: endpoint);
-        provider.flushPendingExporters();
-        provider.flushPendingExporters();
+        provider
+          ..addLogRecordExporter(endpoint: endpoint)
+          ..flushPendingExporters()
+          ..flushPendingExporters();
 
         verify(
           () => platform.addLogRecordExporter(
@@ -152,6 +153,33 @@ void main() {
           ),
         ).called(1);
       });
+    });
+
+    test('flushes multiple queued exporters in order', () {
+      when(() => platform.isStarted).thenReturn(false);
+
+      final callOrder = <String>[];
+      when(
+        () => platform.addLogRecordExporter(
+          endpoint: 'https://first.example.com',
+          headers: any(named: 'headers'),
+          timeoutSeconds: any(named: 'timeoutSeconds'),
+        ),
+      ).thenAnswer((_) => callOrder.add('first'));
+      when(
+        () => platform.addLogRecordExporter(
+          endpoint: 'https://second.example.com',
+          headers: any(named: 'headers'),
+          timeoutSeconds: any(named: 'timeoutSeconds'),
+        ),
+      ).thenAnswer((_) => callOrder.add('second'));
+
+      provider
+        ..addLogRecordExporter(endpoint: 'https://first.example.com')
+        ..addLogRecordExporter(endpoint: 'https://second.example.com')
+        ..flushPendingExporters();
+
+      expect(callOrder, ['first', 'second']);
     });
 
     test('resetForTesting() clears pending queue', () {
@@ -164,13 +192,13 @@ void main() {
         ),
       ).thenReturn(null);
 
-      provider.addLogRecordExporter(
-        endpoint: 'https://collector.example.com/v1/logs',
-      );
-
       // ignore: invalid_use_of_visible_for_testing_member
-      provider.resetForTesting();
-      provider.flushPendingExporters();
+      provider
+        ..addLogRecordExporter(
+          endpoint: 'https://collector.example.com/v1/logs',
+        )
+        ..resetForTesting()
+        ..flushPendingExporters();
 
       verifyNever(
         () => platform.addLogRecordExporter(

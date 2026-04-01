@@ -1495,7 +1495,8 @@ void main() {
         );
       });
 
-      test('invokes addLogRecordExporter with only required argument', () async {
+      test('invokes addLogRecordExporter with only required argument',
+          () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );

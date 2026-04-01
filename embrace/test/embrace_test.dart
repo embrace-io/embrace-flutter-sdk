@@ -5,6 +5,10 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     as otel;
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+// ignore: implementation_imports
+import 'package:embrace/src/otel/logs/embrace_logger_provider.dart';
+// ignore: implementation_imports
+import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1223,6 +1227,107 @@ void main() {
         verify(
           () => embracePlatform.addSpanAttribute(id, key, value),
         ).called(1);
+      });
+    });
+
+    group('OTel provider accessors', () {
+      setUp(() {
+        when(
+          () => embracePlatform.attachToHostSdk(
+            enableIntegrationTesting: any(named: 'enableIntegrationTesting'),
+          ),
+        ).thenAnswer((_) async => true);
+        when(
+          () => embracePlatform.addSpanExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        ).thenReturn(null);
+        when(
+          () => embracePlatform.addLogRecordExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        ).thenReturn(null);
+      });
+
+      test(
+        'tracerProvider returns EmbraceTracerProvider after start',
+        () async {
+          await Embrace.instance.start();
+
+          expect(
+            Embrace.instance.tracerProvider,
+            isA<EmbraceTracerProvider>(),
+          );
+        },
+      );
+
+      test(
+        'loggerProvider returns EmbraceLoggerProvider after start',
+        () async {
+          await Embrace.instance.start();
+
+          expect(
+            Embrace.instance.loggerProvider,
+            isA<EmbraceLoggerProvider>(),
+          );
+        },
+      );
+
+      test('tracerProvider throws StateError before start', () {
+        expect(
+          () => Embrace.instance.tracerProvider,
+          throwsA(isA<StateError>()),
+        );
+      });
+
+      test('loggerProvider throws StateError before start', () {
+        expect(
+          () => Embrace.instance.loggerProvider,
+          throwsA(isA<StateError>()),
+        );
+      });
+
+      test('resetForTesting() clears pending exporter queues', () async {
+        // Start so providers are registered with OTelAPI
+        await Embrace.instance.start();
+
+        // Hold references before reset
+        final tracerProvider = Embrace.instance.tracerProvider;
+        final loggerProvider = Embrace.instance.loggerProvider;
+
+        // Mock isStarted false so subsequent additions are queued
+        when(() => embracePlatform.isStarted).thenReturn(false);
+        tracerProvider.addSpanExporter(endpoint: 'https://spans.example.com');
+        loggerProvider.addLogRecordExporter(
+          endpoint: 'https://logs.example.com',
+        );
+
+        // Reset clears both queues
+        // ignore: invalid_use_of_visible_for_testing_member
+        Embrace.instance.resetForTesting();
+
+        // Flush should be a no-op — queues were cleared
+        tracerProvider.flushPendingExporters();
+        loggerProvider.flushPendingExporters();
+
+        verifyNever(
+          () => embracePlatform.addSpanExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        );
+        verifyNever(
+          () => embracePlatform.addLogRecordExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        );
       });
     });
   });
