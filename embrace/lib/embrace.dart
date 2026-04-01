@@ -289,6 +289,56 @@ class Embrace implements EmbraceFlutterApi {
     return _platform.getDeviceId();
   }
 
+  /// Adds an OTLP HTTP span exporter.
+  ///
+  /// Call this after [start] to forward completed spans to an
+  /// OTLP-compatible backend such as Grafana, Honeycomb, or your own
+  /// collector. [endpoint] must be the full OTLP/HTTP URL for traces
+  /// (e.g. `https://otlp.example.com/v1/traces`). [headers] is an optional
+  /// list of header maps (e.g. authentication tokens). [timeoutSeconds]
+  /// defaults to the native SDK's built-in timeout when omitted.
+  ///
+  /// Throws a [StateError] if called before [start].
+  void addSpanExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    _runCatching(
+      'addSpanExporter',
+      () => tracerProvider.addSpanExporter(
+        endpoint: endpoint,
+        headers: headers,
+        timeoutSeconds: timeoutSeconds,
+      ),
+    );
+  }
+
+  /// Adds an OTLP HTTP log record exporter.
+  ///
+  /// Call this after [start] to forward log records to an OTLP-compatible
+  /// backend such as Grafana, Honeycomb, or your own collector. [endpoint]
+  /// must be the full OTLP/HTTP URL for logs
+  /// (e.g. `https://otlp.example.com/v1/logs`). [headers] is an optional list
+  /// of header maps (e.g. authentication tokens). [timeoutSeconds] defaults to
+  /// the native SDK's built-in timeout when omitted.
+  ///
+  /// Throws a [StateError] if called before [start].
+  void addLogRecordExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    _runCatching(
+      'addLogRecordExporter',
+      () => loggerProvider.addLogRecordExporter(
+        endpoint: endpoint,
+        headers: headers,
+        timeoutSeconds: timeoutSeconds,
+      ),
+    );
+  }
+
   /// Returns the [EmbraceTracerProvider] registered with the OTel API.
   ///
   /// Throws a [StateError] if called before [start].
