@@ -743,7 +743,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
             timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }
             Embrace.addJavaSpanExporter(builder.build())
-        } catch (_: Throwable) {}
+        } catch (e: Throwable) {
+            Log.w("EmbraceFlutter", "Failed to add span exporter: ${e.message}", e)
+        }
         result.success(null)
     }
 
@@ -762,7 +764,9 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
             timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }
             Embrace.addJavaLogRecordExporter(builder.build())
-        } catch (_: Throwable) {}
+        } catch (e: Throwable) {
+            Log.w("EmbraceFlutter", "Failed to add log record exporter: ${e.message}", e)
+        }
         result.success(null)
     }
 
