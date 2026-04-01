@@ -19,6 +19,11 @@ import io.embrace.android.embracesdk.network.EmbraceNetworkRequest
 import io.embrace.android.embracesdk.spans.EmbraceSpan
 import io.embrace.android.embracesdk.spans.ErrorCode
 import io.embrace.android.embracesdk.spans.EmbraceSpanEvent
+import io.embrace.android.embracesdk.otel.java.addJavaLogRecordExporter
+import io.embrace.android.embracesdk.otel.java.addJavaSpanExporter
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter
+import java.util.concurrent.TimeUnit
 
 import android.os.Handler
 import android.os.Looper
@@ -68,6 +73,8 @@ internal object EmbraceConstants {
     internal const val ADD_SPAN_ATTRIBUTE_METHOD_NAME : String = "addSpanAttribute"
     internal const val RECORD_COMPLETED_SPAN_METHOD_NAME : String = "recordCompletedSpan"
     internal const val GET_TRACE_ID_METHOD_NAME : String = "getTraceId"
+    internal const val ADD_SPAN_EXPORTER_METHOD_NAME : String = "addSpanExporter"
+    internal const val ADD_LOG_RECORD_EXPORTER_METHOD_NAME : String = "addLogRecordExporter"
 
     // Parameter Names
     internal const val ENABLE_INTEGRATION_TESTING_ARG_NAME : String = "enableIntegrationTesting"
@@ -117,6 +124,9 @@ internal object EmbraceConstants {
     internal const val TIMESTAMP_MS_ARG_NAME : String = "timestampMs"
     internal const val ATTRIBUTES_ARG_NAME : String = "attributes"
     internal const val EVENTS_ARG_NAME : String = "events"
+    internal const val ENDPOINT_ARG_NAME : String = "endpoint"
+    internal const val HEADERS_ARG_NAME : String = "headers"
+    internal const val TIMEOUT_SECONDS_ARG_NAME : String = "timeoutSeconds"
 }
 
 /**
@@ -184,6 +194,8 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.ADD_SPAN_ATTRIBUTE_METHOD_NAME -> handleAddSpanAttribute(call, result)
                 EmbraceConstants.RECORD_COMPLETED_SPAN_METHOD_NAME -> handleRecordCompletedSpan(call, result)
                 EmbraceConstants.GET_TRACE_ID_METHOD_NAME -> handleGetTraceId(call, result)
+                EmbraceConstants.ADD_SPAN_EXPORTER_METHOD_NAME -> handleAddSpanExporter(call, result)
+                EmbraceConstants.ADD_LOG_RECORD_EXPORTER_METHOD_NAME -> handleAddLogRecordExporter(call, result)
                 else -> {
                     result.notImplemented()
                     throw NotImplementedError("EmbracePlugin received a method call for ${call.method} but has no handler for that name.")
@@ -714,6 +726,52 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             span?.traceId
         }
         result.success(traceId)
+    }
+
+    private fun handleAddSpanExporter(call: MethodCall, result: Result) {
+        val endpoint = call.getStringArgument(EmbraceConstants.ENDPOINT_ARG_NAME)
+        if (endpoint.isEmpty()) {
+            result.success(null)
+            return
+        }
+        try {
+            val builder = OtlpHttpSpanExporter.builder().setEndpoint(endpoint)
+            val headers = call.getListArgument<Map<String, String>>(EmbraceConstants.HEADERS_ARG_NAME)
+            headers.forEach { header ->
+                val key = header["key"]
+                val token = header["token"]
+                if (key != null && token != null) {
+                    builder.addHeader(key, token)
+                }
+            }
+            val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
+            timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }
+            Embrace.addJavaSpanExporter(builder.build())
+        } catch (_: Throwable) {}
+        result.success(null)
+    }
+
+    private fun handleAddLogRecordExporter(call: MethodCall, result: Result) {
+        val endpoint = call.getStringArgument(EmbraceConstants.ENDPOINT_ARG_NAME)
+        if (endpoint.isEmpty()) {
+            result.success(null)
+            return
+        }
+        try {
+            val builder = OtlpHttpLogRecordExporter.builder().setEndpoint(endpoint)
+            val headers = call.getListArgument<Map<String, String>>(EmbraceConstants.HEADERS_ARG_NAME)
+            headers.forEach { header ->
+                val key = header["key"]
+                val token = header["token"]
+                if (key != null && token != null) {
+                    builder.addHeader(key, token)
+                }
+            }
+            val timeoutSeconds: Int? = call.argument(EmbraceConstants.TIMEOUT_SECONDS_ARG_NAME)
+            timeoutSeconds?.let { builder.setTimeout(it.toLong(), TimeUnit.SECONDS) }
+            Embrace.addJavaLogRecordExporter(builder.build())
+        } catch (_: Throwable) {}
+        result.success(null)
     }
 
     private fun mapToEvent(map: Map<String, Any>): EmbraceSpanEvent? {

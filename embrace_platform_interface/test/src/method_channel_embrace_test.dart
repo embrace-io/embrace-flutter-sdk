@@ -1411,5 +1411,109 @@ void main() {
         expect(log, isEmpty);
       });
     });
+
+    group('addSpanExporter', () {
+      const endpoint = 'https://collector.example.com/v1/traces';
+      final headers = [
+        {'Authorization': 'Bearer token123'},
+      ];
+      const timeoutSeconds = 30;
+
+      test('invokes addSpanExporter with all arguments', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.addSpanExporter(
+          endpoint: endpoint,
+          headers: headers,
+          timeoutSeconds: timeoutSeconds,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addSpanExporter',
+              arguments: {
+                'endpoint': endpoint,
+                'headers': headers,
+                'timeoutSeconds': timeoutSeconds,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('invokes addSpanExporter with only required argument', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.addSpanExporter(endpoint: endpoint);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addSpanExporter',
+              arguments: {
+                'endpoint': endpoint,
+                'headers': null,
+                'timeoutSeconds': null,
+              },
+            ),
+          ),
+        );
+      });
+    });
+
+    group('addLogRecordExporter', () {
+      const endpoint = 'https://collector.example.com/v1/logs';
+      final headers = [
+        {'Authorization': 'Bearer token456'},
+      ];
+      const timeoutSeconds = 60;
+
+      test('invokes addLogRecordExporter with all arguments', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.addLogRecordExporter(
+          endpoint: endpoint,
+          headers: headers,
+          timeoutSeconds: timeoutSeconds,
+        );
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addLogRecordExporter',
+              arguments: {
+                'endpoint': endpoint,
+                'headers': headers,
+                'timeoutSeconds': timeoutSeconds,
+              },
+            ),
+          ),
+        );
+      });
+
+      test('invokes addLogRecordExporter with only required argument', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.addLogRecordExporter(endpoint: endpoint);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addLogRecordExporter',
+              arguments: {
+                'endpoint': endpoint,
+                'headers': null,
+                'timeoutSeconds': null,
+              },
+            ),
+          ),
+        );
+      });
+    });
   });
 }

@@ -69,5 +69,93 @@ void main() {
 
       expect(provider.enabled, isFalse);
     });
+
+    group('addSpanExporter', () {
+      const endpoint = 'https://collector.example.com/v1/traces';
+
+      test('forwards to platform immediately when already started', () {
+        when(() => platform.isStarted).thenReturn(true);
+        when(
+          () => platform.addSpanExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        ).thenReturn(null);
+
+        provider.addSpanExporter(endpoint: endpoint);
+
+        verify(
+          () => platform.addSpanExporter(
+            endpoint: endpoint,
+            headers: null,
+            timeoutSeconds: null,
+          ),
+        ).called(1);
+      });
+    });
+  });
+
+  group('EmbraceTracerProvider pre-start queueing', () {
+    test('queues exporter and flushes it when SDK starts', () async {
+      when(
+        () => platform.addSpanExporter(
+          endpoint: any(named: 'endpoint'),
+          headers: any(named: 'headers'),
+          timeoutSeconds: any(named: 'timeoutSeconds'),
+        ),
+      ).thenReturn(null);
+
+      // Call before start — platform is not yet started
+      when(() => platform.isStarted).thenReturn(false);
+      final provider = EmbraceTracerProvider(endpoint: '');
+      provider.addSpanExporter(
+        endpoint: 'https://collector.example.com/v1/traces',
+        headers: [
+          {'Authorization': 'Bearer tok'},
+        ],
+        timeoutSeconds: 30,
+      );
+
+      // Platform not called yet
+      verifyNever(
+        () => platform.addSpanExporter(
+          endpoint: any(named: 'endpoint'),
+          headers: any(named: 'headers'),
+          timeoutSeconds: any(named: 'timeoutSeconds'),
+        ),
+      );
+
+      // Flush — simulates what _start() does
+      provider.flushPendingExporters();
+
+      verify(
+        () => platform.addSpanExporter(
+          endpoint: 'https://collector.example.com/v1/traces',
+          headers: [
+            {'Authorization': 'Bearer tok'},
+          ],
+          timeoutSeconds: 30,
+        ),
+      ).called(1);
+    });
+
+    test('resetForTesting() clears pending queue', () {
+      when(() => platform.isStarted).thenReturn(false);
+      final provider = EmbraceTracerProvider(endpoint: '');
+      provider.addSpanExporter(endpoint: 'https://collector.example.com');
+
+      // ignore: invalid_use_of_visible_for_testing_member
+      provider.resetForTesting();
+      provider.flushPendingExporters();
+
+      verifyNever(
+        () => platform.addSpanExporter(
+          endpoint: any(named: 'endpoint'),
+          headers: any(named: 'headers'),
+          timeoutSeconds: any(named: 'timeoutSeconds'),
+        ),
+      );
+    });
   });
 }
