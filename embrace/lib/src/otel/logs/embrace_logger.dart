@@ -3,6 +3,10 @@ import 'package:embrace/src/otel/logs/embrace_logger_provider.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:meta/meta.dart';
 
+// OTel Log Data Model severity number range boundaries (spec §10.5.2).
+const int _kWarnSeverityMin = 13;
+const int _kErrorSeverityMin = 17;
+
 /// Embrace implementation of [APILogger].
 ///
 /// Delegates [emit] to the native Embrace log methods by mapping the OTel
@@ -53,9 +57,9 @@ class EmbraceLogger implements APILogger {
     final message = body?.toString() ?? '';
     final sev = severityNumber?.severityNumber ?? 0;
 
-    if (sev >= 17) {
+    if (sev >= _kErrorSeverityMin) {
       EmbracePlatform.instance.logError(message, null);
-    } else if (sev >= 13) {
+    } else if (sev >= _kWarnSeverityMin) {
       EmbracePlatform.instance.logWarning(message, null);
     } else {
       EmbracePlatform.instance.logInfo(message, null);
