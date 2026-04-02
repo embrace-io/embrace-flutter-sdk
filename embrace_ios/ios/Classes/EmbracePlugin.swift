@@ -47,6 +47,8 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let RecordCompletedSpanMethodName = "recordCompletedSpan"
     static let GenerateW3cTraceparentMethodName = "generateW3cTraceparent"
     static let GetTraceIdMethodName = "getTraceId"
+    static let AddSpanExporterMethodName = "addSpanExporter"
+    static let AddLogRecordExporterMethodName = "addLogRecordExporter"
 
     // Parameter Names
     static let PropertiesArgName = "properties"
@@ -94,6 +96,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let AttributesArgName = "attributes"
     static let EventsArgName = "events"
     static let W3cTraceparentArgName = "traceParent"
+    static let EndpointArgName = "endpoint"
+    static let HeadersArgName = "headers"
+    static let TimeoutSecondsArgName = "timeoutSeconds"
 
     // OTel keys
     static let SpanScreenView = "emb-screen-view"
@@ -202,6 +207,10 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleGenerateW3cTraceparentCall(call, result: result)
             case EmbracePlugin.GetTraceIdMethodName:
                 handleGetTraceIdCall(call, result: result)
+            case EmbracePlugin.AddSpanExporterMethodName:
+                handleAddSpanExporterCall(call, result: result)
+            case EmbracePlugin.AddLogRecordExporterMethodName:
+                handleAddLogRecordExporterCall(call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
         }
@@ -676,6 +685,19 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 result(nil)
             }
         }
+    }
+
+    private func handleAddSpanExporterCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        // OTLP HTTP span exporter configuration is not yet supported at runtime
+        // on iOS. The native EmbraceIO SDK configures exporters at startup via
+        // options; runtime addition will be supported in a future SDK release.
+        result(nil)
+    }
+
+    private func handleAddLogRecordExporterCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        // OTLP HTTP log record exporter configuration is not yet supported at
+        // runtime on iOS. See handleAddSpanExporterCall for details.
+        result(nil)
     }
 
     private func callAppleSdk<T>(action: (Embrace) -> T) -> T? {
