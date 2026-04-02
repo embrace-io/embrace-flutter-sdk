@@ -410,4 +410,26 @@ abstract class EmbracePlatform extends PlatformInterface {
   ) {
     throw UnimplementedError('addSpanLink() has not been implemented');
   }
+
+  /// Configures an OTLP HTTP span exporter on the native SDK.
+  ///
+  /// May be called before or after [attachToHostSdk].
+  void addSpanExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    throw UnimplementedError('addSpanExporter() has not been implemented');
+  }
+
+  /// Configures an OTLP HTTP log record exporter on the native SDK.
+  ///
+  /// May be called before or after [attachToHostSdk].
+  void addLogRecordExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    throw UnimplementedError('addLogRecordExporter() has not been implemented');
+  }
 }
