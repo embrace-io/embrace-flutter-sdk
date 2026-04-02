@@ -288,6 +288,42 @@ class Embrace implements EmbraceFlutterApi {
     return _platform.getDeviceId();
   }
 
+  /// Returns the [EmbraceTracerProvider] registered with the OTel API.
+  ///
+  /// Throws a [StateError] if called before [start].
+  EmbraceTracerProvider get tracerProvider {
+    if (OTelFactory.otelFactory == null) {
+      throw StateError('Embrace SDK has not been started.');
+    }
+    return OTelAPI.tracerProvider() as EmbraceTracerProvider;
+  }
+
+  /// Returns the [EmbraceLoggerProvider] registered with the OTel API.
+  ///
+  /// Throws a [StateError] if called before [start].
+  EmbraceLoggerProvider get loggerProvider {
+    if (OTelFactory.otelFactory == null) {
+      throw StateError('Embrace SDK has not been started.');
+    }
+    return OTelAPI.loggerProvider() as EmbraceLoggerProvider;
+  }
+
+  /// Resets SDK state for use in tests.
+  ///
+  /// Clears pending exporter queues on both providers (if the OTel API has
+  /// been initialised) then resets the OTel API.
+  @visibleForTesting
+  void resetForTesting() {
+    if (OTelFactory.otelFactory != null) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      (OTelAPI.tracerProvider() as EmbraceTracerProvider).resetForTesting();
+      // ignore: invalid_use_of_visible_for_testing_member
+      (OTelAPI.loggerProvider() as EmbraceLoggerProvider).resetForTesting();
+    }
+    // ignore: invalid_use_of_visible_for_testing_member
+    OTelAPI.reset();
+  }
+
   @override
   void logDartError(Object error, StackTrace stack) {
     EmbracePlatform.instance.logDartError(
@@ -459,6 +495,9 @@ Future<void> _start(
       oTelFactoryCreationFunction: EmbraceOTelFactory.new,
     );
   }
+
+  (OTelAPI.tracerProvider() as EmbraceTracerProvider).flushPendingExporters();
+  (OTelAPI.loggerProvider() as EmbraceLoggerProvider).flushPendingExporters();
 
   if (action != null) {
     await _installErrorHandlers(action);
