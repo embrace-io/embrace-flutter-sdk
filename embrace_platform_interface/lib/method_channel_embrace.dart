@@ -58,6 +58,8 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _setSpanStatusMethodName = 'setSpanStatus';
   static const String _updateSpanNameMethodName = 'updateSpanName';
   static const String _addSpanLinkMethodName = 'addSpanLink';
+  static const String _addSpanExporterMethodName = 'addSpanExporter';
+  static const String _addLogRecordExporterMethodName = 'addLogRecordExporter';
 
   // Parameter Names
   static const String _propertiesArgName = 'properties';
@@ -114,6 +116,9 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _descriptionArgName = 'description';
   static const String _linkedTraceIdArgName = 'linkedTraceId';
   static const String _linkedSpanIdArgName = 'linkedSpanId';
+  static const String _endpointArgName = 'endpoint';
+  static const String _headersArgName = 'headers';
+  static const String _timeoutSecondsArgName = 'timeoutSeconds';
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
@@ -670,6 +675,32 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _linkedSpanIdArgName: linkedSpanId,
       _attributesArgName: attributes,
     }) as bool;
+  }
+
+  @override
+  void addSpanExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    methodChannel.invokeMethod(_addSpanExporterMethodName, {
+      _endpointArgName: endpoint,
+      _headersArgName: headers,
+      _timeoutSecondsArgName: timeoutSeconds,
+    });
+  }
+
+  @override
+  void addLogRecordExporter({
+    required String endpoint,
+    List<Map<String, String>>? headers,
+    int? timeoutSeconds,
+  }) {
+    methodChannel.invokeMethod(_addLogRecordExporterMethodName, {
+      _endpointArgName: endpoint,
+      _headersArgName: headers,
+      _timeoutSecondsArgName: timeoutSeconds,
+    });
   }
 
   /// Throws a [StateError] if the SDK has not been started.
