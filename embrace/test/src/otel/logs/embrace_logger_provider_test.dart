@@ -1,4 +1,7 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:embrace/embrace.dart';
+// ignore: implementation_imports
+import 'package:embrace/src/otel/logs/embrace_logger.dart';
 // ignore: implementation_imports
 import 'package:embrace/src/otel/logs/embrace_logger_provider.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -18,6 +21,11 @@ void main() {
   setUp(() {
     platform = MockEmbracePlatform();
     EmbracePlatform.instance = platform;
+    when(
+      () => platform.attachToHostSdk(
+        enableIntegrationTesting: any(named: 'enableIntegrationTesting'),
+      ),
+    ).thenAnswer((_) async => true);
   });
 
   // ignore: invalid_use_of_visible_for_testing_member
@@ -46,8 +54,26 @@ void main() {
       expect(provider.enabled, isFalse);
     });
 
-    test('getLogger() returns an APILogger', () {
-      expect(provider.getLogger('test'), isA<APILogger>());
+    test('getLogger() returns an EmbraceLogger', () {
+      expect(provider.getLogger('test'), isA<EmbraceLogger>());
+    });
+
+    test('repeated getLogger() calls with same name return same instance', () {
+      final first = provider.getLogger('foo');
+      final second = provider.getLogger('foo');
+
+      expect(identical(first, second), isTrue);
+    });
+
+    group('OTelAPI integration', () {
+      test('getLogger() via OTelAPI returns EmbraceLogger', () async {
+        await Embrace.instance.start();
+
+        expect(
+          OTelAPI.loggerProvider().getLogger('foo'),
+          isA<EmbraceLogger>(),
+        );
+      });
     });
 
     group('addLogRecordExporter', () {
