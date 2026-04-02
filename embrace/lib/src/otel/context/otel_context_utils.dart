@@ -24,10 +24,16 @@ class OTelContextUtils {
   }
 
   /// Returns the span currently active in [Context.current], or `null` if
-  /// no span is active.
-  static APISpan? currentSpan() => Context.current.span;
+  /// no span is active or OTel has not been initialized.
+  static APISpan? currentSpan() {
+    if (OTelFactory.otelFactory == null) return null;
+    return Context.current.span;
+  }
 
   /// Returns the [SpanContext] of the currently active span, or `null` if
-  /// no span is active.
-  static SpanContext? currentSpanContext() => Context.current.spanContext;
+  /// no span is active or OTel has not been initialized.
+  static SpanContext? currentSpanContext() {
+    if (OTelFactory.otelFactory == null) return null;
+    return Context.current.spanContext;
+  }
 }

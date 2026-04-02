@@ -1,3 +1,4 @@
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -116,6 +117,109 @@ void main() {
     test('.close() closes internal client without errors', () {
       EmbraceHttpClient(internalClient: client).close();
       verify(() => client.close()).called(1);
+    });
+
+    group('OTel traceparent injection', () {
+      setUp(() async {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        when(
+          () => embracePlatform.attachToHostSdk(
+            enableIntegrationTesting: any(named: 'enableIntegrationTesting'),
+          ),
+        ).thenAnswer((_) async => true);
+        when(
+          () => embracePlatform.startSpan(
+            any(),
+            parentSpanId: any(named: 'parentSpanId'),
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).thenAnswer((_) async => 'test-span-id');
+        when(
+          () => embracePlatform.stopSpan(
+            any(),
+            endTimeMs: any(named: 'endTimeMs'),
+          ),
+        ).thenAnswer((_) async => true);
+        when(
+          () => embracePlatform.generateW3cTraceparent(any(), any()),
+        ).thenAnswer((_) async => null);
+        await Embrace.instance.start();
+      });
+
+      // ignore: invalid_use_of_visible_for_testing_member
+      tearDown(OTelAPI.reset);
+
+      test('injects traceparent when OTel span is active', () async {
+        final tracer = OTelAPI.tracerProvider().getTracer('test');
+        final span = tracer.startSpan('test');
+
+        when(() => response.statusCode).thenReturn(200);
+        final embraceClient = EmbraceHttpClient(internalClient: client);
+        await embraceClient.get(Uri.parse('https://embrace.io'));
+
+        verify(
+          () => embracePlatform.logNetworkRequest(
+            url: any(named: 'url'),
+            method: any(named: 'method'),
+            startTime: any(named: 'startTime'),
+            endTime: any(named: 'endTime'),
+            bytesSent: any(named: 'bytesSent'),
+            bytesReceived: any(named: 'bytesReceived'),
+            statusCode: any(named: 'statusCode'),
+            w3cTraceparent: any(named: 'w3cTraceparent', that: isNotNull),
+          ),
+        ).called(1);
+
+        span.end();
+      });
+
+      test('does not inject traceparent when no span is active', () async {
+        when(() => response.statusCode).thenReturn(200);
+        final embraceClient = EmbraceHttpClient(internalClient: client);
+        await embraceClient.get(Uri.parse('https://embrace.io'));
+
+        verify(
+          () => embracePlatform.logNetworkRequest(
+            url: any(named: 'url'),
+            method: any(named: 'method'),
+            startTime: any(named: 'startTime'),
+            endTime: any(named: 'endTime'),
+            bytesSent: any(named: 'bytesSent'),
+            bytesReceived: any(named: 'bytesReceived'),
+            statusCode: any(named: 'statusCode'),
+            w3cTraceparent: any(named: 'w3cTraceparent', that: isNull),
+          ),
+        ).called(1);
+      });
+
+      test('traceparent header value matches active span traceId and spanId',
+          () async {
+        final tracer = OTelAPI.tracerProvider().getTracer('test');
+        final span = tracer.startSpan('test');
+        final sc = span.spanContext;
+        final flags = sc.traceFlags.asByte.toRadixString(16).padLeft(2, '0');
+        final expected =
+            '00-${sc.traceId.hexString}-${sc.spanId.hexString}-$flags';
+
+        when(() => response.statusCode).thenReturn(200);
+        final embraceClient = EmbraceHttpClient(internalClient: client);
+        await embraceClient.get(Uri.parse('https://embrace.io'));
+
+        verify(
+          () => embracePlatform.logNetworkRequest(
+            url: any(named: 'url'),
+            method: any(named: 'method'),
+            startTime: any(named: 'startTime'),
+            endTime: any(named: 'endTime'),
+            bytesSent: any(named: 'bytesSent'),
+            bytesReceived: any(named: 'bytesReceived'),
+            statusCode: any(named: 'statusCode'),
+            w3cTraceparent: expected,
+          ),
+        ).called(1);
+
+        span.end();
+      });
     });
   });
 }

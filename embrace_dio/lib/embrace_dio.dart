@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/embrace_otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 
@@ -18,12 +19,15 @@ class EmbraceInterceptor extends Interceptor {
   final _startTimes = HashMap<RequestOptions, int>();
 
   @override
-  // ignore: avoid_void_async, strict_raw_type
+  // ignore: strict_raw_type
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
-  ) async {
+  ) {
     _startTimes[options] = DateTime.now().millisecondsSinceEpoch;
+    if (!options.headers.containsKey('traceparent')) {
+      W3cTraceContext.injectCurrentSync(options.headers);
+    }
     handler.next(options);
   }
 

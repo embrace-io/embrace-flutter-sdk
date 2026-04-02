@@ -78,7 +78,7 @@ class W3cTraceContext {
   /// calling the platform.
   ///
   /// Does nothing when no span is active.
-  static void injectCurrentSync(Map<String, String> headers) {
+  static void injectCurrentSync(Map<String, dynamic> headers) {
     final spanContext = OTelContextUtils.currentSpanContext();
     if (spanContext == null || !spanContext.isValid) return;
     final value = fromSpanContext(spanContext);
