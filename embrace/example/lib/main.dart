@@ -15,6 +15,9 @@ import 'package:embrace_example/views.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
+  // Start the Embrace SDK. Exporters can be configured here before
+  // installErrorHandlers() wraps runApp, so they are in place for the
+  // full app lifecycle.
   await Embrace.instance.start();
 
   // Send completed spans to your OTLP-compatible backend.

@@ -295,10 +295,12 @@ class Embrace implements EmbraceFlutterApi {
   /// OTLP-compatible backend such as Grafana, Honeycomb, or your own
   /// collector. [endpoint] must be the full OTLP/HTTP URL for traces
   /// (e.g. `https://otlp.example.com/v1/traces`). [headers] is an optional
-  /// list of header maps (e.g. authentication tokens). [timeoutSeconds]
-  /// defaults to the native SDK's built-in timeout when omitted.
+  /// list of single-entry maps, one per header, e.g.
+  /// `[{'x-api-key': 'token'}]` — this mirrors the format expected by the
+  /// platform method channel. [timeoutSeconds] defaults to the platform SDK's
+  /// default timeout when omitted.
   ///
-  /// Throws a [StateError] if called before [start].
+  /// Has no effect if called before [start].
   void addSpanExporter({
     required String endpoint,
     List<Map<String, String>>? headers,
@@ -320,10 +322,12 @@ class Embrace implements EmbraceFlutterApi {
   /// backend such as Grafana, Honeycomb, or your own collector. [endpoint]
   /// must be the full OTLP/HTTP URL for logs
   /// (e.g. `https://otlp.example.com/v1/logs`). [headers] is an optional list
-  /// of header maps (e.g. authentication tokens). [timeoutSeconds] defaults to
-  /// the native SDK's built-in timeout when omitted.
+  /// of single-entry maps, one per header, e.g. `[{'x-api-key': 'token'}]` —
+  /// this mirrors the format expected by the platform method channel.
+  /// [timeoutSeconds] defaults to the platform SDK's default timeout when
+  /// omitted.
   ///
-  /// Throws a [StateError] if called before [start].
+  /// Has no effect if called before [start].
   void addLogRecordExporter({
     required String endpoint,
     List<Map<String, String>>? headers,
