@@ -31,4 +31,6 @@ dependencies {
   compileOnly "io.embrace:embrace-android-sdk:$embAndroidSdk"
   compileOnly "io.embrace:embrace-android-core:$embAndroidSdk"
   compileOnly "io.embrace:embrace-internal-api:$embAndroidSdk"
+  compileOnly "io.embrace:embrace-android-otel-java:$embAndroidSdk"
+  compileOnly "io.opentelemetry:opentelemetry-exporter-otlp:1.46.0"
 }
