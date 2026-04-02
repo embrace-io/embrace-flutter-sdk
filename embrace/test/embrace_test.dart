@@ -1291,6 +1291,83 @@ void main() {
         );
       });
 
+      test('addSpanExporter delegates to platform after start', () async {
+        await Embrace.instance.start();
+        when(() => embracePlatform.isStarted).thenReturn(true);
+
+        Embrace.instance.addSpanExporter(
+          endpoint: 'https://otlp.example.com/v1/traces',
+          headers: [
+            {'x-api-key': 'key'},
+          ],
+          timeoutSeconds: 30,
+        );
+
+        verify(
+          () => embracePlatform.addSpanExporter(
+            endpoint: 'https://otlp.example.com/v1/traces',
+            headers: [
+              {'x-api-key': 'key'},
+            ],
+            timeoutSeconds: 30,
+          ),
+        ).called(1);
+      });
+
+      test('addSpanExporter has no effect before start', () {
+        Embrace.instance.addSpanExporter(
+          endpoint: 'https://otlp.example.com/v1/traces',
+        );
+
+        verifyNever(
+          () => embracePlatform.addSpanExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        );
+      });
+
+      test(
+        'addLogRecordExporter delegates to platform after start',
+        () async {
+          await Embrace.instance.start();
+          when(() => embracePlatform.isStarted).thenReturn(true);
+
+          Embrace.instance.addLogRecordExporter(
+            endpoint: 'https://otlp.example.com/v1/logs',
+            headers: [
+              {'x-api-key': 'key'},
+            ],
+            timeoutSeconds: 30,
+          );
+
+          verify(
+            () => embracePlatform.addLogRecordExporter(
+              endpoint: 'https://otlp.example.com/v1/logs',
+              headers: [
+                {'x-api-key': 'key'},
+              ],
+              timeoutSeconds: 30,
+            ),
+          ).called(1);
+        },
+      );
+
+      test('addLogRecordExporter has no effect before start', () {
+        Embrace.instance.addLogRecordExporter(
+          endpoint: 'https://otlp.example.com/v1/logs',
+        );
+
+        verifyNever(
+          () => embracePlatform.addLogRecordExporter(
+            endpoint: any(named: 'endpoint'),
+            headers: any(named: 'headers'),
+            timeoutSeconds: any(named: 'timeoutSeconds'),
+          ),
+        );
+      });
+
       test('resetForTesting() clears pending exporter queues', () async {
         // Start so providers are registered with OTelAPI
         await Embrace.instance.start();
