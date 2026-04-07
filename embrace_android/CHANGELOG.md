@@ -1,3 +1,7 @@
+# 4.5.0
+
+* Version bump
+
 # 4.4.0
 
 * Updated Embrace Android SDK to 8.2.0

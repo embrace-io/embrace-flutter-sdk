@@ -1,3 +1,7 @@
+# 4.5.0
+
+* Updated Embrace iOS SDK to 6.17.1
+
 # 4.4.0
 
 * Updated Embrace iOS SDK to 6.16.3
