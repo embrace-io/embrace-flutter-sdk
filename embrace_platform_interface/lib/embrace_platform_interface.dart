@@ -413,7 +413,7 @@ abstract class EmbracePlatform extends PlatformInterface {
 
   /// Configures an OTLP HTTP span exporter on the native SDK.
   ///
-  /// May be called before or after [attachToHostSdk].
+  /// Must be called before [attachToHostSdk].
   void addSpanExporter({
     required String endpoint,
     List<Map<String, String>>? headers,
@@ -424,7 +424,7 @@ abstract class EmbracePlatform extends PlatformInterface {
 
   /// Configures an OTLP HTTP log record exporter on the native SDK.
   ///
-  /// May be called before or after [attachToHostSdk].
+  /// Must be called before [attachToHostSdk].
   void addLogRecordExporter({
     required String endpoint,
     List<Map<String, String>>? headers,

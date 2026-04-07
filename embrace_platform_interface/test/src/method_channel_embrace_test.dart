@@ -1419,10 +1419,7 @@ void main() {
       ];
       const timeoutSeconds = 30;
 
-      test('invokes addSpanExporter with all arguments', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
+      test('invokes addSpanExporter with all arguments', () {
         methodChannelEmbrace.addSpanExporter(
           endpoint: endpoint,
           headers: headers,
@@ -1443,10 +1440,7 @@ void main() {
         );
       });
 
-      test('invokes addSpanExporter with only required argument', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
+      test('invokes addSpanExporter with only required argument', () {
         methodChannelEmbrace.addSpanExporter(endpoint: endpoint);
         expect(
           log,
@@ -1462,6 +1456,16 @@ void main() {
           ),
         );
       });
+
+      test('throws StateError if already started', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        expect(
+          () => methodChannelEmbrace.addSpanExporter(endpoint: endpoint),
+          throwsA(isA<StateError>()),
+        );
+      });
     });
 
     group('addLogRecordExporter', () {
@@ -1471,10 +1475,7 @@ void main() {
       ];
       const timeoutSeconds = 60;
 
-      test('invokes addLogRecordExporter with all arguments', () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
+      test('invokes addLogRecordExporter with all arguments', () {
         methodChannelEmbrace.addLogRecordExporter(
           endpoint: endpoint,
           headers: headers,
@@ -1495,11 +1496,7 @@ void main() {
         );
       });
 
-      test('invokes addLogRecordExporter with only required argument',
-          () async {
-        await methodChannelEmbrace.attachToHostSdk(
-          enableIntegrationTesting: false,
-        );
+      test('invokes addLogRecordExporter with only required argument', () {
         methodChannelEmbrace.addLogRecordExporter(endpoint: endpoint);
         expect(
           log,
@@ -1513,6 +1510,16 @@ void main() {
               },
             ),
           ),
+        );
+      });
+
+      test('throws StateError if already started', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        expect(
+          () => methodChannelEmbrace.addLogRecordExporter(endpoint: endpoint),
+          throwsA(isA<StateError>()),
         );
       });
     });
