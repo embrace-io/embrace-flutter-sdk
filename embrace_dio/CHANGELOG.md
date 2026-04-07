@@ -1,3 +1,7 @@
+# 4.5.0
+
+* Fixed not recording HTTP error responses with status code
+
 # 4.4.0
 
 * Updated Embrace Android SDK to 8.2.0

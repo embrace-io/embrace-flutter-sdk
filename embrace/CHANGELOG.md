@@ -1,3 +1,8 @@
+# 4.5.0
+
+* Updated Embrace iOS SDK to 6.17.1
+* Fixed embrace_dio not recording HTTP error responses with status code
+
 # 4.4.0
 
 * Updated Embrace Android SDK to 8.2.0
