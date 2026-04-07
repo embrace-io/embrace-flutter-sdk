@@ -683,6 +683,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     List<Map<String, String>>? headers,
     int? timeoutSeconds,
   }) {
+    throwIfStarted();
     methodChannel.invokeMethod(_addSpanExporterMethodName, {
       _endpointArgName: endpoint,
       _headersArgName: headers,
@@ -696,6 +697,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     List<Map<String, String>>? headers,
     int? timeoutSeconds,
   }) {
+    throwIfStarted();
     methodChannel.invokeMethod(_addLogRecordExporterMethodName, {
       _endpointArgName: endpoint,
       _headersArgName: headers,
@@ -707,6 +709,13 @@ class MethodChannelEmbrace extends EmbracePlatform {
   void throwIfNotStarted() {
     if (!isStarted) {
       throw StateError('Embrace SDK has not been started.');
+    }
+  }
+
+  /// Throws a [StateError] if the SDK has already been started.
+  void throwIfStarted() {
+    if (isStarted) {
+      throw StateError('Embrace SDK has already been started.');
     }
   }
 
