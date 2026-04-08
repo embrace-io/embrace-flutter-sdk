@@ -13,6 +13,7 @@ flutter:
       ios:
         default_package: embrace_ios
 dependencies:
+  dartastic_opentelemetry_api: ^1.0.0-alpha
   embrace_android: ">=4.5.0 <4.6.0"
   embrace_ios: ">=4.5.0 <4.6.0"
   embrace_platform_interface: ">=4.5.0 <4.6.0"
