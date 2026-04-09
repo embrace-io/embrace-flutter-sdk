@@ -688,15 +688,14 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     }
 
     private func handleAddSpanExporterCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        // OTLP HTTP span exporter configuration is not yet supported at runtime
-        // on iOS. The native EmbraceIO SDK configures exporters at startup via
-        // options; runtime addition will be supported in a future SDK release.
+        // The native EmbraceIO SDK only supports configuring span exporters at
+        // startup via options; runtime addition is not supported.
         result(nil)
     }
 
     private func handleAddLogRecordExporterCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        // OTLP HTTP log record exporter configuration is not yet supported at
-        // runtime on iOS. See handleAddSpanExporterCall for details.
+        // The native EmbraceIO SDK only supports configuring log record exporters
+        // at startup via options; runtime addition is not supported.
         result(nil)
     }
 
