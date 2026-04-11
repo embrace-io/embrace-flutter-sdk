@@ -747,9 +747,13 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
             Log.w("EmbraceFlutter", "Failed to add span exporter: ${e.message}", e)
         }
         result.success(null)
+    }
 
     private fun handleAddLogRecordExporter(call: MethodCall, result: Result) {
         val endpoint = call.getStringArgument(EmbraceConstants.ENDPOINT_ARG_NAME)
+        if (endpoint.isEmpty()) {
+            result.success(null)
+            return
         }
         try {
             val builder = OtlpHttpLogRecordExporter.builder().setEndpoint(endpoint)
