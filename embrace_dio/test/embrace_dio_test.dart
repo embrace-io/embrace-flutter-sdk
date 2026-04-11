@@ -49,6 +49,7 @@ void main() {
   });
 
   setUp(() {
+    EmbracePlatform.instance = _embracePlatform;
     reset(_embracePlatform);
     reset(_mockAdapter);
   });
