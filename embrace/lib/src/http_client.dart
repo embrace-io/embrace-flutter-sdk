@@ -1,6 +1,5 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
-import 'package:embrace/src/otel/propagation/w3c_trace_context.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:http/http.dart';
 
