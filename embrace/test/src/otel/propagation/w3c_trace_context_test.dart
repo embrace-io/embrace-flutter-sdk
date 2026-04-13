@@ -1,8 +1,6 @@
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace.dart';
 // ignore: implementation_imports
-import 'package:embrace/src/otel/propagation/w3c_trace_context.dart';
-// ignore: implementation_imports
 import 'package:embrace/src/otel/tracing/embrace_tracer.dart';
 // ignore: implementation_imports
 import 'package:embrace/src/otel/tracing/embrace_tracer_provider.dart';
