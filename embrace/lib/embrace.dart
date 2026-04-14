@@ -291,21 +291,19 @@ class Embrace implements EmbraceFlutterApi {
 
   /// Adds an OTLP HTTP span exporter.
   ///
-  /// Call this after [start] to forward completed spans to an
-  /// OTLP-compatible backend such as Grafana, Honeycomb, or your own
-  /// collector. [endpoint] must be the full OTLP/HTTP URL for traces
-  /// (e.g. `https://otlp.example.com/v1/traces`). [headers] is an optional
-  /// list of single-entry maps, one per header, e.g.
+  /// Must be called before [start] so the exporter is registered before the
+  /// native SDK initializes. [endpoint] must be the full OTLP/HTTP URL for
+  /// traces (e.g. `https://otlp.example.com/v1/traces`). [headers] is an
+  /// optional list of single-entry maps, one per header, e.g.
   /// `[{'x-api-key': 'token'}]` — this mirrors the format expected by the
   /// platform method channel. [timeoutSeconds] defaults to the platform SDK's
   /// default timeout when omitted.
-  ///
-  /// Has no effect if called before [start].
   void addSpanExporter({
     required String endpoint,
     List<Map<String, String>>? headers,
     int? timeoutSeconds,
   }) {
+    _ensureOTelInitialized();
     _runCatching(
       'addSpanExporter',
       () => tracerProvider.addSpanExporter(
@@ -318,21 +316,19 @@ class Embrace implements EmbraceFlutterApi {
 
   /// Adds an OTLP HTTP log record exporter.
   ///
-  /// Call this after [start] to forward log records to an OTLP-compatible
-  /// backend such as Grafana, Honeycomb, or your own collector. [endpoint]
-  /// must be the full OTLP/HTTP URL for logs
-  /// (e.g. `https://otlp.example.com/v1/logs`). [headers] is an optional list
-  /// of single-entry maps, one per header, e.g. `[{'x-api-key': 'token'}]` —
-  /// this mirrors the format expected by the platform method channel.
+  /// Must be called before [start] so the exporter is registered before the
+  /// native SDK initializes. [endpoint] must be the full OTLP/HTTP URL for
+  /// logs (e.g. `https://otlp.example.com/v1/logs`). [headers] is an optional
+  /// list of single-entry maps, one per header, e.g. `[{'x-api-key': 'token'}]`
+  /// — this mirrors the format expected by the platform method channel.
   /// [timeoutSeconds] defaults to the platform SDK's default timeout when
   /// omitted.
-  ///
-  /// Has no effect if called before [start].
   void addLogRecordExporter({
     required String endpoint,
     List<Map<String, String>>? headers,
     int? timeoutSeconds,
   }) {
+    _ensureOTelInitialized();
     _runCatching(
       'addLogRecordExporter',
       () => loggerProvider.addLogRecordExporter(
@@ -341,6 +337,12 @@ class Embrace implements EmbraceFlutterApi {
         timeoutSeconds: timeoutSeconds,
       ),
     );
+  }
+
+  void _ensureOTelInitialized() {
+    if (OTelFactory.otelFactory == null) {
+      OTelAPI.initialize(oTelFactoryCreationFunction: EmbraceOTelFactory.new);
+    }
   }
 
   /// Returns the [EmbraceTracerProvider] registered with the OTel API.
@@ -541,18 +543,21 @@ Future<void> _start(
 ) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await EmbracePlatform.instance.attachToHostSdk(
-    enableIntegrationTesting: enableIntegrationTesting,
-  );
-
   if (OTelFactory.otelFactory == null) {
     OTelAPI.initialize(
       oTelFactoryCreationFunction: EmbraceOTelFactory.new,
     );
   }
 
+  // Forward any pre-start exporter configs to the native SDK before it
+  // initializes. The native SDK requires exporters to be registered before
+  // attachToHostSdk is called.
   (OTelAPI.tracerProvider() as EmbraceTracerProvider).flushPendingExporters();
   (OTelAPI.loggerProvider() as EmbraceLoggerProvider).flushPendingExporters();
+
+  await EmbracePlatform.instance.attachToHostSdk(
+    enableIntegrationTesting: enableIntegrationTesting,
+  );
 
   if (action != null) {
     await _installErrorHandlers(action);
