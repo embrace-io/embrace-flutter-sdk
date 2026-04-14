@@ -1384,7 +1384,8 @@ void main() {
       );
 
       test(
-        'addLogRecordExporter before start queues config without calling platform',
+        'addLogRecordExporter before start queues config without '
+        'calling platform',
         () {
           Embrace.instance.addLogRecordExporter(
             endpoint: 'https://otlp.example.com/v1/logs',
