@@ -15,12 +15,8 @@ import 'package:embrace_example/views.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  // Start the Embrace SDK. Exporters can be configured here before
-  // installErrorHandlers() wraps runApp, so they are in place for the
-  // full app lifecycle.
-  await Embrace.instance.start();
-
-  // Send completed spans to your OTLP-compatible backend.
+  // Register OTLP exporters before starting Embrace so they are forwarded to
+  // the native SDK during initialization.
   Embrace.instance.addSpanExporter(
     endpoint: 'https://otlp.example.com/v1/traces',
     headers: [
@@ -28,8 +24,6 @@ Future<void> main() async {
     ],
     timeoutSeconds: 30,
   );
-
-  // Send log records to your OTLP-compatible backend.
   Embrace.instance.addLogRecordExporter(
     endpoint: 'https://otlp.example.com/v1/logs',
     headers: [
@@ -38,8 +32,7 @@ Future<void> main() async {
     timeoutSeconds: 30,
   );
 
-  await Embrace.instance
-      .installErrorHandlers(() => runApp(const EmbraceDemo()));
+  await Embrace.instance.start(action: () => runApp(const EmbraceDemo()));
 }
 
 class EmbraceDemo extends StatelessWidget {
