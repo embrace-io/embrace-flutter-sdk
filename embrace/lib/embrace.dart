@@ -347,7 +347,9 @@ class Embrace implements EmbraceFlutterApi {
 
   /// Returns the [EmbraceTracerProvider] registered with the OTel API.
   ///
-  /// Throws a [StateError] if called before [start].
+  /// Throws a [StateError] if OTel has not been initialized. OTel is
+  /// initialized automatically when [addSpanExporter] or [addLogRecordExporter]
+  /// is first called, or when [start] completes.
   EmbraceTracerProvider get tracerProvider {
     if (OTelFactory.otelFactory == null) {
       throw StateError('Embrace SDK has not been started.');
@@ -357,7 +359,9 @@ class Embrace implements EmbraceFlutterApi {
 
   /// Returns the [EmbraceLoggerProvider] registered with the OTel API.
   ///
-  /// Throws a [StateError] if called before [start].
+  /// Throws a [StateError] if OTel has not been initialized. OTel is
+  /// initialized automatically when [addSpanExporter] or [addLogRecordExporter]
+  /// is first called, or when [start] completes.
   EmbraceLoggerProvider get loggerProvider {
     if (OTelFactory.otelFactory == null) {
       throw StateError('Embrace SDK has not been started.');
