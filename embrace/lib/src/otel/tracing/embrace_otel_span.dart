@@ -140,6 +140,12 @@ class EmbraceOTelSpan implements otel.APISpan {
   void setDateTimeAsStringAttribute(String name, DateTime value) =>
       _setAttribute(name, otel.Timestamp.dateTimeToString(value));
 
+  /// Sets a string-list attribute by joining elements with a comma.
+  ///
+  /// The native Embrace SDK stores all attribute values as strings, so list
+  /// values are serialized as a comma-separated string. Elements that
+  /// themselves contain commas cannot be round-tripped — avoid using commas
+  /// in string list values.
   @override
   void setStringListAttribute<T>(String name, List<String> value) =>
       _setAttribute(name, value.join(','));
