@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
-import 'package:embrace/embrace_otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 
