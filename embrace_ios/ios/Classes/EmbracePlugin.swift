@@ -241,10 +241,10 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         callAppleSdk { client in
             if let args = call.arguments as? [String: Any],
                 let title = args[EmbracePlugin.TitleArgName] as? String,
-                let body = args[EmbracePlugin.BodyArgName] as? String,
-                let subtitle = args[EmbracePlugin.SubtitleArgName] as? String,
-                let badge = args[EmbracePlugin.BadgeArgName] as? Int,
-                let category = args[EmbracePlugin.CategoryArgName] as? String {
+                let body = args[EmbracePlugin.BodyArgName] as? String {
+                let subtitle = args[EmbracePlugin.SubtitleArgName] as? String ?? ""
+                let badge = args[EmbracePlugin.BadgeArgName] as? Int ?? 0
+                let category = args[EmbracePlugin.CategoryArgName] as? String ?? ""
 
                 let pushData: [AnyHashable: Any?] = [
                     "aps": [
