@@ -1,3 +1,7 @@
+# 4.5.1
+
+* Version bump
+
 # 4.5.0
 
 * Version bump

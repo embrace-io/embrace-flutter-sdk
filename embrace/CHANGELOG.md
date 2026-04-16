@@ -1,3 +1,7 @@
+# 4.5.1
+
+* Fixed an issue on iOS where logPushNotification silently dropped calls when optional parameters were nil
+
 # 4.5.0
 
 * Updated Embrace iOS SDK to 6.17.1
