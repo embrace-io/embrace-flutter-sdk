@@ -1,3 +1,4 @@
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:embrace/embrace.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -12,11 +13,12 @@ class NetworkDemo extends StatefulWidget {
 class _NetworkDemoState extends State<NetworkDemo> {
   final TextEditingController _controller = TextEditingController();
   late final http.Client _client = EmbraceHttpClient();
+  String _responseBody = '';
 
   @override
   void initState() {
     super.initState();
-    _controller.text = 'https://httpbin.org/get';
+    _controller.text = 'https://httpbin.org/headers';
   }
 
   @override
@@ -50,6 +52,25 @@ class _NetworkDemoState extends State<NetworkDemo> {
               onPressed: () => sendAndLogRequest(HttpMethod.delete),
               child: const Text('Delete'),
             ),
+            const Divider(),
+            ElevatedButton(
+              onPressed: _sendWithActiveSpan,
+              child: const Text('Get (with active OTel span)'),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Response (check for Traceparent header):',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  _responseBody,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -63,28 +84,43 @@ class _NetworkDemoState extends State<NetworkDemo> {
     super.dispose();
   }
 
+  Future<void> _sendWithActiveSpan() async {
+    final tracer = OTelAPI.tracerProvider().getTracer('network-demo');
+    final span = tracer.startSpan('network-request-span');
+    try {
+      await sendAndLogRequest(HttpMethod.get);
+    } finally {
+      span.end();
+    }
+  }
+
   Future<void> sendAndLogRequest(HttpMethod method) async {
     final url = Uri.parse(_controller.text);
+    http.Response? response;
 
     switch (method) {
       case HttpMethod.put:
-        await _client.put(url);
+        response = await _client.put(url);
         break;
       case HttpMethod.post:
-        await _client.post(url);
+        response = await _client.post(url);
         break;
       case HttpMethod.patch:
-        await _client.patch(url);
+        response = await _client.patch(url);
         break;
       case HttpMethod.delete:
-        await _client.delete(url);
+        response = await _client.delete(url);
         break;
       case HttpMethod.get:
-        await _client.get(url);
+        response = await _client.get(url);
         break;
       case HttpMethod.other:
-        await _client.get(url);
+        response = await _client.get(url);
         break;
     }
+
+    setState(() {
+      _responseBody = response?.body ?? '';
+    });
   }
 }
