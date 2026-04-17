@@ -665,7 +665,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 startSpan(name, null, startTimeMs)
             }
          }
-        result.success(span)
+        result.success(span?.spanId)
     }
 
     private fun handleStopSpan(call: MethodCall, result: Result) {
