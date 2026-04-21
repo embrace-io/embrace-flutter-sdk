@@ -20,6 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ">=0.13.3 <2.0.0"
+  meta: ^1.9.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
