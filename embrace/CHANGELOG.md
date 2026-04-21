@@ -1,3 +1,9 @@
+# 4.6.0
+
+* Added OpenTelemetry API compliance: `EmbraceOTelFactory`, `EmbraceTracerProvider`, `EmbraceTracer`, `EmbraceLoggerProvider`, and `EmbraceLogger` are now registered with `dartastic_opentelemetry_api` on `Embrace.start()`
+* Added `addSpanExporter` and `addLogRecordExporter` to configure OTLP export destinations from Dart
+* Added W3C traceparent header injection in `EmbraceHttpClient`
+
 # 4.5.0
 
 * Updated Embrace iOS SDK to 6.17.1

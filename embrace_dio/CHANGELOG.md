@@ -1,3 +1,7 @@
+# 4.6.0
+
+* Added W3C traceparent header injection in `EmbraceInterceptor`
+
 # 4.5.0
 
 * Fixed not recording HTTP error responses with status code
