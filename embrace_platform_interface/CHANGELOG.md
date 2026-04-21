@@ -1,3 +1,11 @@
+# 4.6.0
+
+* Added `EmbraceOTelSpan` (implements `APISpan`) with span lifecycle methods
+* Added new platform methods: `setSpanStatus`, `updateSpanName`, `addSpanLink`
+* Added `addSpanExporter` and `addLogRecordExporter` to `EmbracePlatform`
+* Added `W3cTraceContext` for W3C traceparent parsing and injection
+* Added `OTelContextUtils` for OpenTelemetry context management
+
 # 4.5.0
 
 * Version bump

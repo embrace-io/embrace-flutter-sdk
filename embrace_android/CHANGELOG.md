@@ -1,3 +1,8 @@
+# 4.6.0
+
+* Added native handlers for `setSpanStatus`, `updateSpanName`, and `addSpanLink`
+* Added native handlers for `addSpanExporter` and `addLogRecordExporter`
+
 # 4.5.0
 
 * Version bump

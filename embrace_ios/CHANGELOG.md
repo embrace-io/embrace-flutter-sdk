@@ -1,3 +1,9 @@
+# 4.6.0
+
+* Added native handlers for `setSpanStatus`, `updateSpanName`, and `addSpanLink`
+* Added native handlers for `addSpanExporter` and `addLogRecordExporter`
+* Fixed `logPushNotification` silently dropping calls when optional parameters are nil
+
 # 4.5.0
 
 * Updated Embrace iOS SDK to 6.17.1
