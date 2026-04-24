@@ -122,7 +122,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
-  static const String minimumAndroidVersion = '8.2.0';
+  static const String minimumAndroidVersion = '8.3.0';
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
