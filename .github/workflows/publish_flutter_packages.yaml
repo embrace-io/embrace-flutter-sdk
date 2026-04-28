@@ -60,4 +60,11 @@ jobs:
         if: ${{ inputs.dry-run == false }}
         run: |
           cd ${{ matrix.package }}
+          PACKAGE_NAME=$(yq -r .name pubspec.yaml)
+          PACKAGE_VERSION=$(yq -r .version pubspec.yaml)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://pub.dev/api/packages/${PACKAGE_NAME}/versions/${PACKAGE_VERSION}")
+          if [ "$STATUS" = "200" ]; then
+            echo "${PACKAGE_NAME} ${PACKAGE_VERSION} is already published, skipping."
+            exit 0
+          fi
           flutter pub publish -f
