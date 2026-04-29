@@ -8,26 +8,37 @@ import 'package:flutter/widgets.dart';
 /// changes to the app's `main` function. The end time is when the first frame
 /// is rasterized to the display, not just composed in Dart.
 class EmbraceStartupTracker {
-  static late final Stopwatch _stopwatch;
-  static late final int _startEpochMs;
+  static Stopwatch? _stopwatch;
+  static int? _startEpochMs;
 
   /// Captures the start timestamp. Must be called as early as possible in the
-  /// SDK lifecycle, before [recordFirstFrame].
+  /// SDK lifecycle, before [recordFirstFrame]. Safe to call multiple times —
+  /// only the first call sets the timestamp.
   static void init() {
-    _stopwatch = Stopwatch()..start();
-    _startEpochMs = DateTime.now().millisecondsSinceEpoch;
+    _stopwatch ??= Stopwatch()..start();
+    _startEpochMs ??= DateTime.now().millisecondsSinceEpoch;
+  }
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _stopwatch = null;
+    _startEpochMs = null;
   }
 
   /// Waits for the first rasterized frame and records an
   /// `emb-flutter-time-to-first-frame` span covering Dart init → pixels on
   /// screen.
   static Future<void> recordFirstFrame() async {
+    final stopwatch = _stopwatch;
+    final startEpochMs = _startEpochMs;
+    if (stopwatch == null || startEpochMs == null) return;
+
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
-    final elapsedMs = _stopwatch.elapsedMilliseconds;
+    final elapsedMs = stopwatch.elapsedMilliseconds;
     await EmbracePlatform.instance.recordCompletedSpan(
       'emb-flutter-time-to-first-frame',
-      _startEpochMs,
-      _startEpochMs + elapsedMs,
+      startEpochMs,
+      startEpochMs + elapsedMs,
     );
   }
 }
