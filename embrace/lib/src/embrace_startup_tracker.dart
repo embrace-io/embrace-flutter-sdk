@@ -19,6 +19,7 @@ class EmbraceStartupTracker {
     _startEpochMs ??= DateTime.now().millisecondsSinceEpoch;
   }
 
+  /// Resets state between tests. Not for production use.
   @visibleForTesting
   static void resetForTesting() {
     _stopwatch = null;
