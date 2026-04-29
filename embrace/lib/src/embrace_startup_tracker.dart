@@ -19,13 +19,6 @@ class EmbraceStartupTracker {
     _startEpochMs ??= DateTime.now().millisecondsSinceEpoch;
   }
 
-  /// Resets state between tests. Not for production use.
-  @visibleForTesting
-  static void resetForTesting() {
-    _stopwatch = null;
-    _startEpochMs = null;
-  }
-
   /// Waits for the first rasterized frame and records an
   /// `emb-flutter-time-to-first-frame` span covering Dart init → pixels on
   /// screen.
