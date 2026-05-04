@@ -550,10 +550,11 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_stopSpanMethodName, {
-      _spanIdArgName: spanId,
-      _errorCodeArgName: errorCode?.name,
-      _endTimeMsArgName: endTimeMs,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _errorCodeArgName: errorCode?.name,
+          _endTimeMsArgName: endTimeMs,
+        }) as bool? ??
+        false;
   }
 
   @override
@@ -565,21 +566,23 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_addSpanEventMethodName, {
-      _spanIdArgName: spanId,
-      _nameArgName: name,
-      _timestampMsArgName: timestampMs,
-      _attributesArgName: attributes,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _nameArgName: name,
+          _timestampMsArgName: timestampMs,
+          _attributesArgName: attributes,
+        }) as bool? ??
+        false;
   }
 
   @override
   Future<bool> addSpanAttribute(String spanId, String key, String value) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_addSpanAttributeMethodName, {
-      _spanIdArgName: spanId,
-      _keyArgName: key,
-      _valueArgName: value,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _keyArgName: key,
+          _valueArgName: value,
+        }) as bool? ??
+        false;
   }
 
   @override
@@ -594,14 +597,15 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_recordCompletedSpanMethodName, {
-      _nameArgName: name,
-      _startTimeMsArgName: startTimeMs,
-      _endTimeMsArgName: endTimeMs,
-      _errorCodeArgName: errorCode?.name,
-      _parentSpanIdArgName: parentSpanId,
-      _attributesArgName: attributes,
-      _eventsArgName: events,
-    }) as bool? ?? false;
+          _nameArgName: name,
+          _startTimeMsArgName: startTimeMs,
+          _endTimeMsArgName: endTimeMs,
+          _errorCodeArgName: errorCode?.name,
+          _parentSpanIdArgName: parentSpanId,
+          _attributesArgName: attributes,
+          _eventsArgName: events,
+        }) as bool? ??
+        false;
   }
 
   @override
@@ -646,19 +650,21 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_setSpanStatusMethodName, {
-      _spanIdArgName: spanId,
-      _statusCodeArgName: statusCode.name,
-      if (description != null) _descriptionArgName: description,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _statusCodeArgName: statusCode.name,
+          if (description != null) _descriptionArgName: description,
+        }) as bool? ??
+        false;
   }
 
   @override
   Future<bool> updateSpanName(String spanId, String name) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_updateSpanNameMethodName, {
-      _spanIdArgName: spanId,
-      _nameArgName: name,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _nameArgName: name,
+        }) as bool? ??
+        false;
   }
 
   @override
@@ -670,11 +676,12 @@ class MethodChannelEmbrace extends EmbracePlatform {
   ) async {
     throwIfNotStarted();
     return await methodChannel.invokeMethod(_addSpanLinkMethodName, {
-      _spanIdArgName: spanId,
-      _linkedTraceIdArgName: linkedTraceId,
-      _linkedSpanIdArgName: linkedSpanId,
-      _attributesArgName: attributes,
-    }) as bool? ?? false;
+          _spanIdArgName: spanId,
+          _linkedTraceIdArgName: linkedTraceId,
+          _linkedSpanIdArgName: linkedSpanId,
+          _attributesArgName: attributes,
+        }) as bool? ??
+        false;
   }
 
   @override
