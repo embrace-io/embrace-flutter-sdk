@@ -1,52 +1,41 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
-/// A function that extracts the settings from a route
-typedef EmbraceRouteSettingsExtractor = RouteSettings? Function(
-  Route<dynamic> route,
-);
-
-/// {@template embrace_navigation_observer}
-/// A [NavigatorObserver] that automatically tracks app navigation
-/// This class registers in Embrace when a view starts or stops by listening
-/// when a route is pushed or popped.
+/// {@template embrace_go_router_observer}
+/// A [NavigatorObserver] that automatically tracks app navigation for apps
+/// using go_router. Registers in Embrace when a view starts or stops by
+/// listening when a route is pushed or popped.
 ///
-/// [EmbraceNavigationObserver] should be added to the [navigationObserver](https://api.flutter.dev/flutter/material/MaterialApp/navigatorObservers.html)
-/// of [MaterialApp] or your main [Navigator].
+/// [EmbraceGoRouterObserver] should be added to the [observers](https://pub.dev/documentation/go_router/latest/go_router/GoRouter/observers.html)
+/// of your [GoRouter] instance.
 ///
 /// ```dart
-/// import 'package:flutter/material.dart';
+/// import 'package:go_router/go_router.dart';
 /// import 'package:embrace/embrace.dart';
 ///
-/// MaterialApp(
-///   navigatorObservers: [
-///     EmbraceNavigatorObserver(),
-///   ],
-///   // ...
-/// )
+/// final router = GoRouter(
+///   observers: [EmbraceGoRouterObserver()],
+///   routes: [...],
+/// );
 /// ```
 ///
-/// By default the view name is the same as the route name from its settings,
-/// but it can be modified by using a custom name extractor in
-/// [routeSettingsExtractor]
-///
-/// ```dart
-/// MaterialPageRoute(settings: RouteSettings(name: 'FirstPage'))
-/// ```
+/// By default the view name is taken from [RouteSettings.name], which for
+/// go_router is the route path. It can be overridden with
+/// [routeSettingsExtractor].
 /// {@endtemplate}
-class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
-  /// {@macro embrace_navigation_observer}
-  EmbraceNavigationObserver({
+class EmbraceGoRouterObserver extends NavigatorObserver {
+  /// {@macro embrace_go_router_observer}
+  EmbraceGoRouterObserver({
     EmbraceRouteSettingsExtractor? routeSettingsExtractor,
   }) : routeSettingsExtractor = routeSettingsExtractor ?? _defaultExtractor;
 
-  /// A function that returns the settings from a given route
+  /// A function that returns the settings from a given route.
   ///
-  /// If null, it returns the route default settings.
-  /// This can be used to modify the route names that are tracked by Embrace,
-  /// or return null to avoid tracking a specific view
+  /// If null, returns the route's default settings. Can be used to customise
+  /// the route names tracked by Embrace, or return null to skip tracking a
+  /// specific route.
   final EmbraceRouteSettingsExtractor? routeSettingsExtractor;
 
   static RouteSettings? _defaultExtractor(Route<dynamic> route) {
@@ -101,7 +90,6 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    super.didPush(route, previousRoute);
     _updateView(route, previousRoute);
     final routeName = routeSettingsExtractor?.call(route)?.name;
     if (routeName != null) {
@@ -111,7 +99,6 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
     _updateView(newRoute, oldRoute);
     final routeName =
         newRoute != null ? routeSettingsExtractor?.call(newRoute)?.name : null;
@@ -122,7 +109,6 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    super.didPop(route, previousRoute);
     _updateView(previousRoute, route);
   }
 }
