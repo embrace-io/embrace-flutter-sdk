@@ -184,7 +184,8 @@ void main() {
 
       testWidgets('does not start a TTI span on pop', (tester) async {
         final route = FakeRoute(const RouteSettings(name: '/route'));
-        final previousRoute = FakeRoute(const RouteSettings(name: '/previous'));
+        final previousRoute =
+            FakeRoute(const RouteSettings(name: '/previous'));
         observer.didPop(route, previousRoute);
         await tester.pump();
 
