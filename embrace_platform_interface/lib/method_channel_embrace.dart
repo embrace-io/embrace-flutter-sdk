@@ -553,7 +553,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _spanIdArgName: spanId,
       _errorCodeArgName: errorCode?.name,
       _endTimeMsArgName: endTimeMs,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -569,7 +569,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _nameArgName: name,
       _timestampMsArgName: timestampMs,
       _attributesArgName: attributes,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -579,7 +579,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _spanIdArgName: spanId,
       _keyArgName: key,
       _valueArgName: value,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -601,7 +601,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _parentSpanIdArgName: parentSpanId,
       _attributesArgName: attributes,
       _eventsArgName: events,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -649,7 +649,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _spanIdArgName: spanId,
       _statusCodeArgName: statusCode.name,
       if (description != null) _descriptionArgName: description,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -658,7 +658,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
     return await methodChannel.invokeMethod(_updateSpanNameMethodName, {
       _spanIdArgName: spanId,
       _nameArgName: name,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
@@ -674,7 +674,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _linkedTraceIdArgName: linkedTraceId,
       _linkedSpanIdArgName: linkedSpanId,
       _attributesArgName: attributes,
-    }) as bool;
+    }) as bool? ?? false;
   }
 
   @override
