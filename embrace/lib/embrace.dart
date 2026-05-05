@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     hide Severity;
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
@@ -547,6 +548,7 @@ Future<void> _start(
   bool enableIntegrationTesting,
 ) async {
   WidgetsFlutterBinding.ensureInitialized();
+  EmbraceStartupTracker.init();
 
   if (OTelFactory.otelFactory == null) {
     OTelAPI.initialize(
@@ -566,6 +568,7 @@ Future<void> _start(
 
   if (action != null) {
     await _installErrorHandlers(action);
+    unawaited(EmbraceStartupTracker.recordFirstFrame());
   }
 }
 
