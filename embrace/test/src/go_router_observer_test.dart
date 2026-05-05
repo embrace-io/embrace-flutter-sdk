@@ -7,13 +7,13 @@ import 'package:mocktail/mocktail.dart';
 import 'observer_test_helpers.dart';
 
 void main() {
-  late EmbraceNavigationObserver observer;
+  late EmbraceGoRouterObserver observer;
 
   setUp(() {
-    observer = EmbraceNavigationObserver();
+    observer = EmbraceGoRouterObserver();
   });
 
-  group('EmbraceNavigationObserver', () {
+  group('EmbraceGoRouterObserver', () {
     group('view tracking', () {
       late MockEmbracePlatform platform;
 
@@ -23,108 +23,74 @@ void main() {
       });
 
       group('didPush', () {
-        test('ends previous view', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
-          observer.didPush(route, previousRoute);
-
-          verify(() => platform.endView('previousRoute')).called(1);
+        test('starts new view', () {
+          final route = FakeRoute(const RouteSettings(name: '/route'));
+          observer.didPush(route, null);
+          verify(() => platform.startView('/route')).called(1);
         });
 
-        test('starts new view', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
+        test('ends previous view', () {
+          final route = FakeRoute(const RouteSettings(name: '/route'));
+          final previousRoute =
+              FakeRoute(const RouteSettings(name: '/previous'));
           observer.didPush(route, previousRoute);
-
-          verify(() => platform.startView('route')).called(1);
+          verify(() => platform.endView('/previous')).called(1);
         });
 
         test('does not end view if previousRoute is null', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
+          final route = FakeRoute(const RouteSettings(name: '/route'));
           observer.didPush(route, null);
           verifyNever(() => platform.endView(any()));
         });
 
-        test('can use custom name for starting view via routeSettingsExtractor',
-            () {
-          final observer = EmbraceNavigationObserver(
+        test('can use custom name via routeSettingsExtractor', () {
+          final observer = EmbraceGoRouterObserver(
             routeSettingsExtractor: (route) =>
                 RouteSettings(name: route.settings.name?.toUpperCase()),
           );
-          final route = FakeRoute(const RouteSettings(name: 'route'));
+          final route = FakeRoute(const RouteSettings(name: '/route'));
           observer.didPush(route, null);
-          verify(() => platform.startView('ROUTE')).called(1);
+          verify(() => platform.startView('/ROUTE')).called(1);
+        });
+      });
+
+      group('didReplace', () {
+        test('starts new view', () {
+          final newRoute = FakeRoute(const RouteSettings(name: '/new'));
+          final oldRoute = FakeRoute(const RouteSettings(name: '/old'));
+          observer.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+          verify(() => platform.startView('/new')).called(1);
         });
 
-        test('can use custom name for ending view via routeSettingsExtractor',
-            () {
-          final observer = EmbraceNavigationObserver(
-            routeSettingsExtractor: (route) =>
-                RouteSettings(name: route.settings.name?.toUpperCase()),
-          );
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
-          observer.didPush(route, previousRoute);
-          verify(() => platform.endView('PREVIOUSROUTE')).called(1);
+        test('ends old view', () {
+          final newRoute = FakeRoute(const RouteSettings(name: '/new'));
+          final oldRoute = FakeRoute(const RouteSettings(name: '/old'));
+          observer.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+          verify(() => platform.endView('/old')).called(1);
         });
       });
 
       group('didPop', () {
-        test('starts back previous view', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
+        test('starts previous view', () {
+          final route = FakeRoute(const RouteSettings(name: '/route'));
+          final previousRoute =
+              FakeRoute(const RouteSettings(name: '/previous'));
           observer.didPop(route, previousRoute);
-
-          verify(() => platform.startView('previousRoute')).called(1);
+          verify(() => platform.startView('/previous')).called(1);
         });
 
         test('ends popped view', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
+          final route = FakeRoute(const RouteSettings(name: '/route'));
+          final previousRoute =
+              FakeRoute(const RouteSettings(name: '/previous'));
           observer.didPop(route, previousRoute);
-
-          verify(() => platform.endView('route')).called(1);
+          verify(() => platform.endView('/route')).called(1);
         });
 
         test('does not start view if previousRoute is null', () {
-          final route = FakeRoute(const RouteSettings(name: 'route'));
+          final route = FakeRoute(const RouteSettings(name: '/route'));
           observer.didPop(route, null);
           verifyNever(() => platform.startView(any()));
-        });
-
-        test('can use custom name for ending view via routeSettingsExtractor',
-            () {
-          final observer = EmbraceNavigationObserver(
-            routeSettingsExtractor: (route) =>
-                RouteSettings(name: route.settings.name?.toUpperCase()),
-          );
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          observer.didPop(route, null);
-          verify(() => platform.endView('ROUTE')).called(1);
-        });
-
-        test('can use custom name for starting view via routeSettingsExtractor',
-            () {
-          final observer = EmbraceNavigationObserver(
-            routeSettingsExtractor: (route) =>
-                RouteSettings(name: route.settings.name?.toUpperCase()),
-          );
-          final route = FakeRoute(const RouteSettings(name: 'route'));
-          final previousRoute = FakeRoute(
-            const RouteSettings(name: 'previousRoute'),
-          );
-          observer.didPop(route, previousRoute);
-          verify(() => platform.startView('PREVIOUSROUTE')).called(1);
         });
       });
     });
@@ -158,14 +124,14 @@ void main() {
       });
 
       testWidgets('starts a TTI span on push', (tester) async {
-        final route = FakeRoute(const RouteSettings(name: 'route'));
+        final route = FakeRoute(const RouteSettings(name: '/route'));
         observer.didPush(route, null);
         await tester.pump();
 
         verify(
           () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
         ).called(1);
-        verify(() => mockSpan.addAttribute('route', 'route')).called(1);
+        verify(() => mockSpan.addAttribute('route', '/route')).called(1);
         verify(
           () => mockSpan.stop(endTimeMs: any(named: 'endTimeMs')),
         ).called(1);
@@ -173,15 +139,15 @@ void main() {
 
       testWidgets('TTI span uses name from routeSettingsExtractor',
           (tester) async {
-        final observer = EmbraceNavigationObserver(
+        final observer = EmbraceGoRouterObserver(
           routeSettingsExtractor: (route) =>
               RouteSettings(name: route.settings.name?.toUpperCase()),
         );
-        final route = FakeRoute(const RouteSettings(name: 'route'));
+        final route = FakeRoute(const RouteSettings(name: '/route'));
         observer.didPush(route, null);
         await tester.pump();
 
-        verify(() => mockSpan.addAttribute('route', 'ROUTE')).called(1);
+        verify(() => mockSpan.addAttribute('route', '/ROUTE')).called(1);
       });
 
       testWidgets('does not start a TTI span when route name is null',
@@ -194,14 +160,14 @@ void main() {
       });
 
       testWidgets('starts a TTI span on replace', (tester) async {
-        final newRoute = FakeRoute(const RouteSettings(name: 'route'));
+        final newRoute = FakeRoute(const RouteSettings(name: '/new'));
         observer.didReplace(newRoute: newRoute);
         await tester.pump();
 
         verify(
           () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
         ).called(1);
-        verify(() => mockSpan.addAttribute('route', 'route')).called(1);
+        verify(() => mockSpan.addAttribute('route', '/new')).called(1);
         verify(
           () => mockSpan.stop(endTimeMs: any(named: 'endTimeMs')),
         ).called(1);
@@ -209,7 +175,7 @@ void main() {
 
       testWidgets('does not start a TTI span when newRoute is null on replace',
           (tester) async {
-        final oldRoute = FakeRoute(const RouteSettings(name: 'route'));
+        final oldRoute = FakeRoute(const RouteSettings(name: '/old'));
         observer.didReplace(oldRoute: oldRoute);
         await tester.pump();
 
@@ -217,9 +183,8 @@ void main() {
       });
 
       testWidgets('does not start a TTI span on pop', (tester) async {
-        final route = FakeRoute(const RouteSettings(name: 'route'));
-        final previousRoute =
-            FakeRoute(const RouteSettings(name: 'previousRoute'));
+        final route = FakeRoute(const RouteSettings(name: '/route'));
+        final previousRoute = FakeRoute(const RouteSettings(name: '/previous'));
         observer.didPop(route, previousRoute);
         await tester.pump();
 

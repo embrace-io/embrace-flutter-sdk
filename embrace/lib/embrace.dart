@@ -11,6 +11,7 @@ import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
+export 'src/go_router_observer.dart';
 export 'src/http_client.dart';
 export 'src/navigation_observer.dart';
 export 'src/otel/propagation/w3c_trace_context.dart';
