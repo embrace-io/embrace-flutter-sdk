@@ -16,7 +16,7 @@ class MockEmbraceSpan extends Mock implements EmbraceSpan {
   String get id => 'mock-span-id';
 
   @override
-  Future<String?> get traceId => Future.value(null);
+  Future<String?> get traceId => Future.value();
 }
 
 class FakeRoute extends Fake implements Route<dynamic> {

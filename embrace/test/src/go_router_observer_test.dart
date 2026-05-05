@@ -161,7 +161,7 @@ void main() {
 
       testWidgets('starts a TTI span on replace', (tester) async {
         final newRoute = FakeRoute(const RouteSettings(name: '/new'));
-        observer.didReplace(newRoute: newRoute, oldRoute: null);
+        observer.didReplace(newRoute: newRoute);
         await tester.pump();
 
         verify(
@@ -176,7 +176,7 @@ void main() {
       testWidgets('does not start a TTI span when newRoute is null on replace',
           (tester) async {
         final oldRoute = FakeRoute(const RouteSettings(name: '/old'));
-        observer.didReplace(newRoute: null, oldRoute: oldRoute);
+        observer.didReplace(oldRoute: oldRoute);
         await tester.pump();
 
         verifyNever(() => mockEmbrace.startSpan(any()));

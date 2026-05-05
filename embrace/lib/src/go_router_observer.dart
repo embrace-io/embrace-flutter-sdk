@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 /// listening when a route is pushed or popped.
 ///
 /// [EmbraceGoRouterObserver] should be added to the [observers](https://pub.dev/documentation/go_router/latest/go_router/GoRouter/observers.html)
-/// of your [GoRouter] instance.
+/// of your GoRouter instance.
 ///
 /// ```dart
 /// import 'package:go_router/go_router.dart';
