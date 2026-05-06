@@ -5,6 +5,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     hide Severity;
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
+import 'package:embrace/src/lifecycle_observer.dart';
 import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/widgets.dart';
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
 export 'src/go_router_observer.dart';
 export 'src/http_client.dart';
+export 'src/lifecycle_observer.dart';
 export 'src/navigation_observer.dart';
 export 'src/otel/propagation/w3c_trace_context.dart';
 
@@ -565,6 +567,8 @@ Future<void> _start(
   await EmbracePlatform.instance.attachToHostSdk(
     enableIntegrationTesting: enableIntegrationTesting,
   );
+
+  WidgetsBinding.instance.addObserver(EmbraceLifecycleObserver());
 
   if (action != null) {
     await _installErrorHandlers(action);
