@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     hide Severity;
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/embrace_frame_detector.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -565,6 +566,8 @@ Future<void> _start(
   await EmbracePlatform.instance.attachToHostSdk(
     enableIntegrationTesting: enableIntegrationTesting,
   );
+
+  EmbraceFrameDetector().start();
 
   if (action != null) {
     await _installErrorHandlers(action);
