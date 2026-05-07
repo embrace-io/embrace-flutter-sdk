@@ -195,8 +195,7 @@ void main() {
       test('handles slow and frozen frames in the same callback', () {
         detector = EmbraceFrameDetector(
           config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
-        )
-          ..handleTimings([
+        )..handleTimings([
             _frameTiming(buildMs: 20),
             _frameTiming(buildMs: 800),
           ]);
