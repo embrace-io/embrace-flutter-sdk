@@ -54,49 +54,34 @@ void main() {
       expect(OTelContextUtils.currentSpan(), isNull);
     });
 
-    test('attachSpan makes span current in Context', () {
-      // createSpan does not push to context, so Context.current is unaffected.
+    test('currentSpan() returns span inside withSpan', () {
       final span = tracer.createSpan(name: 'test');
 
-      OTelContextUtils.attachSpan(span);
-
-      expect(OTelContextUtils.currentSpan(), same(span));
+      tracer.withSpan(span, () {
+        expect(OTelContextUtils.currentSpan(), same(span));
+      });
     });
 
-    test('attachSpan returns the previous Context', () {
+    test('currentSpan() returns null outside withSpan', () {
       final span = tracer.createSpan(name: 'test');
-      final before = Context.current;
-
-      final returned = OTelContextUtils.attachSpan(span);
-
-      expect(returned, same(before));
-    });
-
-    test('restore reverts Context.current to the previous Context', () {
-      final span = tracer.createSpan(name: 'test');
-      final previous = OTelContextUtils.attachSpan(span);
-
-      OTelContextUtils.restore(previous);
+      tracer.withSpan(span, () {});
 
       expect(OTelContextUtils.currentSpan(), isNull);
-    });
-
-    test('currentSpan() returns span after attachSpan', () {
-      final span = tracer.createSpan(name: 'test');
-      OTelContextUtils.attachSpan(span);
-
-      expect(OTelContextUtils.currentSpan(), same(span));
     });
 
     test('currentSpanContext() returns null when no span is active', () {
       expect(OTelContextUtils.currentSpanContext(), isNull);
     });
 
-    test('currentSpanContext() returns spanContext after attachSpan', () {
+    test('currentSpanContext() returns spanContext inside withSpan', () {
       final span = tracer.createSpan(name: 'test');
-      OTelContextUtils.attachSpan(span);
 
-      expect(OTelContextUtils.currentSpanContext(), equals(span.spanContext));
+      tracer.withSpan(span, () {
+        expect(
+          OTelContextUtils.currentSpanContext(),
+          equals(span.spanContext),
+        );
+      });
     });
   });
 }

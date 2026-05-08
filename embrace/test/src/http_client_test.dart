@@ -155,7 +155,9 @@ void main() {
 
         when(() => response.statusCode).thenReturn(200);
         final embraceClient = EmbraceHttpClient(internalClient: client);
-        await embraceClient.get(Uri.parse('https://embrace.io'));
+        await tracer.withSpanAsync(span, () async {
+          await embraceClient.get(Uri.parse('https://embrace.io'));
+        });
 
         verify(
           () => embracePlatform.logNetworkRequest(
@@ -203,7 +205,9 @@ void main() {
 
         when(() => response.statusCode).thenReturn(200);
         final embraceClient = EmbraceHttpClient(internalClient: client);
-        await embraceClient.get(Uri.parse('https://embrace.io'));
+        await tracer.withSpanAsync(span, () async {
+          await embraceClient.get(Uri.parse('https://embrace.io'));
+        });
 
         verify(
           () => embracePlatform.logNetworkRequest(

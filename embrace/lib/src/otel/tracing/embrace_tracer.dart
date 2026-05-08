@@ -55,12 +55,6 @@ class EmbraceTracer implements APITracer {
       );
     }
 
-    // Capture the active context before the span exists so it can be stored
-    // on the span for restoration in end(). OTelContextUtils.attachSpan also
-    // captures Context.current internally, so its return value would equal
-    // previousContext — but the span must be constructed first, making this
-    // ordering unavoidable.
-    final previousContext = Context.current;
     final effectiveContext = context ?? Context.current;
     final otelSpanContext = _buildSpanContext(
       parentSpan: parentSpan,
@@ -79,7 +73,6 @@ class EmbraceTracer implements APITracer {
       nativeSpanId: nativeSpanId,
       spanContext: otelSpanContext,
       instrumentationScope: _instrumentationScope,
-      previousContext: previousContext,
       parentSpan: parentSpan,
       kind: kind,
     );
@@ -87,7 +80,6 @@ class EmbraceTracer implements APITracer {
     if (attributes != null) span.addAttributes(attributes);
     links?.forEach(span.addSpanLink);
 
-    OTelContextUtils.attachSpan(span);
     return span;
   }
 
@@ -169,14 +161,8 @@ class EmbraceTracer implements APITracer {
   APISpan? get currentSpan => OTelContextUtils.currentSpan();
 
   @override
-  T withSpan<T>(APISpan span, T Function() fn) {
-    final previous = OTelContextUtils.attachSpan(span);
-    try {
-      return fn();
-    } finally {
-      OTelContextUtils.restore(previous);
-    }
-  }
+  T withSpan<T>(APISpan span, T Function() fn) =>
+      Context.current.withSpan(span).runSync(fn);
 
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
