@@ -309,32 +309,30 @@ void main() {
       ).thenAnswer((_) async => true);
     });
 
-    test('startSpan makes span current in context', () {
-      final span = tracer.startSpan('op');
-
-      expect(OTelContextUtils.currentSpan(), same(span));
-    });
-
-    test('after span.end(), previous span is current again', () {
-      final span = tracer.startSpan('op');
-      expect(OTelContextUtils.currentSpan(), same(span));
-
-      span.end();
+    test('startSpan does not set span as current in context', () {
+      tracer.startSpan('op');
 
       expect(OTelContextUtils.currentSpan(), isNull);
     });
 
-    test('nested startSpan produces correct parent chain', () {
+    test('nested withSpan produces correct context stack', () {
       final parent = tracer.startSpan('parent');
       final child = tracer.startSpan('child');
 
-      expect(OTelContextUtils.currentSpan(), same(child));
+      tracer.withSpan(parent, () {
+        expect(OTelContextUtils.currentSpan(), same(parent));
+
+        tracer.withSpan(child, () {
+          expect(OTelContextUtils.currentSpan(), same(child));
+        });
+
+        expect(OTelContextUtils.currentSpan(), same(parent));
+      });
+
+      expect(OTelContextUtils.currentSpan(), isNull);
 
       child.end();
-      expect(OTelContextUtils.currentSpan(), same(parent));
-
       parent.end();
-      expect(OTelContextUtils.currentSpan(), isNull);
     });
 
     test('createSpan does not push span to context', () {
@@ -379,10 +377,12 @@ void main() {
       expect(tracer.currentSpan, isNull);
     });
 
-    test('currentSpan reflects the active span', () {
+    test('currentSpan reflects the active span during withSpan', () {
       final span = tracer.startSpan('op');
 
-      expect(tracer.currentSpan, same(span));
+      tracer.withSpan(span, () {
+        expect(tracer.currentSpan, same(span));
+      });
     });
   });
 }
