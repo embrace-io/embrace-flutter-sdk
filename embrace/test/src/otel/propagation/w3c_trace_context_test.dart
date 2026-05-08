@@ -157,7 +157,9 @@ void main() {
       );
       final headers = <String, String>{};
 
-      await W3cTraceContext.injectCurrent(headers);
+      await tracer.withSpanAsync(span, () async {
+        await W3cTraceContext.injectCurrent(headers);
+      });
 
       verify(
         () => platform.generateW3cTraceparent(
@@ -176,7 +178,9 @@ void main() {
       _stubGenerateW3cTraceparent(platform, platformValue);
       final headers = <String, String>{};
 
-      await W3cTraceContext.injectCurrent(headers);
+      await tracer.withSpanAsync(span, () async {
+        await W3cTraceContext.injectCurrent(headers);
+      });
 
       expect(headers['traceparent'], platformValue);
 
@@ -189,7 +193,9 @@ void main() {
       _stubGenerateW3cTraceparent(platform, null);
       final headers = <String, String>{};
 
-      await W3cTraceContext.injectCurrent(headers);
+      await tracer.withSpanAsync(span, () async {
+        await W3cTraceContext.injectCurrent(headers);
+      });
 
       verify(
         () => platform.generateW3cTraceparent(
@@ -218,7 +224,9 @@ void main() {
       final sc = span.spanContext;
       final headers = <String, String>{};
 
-      W3cTraceContext.injectCurrentSync(headers);
+      tracer.withSpan(span, () {
+        W3cTraceContext.injectCurrentSync(headers);
+      });
 
       expect(headers['traceparent'], W3cTraceContext.fromSpanContext(sc));
       verifyNever(() => platform.generateW3cTraceparent(any(), any()));

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     as otel;
-import 'package:embrace/src/otel/context/otel_context_utils.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:meta/meta.dart';
 
@@ -20,15 +19,11 @@ class EmbraceOTelSpan implements otel.APISpan {
   /// Creates an [EmbraceOTelSpan].
   ///
   /// [nativeSpanId] is the [Future] returned by [EmbracePlatform.startSpan].
-  /// [previousContext] is the [otel.Context] that was active before this span
-  /// was made current; [end] restores it. Pass `null` for spans created via
-  /// [otel.APITracer.createSpan] that are never attached to context.
   EmbraceOTelSpan({
     required String name,
     required Future<String?> nativeSpanId,
     required otel.SpanContext spanContext,
     required otel.InstrumentationScope instrumentationScope,
-    otel.Context? previousContext,
     otel.APISpan? parentSpan,
     otel.SpanKind kind = otel.SpanKind.internal,
     DateTime? startTime,
@@ -36,7 +31,6 @@ class EmbraceOTelSpan implements otel.APISpan {
         _nativeSpanId = nativeSpanId,
         _spanContext = spanContext,
         _instrumentationScope = instrumentationScope,
-        _previousContext = previousContext,
         _parentSpan = parentSpan,
         _kind = kind,
         _startTime = startTime ?? DateTime.now();
@@ -45,7 +39,6 @@ class EmbraceOTelSpan implements otel.APISpan {
   final Future<String?> _nativeSpanId;
   final otel.SpanContext _spanContext;
   final otel.InstrumentationScope _instrumentationScope;
-  final otel.Context? _previousContext;
   final otel.APISpan? _parentSpan;
   final otel.SpanKind _kind;
   final DateTime _startTime;
@@ -325,7 +318,6 @@ class EmbraceOTelSpan implements otel.APISpan {
         ),
       ),
     );
-    if (_previousContext != null) OTelContextUtils.restore(_previousContext!);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

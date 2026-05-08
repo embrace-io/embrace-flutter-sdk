@@ -9,20 +9,6 @@ import 'package:meta/meta.dart';
 class OTelContextUtils {
   OTelContextUtils._();
 
-  /// Makes [span] the active span in [Context.current] and returns the
-  /// context that was active before the push.
-  static Context attachSpan(APISpan span) {
-    final previous = Context.current;
-    Context.current = previous.withSpan(span);
-    return previous;
-  }
-
-  /// Restores a previously saved context as [Context.current].
-  // ignore: use_setters_to_change_properties
-  static void restore(Context previous) {
-    Context.current = previous;
-  }
-
   /// Returns the span currently active in [Context.current], or `null` if
   /// no span is active or OTel has not been initialized.
   static APISpan? currentSpan() {
