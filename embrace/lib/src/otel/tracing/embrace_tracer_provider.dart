@@ -37,6 +37,7 @@ class EmbraceTracerProvider implements APITracerProvider {
   String? _serviceVersion;
   bool _enabled;
   bool _isShutdown;
+  TimeProvider _timeProvider = defaultTimeProvider;
 
   final List<_SpanExporterConfig> _pendingSpanExporters = [];
 
@@ -120,6 +121,12 @@ class EmbraceTracerProvider implements APITracerProvider {
 
   @override
   set serviceVersion(String? value) => _serviceVersion = value;
+
+  @override
+  TimeProvider get timeProvider => _timeProvider;
+
+  @override
+  set timeProvider(TimeProvider value) => _timeProvider = value;
 
   @override
   bool get enabled => _enabled;
