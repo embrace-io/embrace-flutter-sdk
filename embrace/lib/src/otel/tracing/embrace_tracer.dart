@@ -161,6 +161,9 @@ class EmbraceTracer implements APITracer {
   APISpan? get currentSpan => OTelContextUtils.currentSpan();
 
   @override
+  TimeProvider get timeProvider => _delegate.timeProvider;
+
+  @override
   T withSpan<T>(APISpan span, T Function() fn) =>
       Context.current.withSpan(span).runSync(fn);
 

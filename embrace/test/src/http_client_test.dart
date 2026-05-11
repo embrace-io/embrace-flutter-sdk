@@ -1,4 +1,5 @@
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
+    hide Client;
 import 'package:embrace/embrace.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
