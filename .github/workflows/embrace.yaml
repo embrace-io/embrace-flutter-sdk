@@ -192,6 +192,7 @@ jobs:
 
   ios:
     runs-on: macos-15
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: embrace/example
@@ -210,7 +211,7 @@ jobs:
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
       - name: Flutter Doctor (sanity check)
         run: flutter doctor -v
-      - name: Create & Boot iOS Simulator (prefer iOS 17.x)
+      - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
         id: boot-sim
         shell: bash
         run: |
@@ -218,15 +219,14 @@ jobs:
           xcrun simctl shutdown all || true
           xcrun simctl erase all || true
 
-          # Prefer iOS 17.*, fall back to newest available
-          RUNTIME=$(xcrun simctl list runtimes -j \
-            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith("17."))) | .identifier' \
-            | sort -V | tail -n1)
-          if [[ -z "${RUNTIME:-}" ]]; then
+          # Prefer iOS 17.*, then 18.*, avoid iOS 26+ (UIScene required, breaks flutter drive)
+          RUNTIME=""
+          for PREFIX in "17." "18."; do
             RUNTIME=$(xcrun simctl list runtimes -j \
-              | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+              | jq -r --arg p "$PREFIX" '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith($p))) | .identifier' \
               | sort -V | tail -n1)
-          fi
+            [[ -n "${RUNTIME:-}" ]] && break
+          done
 
           DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
