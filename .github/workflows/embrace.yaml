@@ -249,15 +249,12 @@ jobs:
           echo $! > log.pid
         env:
           STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
-      - name: Run iOS integration test (flutter drive)
+      - name: Run iOS integration test
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
           flutter devices
-          flutter drive \
-            --driver=test_driver/integration_test.dart \
-            --target=integration_test/app_test.dart \
-            -d "$SIM_UDID"
+          flutter test integration_test/app_test.dart -d "$SIM_UDID"
       - name: Kill log stream & tail
         if: always()
         run: |
