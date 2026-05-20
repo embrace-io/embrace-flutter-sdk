@@ -175,6 +175,7 @@ jobs:
           working-directory: embrace/example
           script: |
             set -eu
+            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             adb devices || true
             flutter --version
             flutter devices || true
