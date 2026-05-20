@@ -227,6 +227,12 @@ jobs:
               | sort -V | tail -n1)
             [[ -n "${RUNTIME:-}" ]] && break
           done
+          if [[ -z "${RUNTIME:-}" ]]; then
+            echo "ERROR: no iOS 17.x or 18.x runtime found. Available runtimes:"
+            xcrun simctl list runtimes
+            exit 1
+          fi
+          echo "Selected runtime: $RUNTIME"
 
           DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
