@@ -173,18 +173,8 @@ jobs:
           emulator-options: -no-window -no-boot-anim -no-audio -no-metrics
           working-directory: embrace/example
           script: |
-            set -eu
-            echo "Waiting for Android emulator to finish booting..."
-            BOOT_TIMEOUT=60
-            BOOT_ELAPSED=0
-            until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null)" == "1" ]]; do
-              if [[ $BOOT_ELAPSED -ge $BOOT_TIMEOUT ]]; then
-                echo "ERROR: Emulator did not boot within ${BOOT_TIMEOUT}s" >&2
-                exit 1
-              fi
-              sleep 1
-              BOOT_ELAPSED=$((BOOT_ELAPSED + 1))
-            done
+            echo "Waiting for Android emulator to be ready..."
+            timeout 60 adb wait-for-device shell 'while [ -z "$(getprop sys.boot_completed)" ]; do sleep 1; done' || (echo "ERROR: Emulator did not become ready within 60s" >&2; exit 1)
             adb devices || true
             flutter --version
             flutter devices || true
