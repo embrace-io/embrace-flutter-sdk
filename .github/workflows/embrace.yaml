@@ -228,8 +228,10 @@ jobs:
             [[ -n "${RUNTIME:-}" ]] && break
           done
           if [[ -z "${RUNTIME:-}" ]]; then
-            echo "ERROR: no iOS 17.x or 18.x runtime found. Available runtimes:"
+            echo "::error title=No iOS runtime::no iOS 17.x or 18.x runtime found"
+            echo "::group::Available runtimes"
             xcrun simctl list runtimes
+            echo "::endgroup::"
             exit 1
           fi
           echo "Selected runtime: $RUNTIME"
