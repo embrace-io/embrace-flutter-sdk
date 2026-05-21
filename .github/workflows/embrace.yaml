@@ -2,6 +2,7 @@ name: embrace
 
 env:
   ANDROID_API_LEVEL: 34
+  FLUTTER_VERSION: '3.38.5'
 
 on:
   pull_request:
@@ -47,7 +48,7 @@ jobs:
           persist-credentials: false
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: '3.38.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
       - name: Flutter Doctor
         run: flutter doctor -v
       - name: Tests for minimum version
@@ -66,7 +67,7 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
-          flutter-version: '3.38.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - name: Flutter Doctor
         run: flutter doctor -v
@@ -118,7 +119,7 @@ jobs:
         with:
           channel: stable
           cache: true
-          flutter-version: '3.38.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Flutter pub get
         run: flutter pub get
@@ -202,7 +203,7 @@ jobs:
           persist-credentials: false
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: '3.38.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
       - name: Flutter Pub Get
