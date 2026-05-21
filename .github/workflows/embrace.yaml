@@ -177,7 +177,12 @@ jobs:
             adb devices || true
             flutter --version
             flutter devices || true
-            flutter test integration_test -d emulator-5554 || { adb logcat -d > emulator_logcat.log 2>&1 || true; exit 127; }
+            DEVICE_ID=$(adb devices | grep -w device | grep emulator | head -1 | cut -f1)
+            if [ -z "$DEVICE_ID" ]; then
+              echo "No emulator device found" >&2
+              exit 1
+            fi
+            flutter test integration_test -d "$DEVICE_ID" || { adb logcat -d > emulator_logcat.log 2>&1 || true; exit 127; }
 
       - name: Archive Test Results
         if: ${{ always() }}
