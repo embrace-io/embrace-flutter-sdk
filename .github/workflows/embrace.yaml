@@ -269,8 +269,43 @@ jobs:
           set -o pipefail
           xcrun simctl bootstatus "$SIM_UDID" -b
           flutter devices || true
-          flutter --verbose test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
-            | tee "$RUNNER_TEMP/flutter-test.log"
+
+          # Sentinel-gated single retry: a transient "log reader failed unexpectedly"
+          # error during debug-attach is the only known-flaky failure mode. Anything
+          # else (compile error, test assertion, network) fails fast on attempt 1.
+          attempts=0
+          max_attempts=2
+          while : ; do
+            attempts=$((attempts + 1))
+            log="$RUNNER_TEMP/flutter-test.attempt-$attempts.log"
+            set +e
+            flutter --verbose test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
+              | tee "$log" "$RUNNER_TEMP/flutter-test.log"
+            status=${PIPESTATUS[0]}
+            set -e
+            [ "$status" -eq 0 ] && break
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "::error title=flutter test failed::$attempts attempts; last exit $status"
+              exit "$status"
+            fi
+            if ! grep -q 'Error waiting for a debug connection' "$log"; then
+              echo "::error title=flutter test failed::non-retriable failure (exit $status)"
+              exit "$status"
+            fi
+            echo "::warning title=flutter test retry::debug-attach failure on attempt $attempts; resetting sim and retrying"
+            # Reset the simulator to clear the host-side wedged `simctl spawn log
+            # stream` file descriptor — the underlying Apple/CoreSimulator bug per
+            # flutter/flutter#116248. Shutdown closes the FD; reboot leaves
+            # app-install state intact (vs `erase`, which fresh-state correlates
+            # with the failure per flutter/flutter#111167).
+            echo "Shutting down simulator..."
+            xcrun simctl shutdown "$SIM_UDID" || true
+            echo "Booting simulator..."
+            xcrun simctl boot "$SIM_UDID"
+            echo "Waiting for simulator to be ready..."
+            xcrun simctl bootstatus "$SIM_UDID" -b
+            echo "Simulator reset complete; retrying"
+          done
       - name: Surface failure summary
         if: failure() || cancelled()
         env:
@@ -316,6 +351,7 @@ jobs:
           name: ios-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/flutter-test.log
+            ${{ runner.temp }}/flutter-test.attempt-*.log
             embrace/example/simlog.txt
           if-no-files-found: ignore
           retention-days: 7
