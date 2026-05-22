@@ -241,6 +241,7 @@ jobs:
             exit 1
           fi
           echo "Selected runtime: $RUNTIME"
+          echo "runtime=$RUNTIME" >> "$GITHUB_OUTPUT"
 
           DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
@@ -261,13 +262,58 @@ jobs:
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
+          set -o pipefail
           flutter devices
-          flutter test integration_test/app_test.dart -d "$SIM_UDID"
+          flutter test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
+            | tee "$RUNNER_TEMP/flutter-test.log"
+      - name: Surface failure summary
+        if: failure() || cancelled()
+        env:
+          SELECTED_RUNTIME: ${{ steps.boot-sim.outputs.runtime }}
+          SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
+        run: |
+          {
+            echo "### iOS job diagnostics"
+            echo ""
+            echo "**Selected runtime**: ${SELECTED_RUNTIME:-unknown}"
+            echo "**Simulator UDID**: ${SIM_UDID:-unknown}"
+            echo ""
+            echo "#### Booted devices at failure time"
+            echo '```'
+            xcrun simctl list devices booted 2>&1 || true
+            echo '```'
+            echo ""
+            echo "#### Live processes"
+            echo '```'
+            # shellcheck disable=SC2009  # need etime to spot hung procs; pgrep doesn't expose it
+            ps -axo pid,etime,command | grep -E 'flutter|dart|xcodebuild|Simulator|launchd_sim' | grep -v grep || true
+            echo '```'
+            echo ""
+            echo "#### Last 100 lines of flutter test"
+            echo '```'
+            tail -n 100 "$RUNNER_TEMP/flutter-test.log" 2>/dev/null || echo "(no log captured)"
+            echo '```'
+            echo ""
+            echo "#### Last 200 lines of simulator log"
+            echo '```'
+            tail -n 200 simlog.txt 2>/dev/null || echo "(no log captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Kill log stream & tail
         if: always()
         run: |
           kill $(cat log.pid) || true
           tail -n 400 simlog.txt || true
+      - name: Upload iOS diagnostics
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/flutter-test.log
+            embrace/example/simlog.txt
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Shutdown simulator
         if: always()
         run: xcrun simctl shutdown all || true
