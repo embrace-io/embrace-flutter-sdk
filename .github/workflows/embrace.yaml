@@ -207,6 +207,15 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - name: Cache CocoaPods
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cocoapods
+            embrace/example/ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
       - name: Flutter Pub Get
         run: flutter pub get
       - name: Configure App ID and API Token
