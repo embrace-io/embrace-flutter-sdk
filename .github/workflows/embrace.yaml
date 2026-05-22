@@ -254,8 +254,9 @@ jobs:
           xcrun simctl list devices | grep "$UDID"
       - name: Stream Simulator Logs
         run: |
-          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog \
-            --predicate 'process == "Runner"' > simlog.txt 2>&1 &
+          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog --level=debug \
+            --predicate 'process IN { "Runner", "SpringBoard", "launchd_sim", "CoreSimulator", "FrontBoard" }' \
+            > simlog.txt 2>&1 &
           echo $! > log.pid
         env:
           STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
@@ -266,7 +267,7 @@ jobs:
         run: |
           set -o pipefail
           flutter devices
-          flutter test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
+          flutter --verbose test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
             | tee "$RUNNER_TEMP/flutter-test.log"
       - name: Surface failure summary
         if: failure() || cancelled()
