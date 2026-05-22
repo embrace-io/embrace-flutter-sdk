@@ -219,6 +219,7 @@ jobs:
         run: flutter doctor -v
       - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
         id: boot-sim
+        timeout-minutes: 10
         shell: bash
         run: |
           set -euo pipefail
@@ -259,6 +260,7 @@ jobs:
         env:
           STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
       - name: Run iOS integration test
+        timeout-minutes: 25
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
@@ -316,6 +318,7 @@ jobs:
           retention-days: 7
       - name: Shutdown simulator
         if: always()
+        timeout-minutes: 2
         run: xcrun simctl shutdown all || true
 
 
