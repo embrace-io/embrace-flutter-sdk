@@ -193,6 +193,7 @@ jobs:
           if-no-files-found: ignore
 
   ios:
+    name: iOS (Flutter integration test, macOS-15)
     runs-on: macos-15
     timeout-minutes: 45
     defaults:
@@ -266,7 +267,8 @@ jobs:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
           set -o pipefail
-          flutter devices
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          flutter devices || true
           flutter --verbose test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
             | tee "$RUNNER_TEMP/flutter-test.log"
       - name: Surface failure summary
