@@ -28,9 +28,9 @@ dependencies {
   def embAndroidSdk = (findProperty("emb_android_sdk") ?: rootProject.findProperty("emb_android_sdk"))
   if (!embAndroidSdk) throw new GradleException("Missing 'emb_android_sdk' in gradle.properties")
 
-  compileOnly "io.embrace:embrace-android-sdk:$embAndroidSdk"
-  compileOnly "io.embrace:embrace-android-core:$embAndroidSdk"
-  compileOnly "io.embrace:embrace-internal-api:$embAndroidSdk"
-  compileOnly "io.embrace:embrace-android-otel-java:$embAndroidSdk"
+  compileOnly "com.github.donpaul120.embrace-android-sdk:embrace-android-sdk:$embAndroidSdk"
+  compileOnly "com.github.donpaul120.embrace-android-sdk:embrace-android-core:$embAndroidSdk"
+  compileOnly "com.github.donpaul120.embrace-android-sdk:embrace-internal-api:$embAndroidSdk"
+  compileOnly "com.github.donpaul120.embrace-android-sdk:embrace-android-otel-java:$embAndroidSdk"
   implementation "io.opentelemetry:opentelemetry-exporter-otlp:1.62.0"
 }
