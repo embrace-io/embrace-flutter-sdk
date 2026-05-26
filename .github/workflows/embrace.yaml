@@ -221,7 +221,6 @@ jobs:
         run: |
           set -euo pipefail
           xcrun simctl shutdown all || true
-          xcrun simctl erase all || true
 
           # Prefer iOS 17.*, then 18.*, avoid iOS 26+ (UIScene required, breaks flutter drive)
           RUNTIME=""
