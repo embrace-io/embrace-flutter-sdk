@@ -16,7 +16,7 @@ dependencies:
   plugin_platform_interface: ^2.1.0
   embrace_platform_interface: ">=4.6.0 <4.7.0"
 dev_dependencies:
-  dartastic_opentelemetry_api: 1.0.0-beta.6
+  dartastic_opentelemetry_api: 1.0.0-beta.7
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
