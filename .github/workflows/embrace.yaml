@@ -49,8 +49,6 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-      - name: Flutter Doctor
-        run: flutter doctor -v
       - name: Tests for minimum version
         run: flutter test
 
@@ -69,8 +67,6 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      - name: Flutter Doctor
-        run: flutter doctor -v
       - name: Tests for release mode
         run: flutter test --dart-define=dart.vm.product=true test_release/
 
@@ -224,8 +220,6 @@ jobs:
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-      - name: Flutter Doctor (sanity check)
-        run: flutter doctor -v
       - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
         id: boot-sim
         shell: bash
