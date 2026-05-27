@@ -49,8 +49,6 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-      - name: Flutter Doctor
-        run: flutter doctor -v
       - name: Tests for minimum version
         run: flutter test
 
@@ -69,8 +67,6 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      - name: Flutter Doctor
-        run: flutter doctor -v
       - name: Tests for release mode
         run: flutter test --dart-define=dart.vm.product=true test_release/
 
@@ -193,6 +189,7 @@ jobs:
           if-no-files-found: ignore
 
   ios:
+    name: iOS (Flutter integration test, macOS-15)
     runs-on: macos-15
     timeout-minutes: 45
     defaults:
@@ -207,6 +204,15 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - name: Cache CocoaPods
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cocoapods
+            embrace/example/ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
       - name: Flutter Pub Get
         run: flutter pub get
       - name: Configure App ID and API Token
@@ -215,10 +221,9 @@ jobs:
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-      - name: Flutter Doctor (sanity check)
-        run: flutter doctor -v
       - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
         id: boot-sim
+        timeout-minutes: 10
         shell: bash
         run: |
           set -euo pipefail
@@ -241,6 +246,7 @@ jobs:
             exit 1
           fi
           echo "Selected runtime: $RUNTIME"
+          echo "runtime=$RUNTIME" >> "$GITHUB_OUTPUT"
 
           DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
@@ -252,24 +258,109 @@ jobs:
           xcrun simctl list devices | grep "$UDID"
       - name: Stream Simulator Logs
         run: |
-          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog \
-            --predicate 'process == "Runner"' > simlog.txt 2>&1 &
+          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog --level=debug \
+            --predicate 'process IN { "Runner", "SpringBoard", "launchd_sim", "CoreSimulator", "FrontBoard" }' \
+            > simlog.txt 2>&1 &
           echo $! > log.pid
         env:
           STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
       - name: Run iOS integration test
+        timeout-minutes: 25
         env:
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
-          flutter devices
-          flutter test integration_test/app_test.dart -d "$SIM_UDID"
+          set -o pipefail
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          flutter devices || true
+
+          # Sentinel-gated single retry: a transient "log reader failed unexpectedly"
+          # error during debug-attach is the only known-flaky failure mode. Anything
+          # else (compile error, test assertion, network) fails fast on attempt 1.
+          attempts=0
+          max_attempts=2
+          while : ; do
+            attempts=$((attempts + 1))
+            log="$RUNNER_TEMP/flutter-test.attempt-$attempts.log"
+            set +e
+            flutter --verbose test integration_test/app_test.dart -d "$SIM_UDID" 2>&1 \
+              | tee "$log" "$RUNNER_TEMP/flutter-test.log"
+            status=${PIPESTATUS[0]}
+            set -e
+            [ "$status" -eq 0 ] && break
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "::error title=flutter test failed::$attempts attempts; last exit $status"
+              exit "$status"
+            fi
+            if ! grep -q 'Error waiting for a debug connection' "$log"; then
+              echo "::error title=flutter test failed::non-retriable failure (exit $status)"
+              exit "$status"
+            fi
+            echo "::warning title=flutter test retry::debug-attach failure on attempt $attempts; resetting sim and retrying"
+            # Reset the simulator to clear the host-side wedged `simctl spawn log
+            # stream` file descriptor — the underlying Apple/CoreSimulator bug per
+            # flutter/flutter#116248. Shutdown closes the FD; reboot leaves
+            # app-install state intact (vs `erase`, which fresh-state correlates
+            # with the failure per flutter/flutter#111167).
+            echo "Shutting down simulator..."
+            xcrun simctl shutdown "$SIM_UDID" || true
+            echo "Booting simulator..."
+            xcrun simctl boot "$SIM_UDID"
+            echo "Waiting for simulator to be ready..."
+            xcrun simctl bootstatus "$SIM_UDID" -b
+            echo "Simulator reset complete; retrying"
+          done
+      - name: Surface failure summary
+        if: failure() || cancelled()
+        env:
+          SELECTED_RUNTIME: ${{ steps.boot-sim.outputs.runtime }}
+          SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
+        run: |
+          {
+            echo "### iOS job diagnostics"
+            echo ""
+            echo "**Selected runtime**: ${SELECTED_RUNTIME:-unknown}"
+            echo "**Simulator UDID**: ${SIM_UDID:-unknown}"
+            echo ""
+            echo "#### Booted devices at failure time"
+            echo '```'
+            xcrun simctl list devices booted 2>&1 || true
+            echo '```'
+            echo ""
+            echo "#### Live processes"
+            echo '```'
+            # shellcheck disable=SC2009  # need etime to spot hung procs; pgrep doesn't expose it
+            ps -axo pid,etime,command | grep -E 'flutter|dart|xcodebuild|Simulator|launchd_sim' | grep -v grep || true
+            echo '```'
+            echo ""
+            echo "#### Last 100 lines of flutter test"
+            echo '```'
+            tail -n 100 "$RUNNER_TEMP/flutter-test.log" 2>/dev/null || echo "(no log captured)"
+            echo '```'
+            echo ""
+            echo "#### Last 200 lines of simulator log"
+            echo '```'
+            tail -n 200 simlog.txt 2>/dev/null || echo "(no log captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Kill log stream & tail
         if: always()
         run: |
           kill $(cat log.pid) || true
           tail -n 400 simlog.txt || true
+      - name: Upload iOS diagnostics
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/flutter-test.log
+            ${{ runner.temp }}/flutter-test.attempt-*.log
+            embrace/example/simlog.txt
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Shutdown simulator
         if: always()
+        timeout-minutes: 2
         run: xcrun simctl shutdown all || true
 
 
