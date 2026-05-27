@@ -242,6 +242,7 @@ jobs:
           DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "$UDID" > /tmp/sim_udid
+          # this is non-blocking
           xcrun simctl boot "$UDID"
       - name: Flutter Pub Get
         run: flutter pub get
