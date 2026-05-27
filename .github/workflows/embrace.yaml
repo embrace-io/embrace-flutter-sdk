@@ -15,7 +15,7 @@ on:
       - "embrace_dio/**"
   push:
     branches:
-      - master
+      - main
     paths:
       - ".github/workflows/embrace.yaml"
       - "embrace/**"
