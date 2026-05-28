@@ -1,0 +1,24 @@
+name: embrace_go_router
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/embrace_go_router.yaml"
+      - "embrace_go_router/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/embrace_go_router.yaml"
+      - "embrace_go_router/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/flutter_ci.yaml
+    with:
+      flutter_channel: stable
+      flutter_version: "3.38.5"
+      working_directory: embrace_go_router
