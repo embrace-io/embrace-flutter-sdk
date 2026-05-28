@@ -26,7 +26,7 @@ jobs:
 
     strategy:
       matrix:
-        package: ['embrace_platform_interface', 'embrace_ios', 'embrace_android', 'embrace', 'embrace_dio']
+        package: ['embrace_platform_interface', 'embrace_ios', 'embrace_android', 'embrace', 'embrace_dio', 'embrace_go_router']
       fail-fast: true
       max-parallel: 1  # Publish the packages in sequential order
 
