@@ -28,8 +28,8 @@ import 'package:go_router/go_router.dart';
 ///
 /// Pass the [GoRouter] instance directly. This wires into go_router's
 /// `routeInformationProvider`, capturing every route change including those
-/// in sub-navigators that a [NavigatorObserver] would miss. Do **not** also
-/// add this observer to `GoRouter.observers` in this mode.
+/// in sub-navigators that a [NavigatorObserver] would miss. Do **not**
+/// add the `EmbraceGoRouterObserver` to `GoRouter.observers` in this mode:
 ///
 /// ```dart
 /// import 'package:go_router/go_router.dart';
@@ -40,7 +40,7 @@ import 'package:go_router/go_router.dart';
 ///
 /// @override
 /// void dispose() {
-///   _observer.dispose();
+///   _observer.dispose(); // required to remove the routeInformationProvider listener
 ///   super.dispose();
 /// }
 /// ```
@@ -83,9 +83,8 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
   }
 
   void _reportCurrentRoute() {
-    final router = _router;
-    if (router == null) return;
-    final name = router.routeInformationProvider.value.uri.path;
+    if (_router == null) return;
+    final name = _router!.routeInformationProvider.value.uri.path;
     if (name.isEmpty) return;
     _currentView = name;
     _initStateSpan(name);
@@ -130,9 +129,8 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
   }
 
   void _onRouteChanged() {
-    final router = _router;
-    if (router == null) return;
-    final name = router.routeInformationProvider.value.uri.path;
+    if (_router == null) return;
+    final name = _router!.routeInformationProvider.value.uri.path;
     if (name.isEmpty || name == _currentView) return;
     _currentView = name;
     _recordTransition(name);
