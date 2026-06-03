@@ -55,6 +55,7 @@ declare -r EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH='embrace_platform_interface/p
 declare -r EMBRACE_ANDROID_PUBSPEC_PATH='embrace_android/pubspec.yaml'
 declare -r EMBRACE_IOS_PUBSPEC_PATH='embrace_ios/pubspec.yaml'
 declare -r EMBRACE_DIO_PUBSPEC_PATH='embrace_dio/pubspec.yaml'
+declare -r EMBRACE_GO_ROUTER_PUBSPEC_PATH='embrace_go_router/pubspec.yaml'
 
 declare -r EMBRACE_DEPENDENCY_NAME='.dependencies.embrace'
 declare -r PLATFORM_INTERFACE_DEPENDENCY_NAME='.dependencies.embrace_platform_interface'
@@ -62,11 +63,12 @@ declare -r ANDROID_DEPENDENCY_NAME='.dependencies.embrace_android'
 declare -r IOS_DEPENDENCY_NAME='.dependencies.embrace_ios'
 declare -r DIO_DEPENDENCY_NAME='.dependencies.embrace_dio'
 
-# Verify versions of all 5 packages are the same
+# Verify versions of all 6 packages are the same
 verify_versions_match $EMBRACE_PUBSPEC_PATH $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 verify_versions_match $EMBRACE_PUBSPEC_PATH $EMBRACE_ANDROID_PUBSPEC_PATH
 verify_versions_match $EMBRACE_PUBSPEC_PATH $EMBRACE_IOS_PUBSPEC_PATH
 verify_versions_match $EMBRACE_PUBSPEC_PATH $EMBRACE_DIO_PUBSPEC_PATH
+verify_versions_match $EMBRACE_PUBSPEC_PATH $EMBRACE_GO_ROUTER_PUBSPEC_PATH
 
 # Verify dependencies match current package versions
 verify_dependency $EMBRACE_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
@@ -74,6 +76,8 @@ verify_dependency $EMBRACE_PUBSPEC_PATH $ANDROID_DEPENDENCY_NAME $EMBRACE_ANDROI
 verify_dependency $EMBRACE_PUBSPEC_PATH $IOS_DEPENDENCY_NAME $EMBRACE_IOS_PUBSPEC_PATH
 verify_dependency $EMBRACE_ANDROID_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 verify_dependency $EMBRACE_IOS_PUBSPEC_PATH $PLATFORM_INTERFACE_DEPENDENCY_NAME $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
+verify_dependency $EMBRACE_GO_ROUTER_PUBSPEC_PATH $EMBRACE_DEPENDENCY_NAME $EMBRACE_PUBSPEC_PATH
+verify_dependency $EMBRACE_GO_ROUTER_PUBSPEC_PATH '.dev_dependencies.embrace_platform_interface' $EMBRACE_PLATFORM_INTERFACE_PUBSPEC_PATH
 
 # Verify version in generated script is the same
 declare -r GENERATED_VERSION_SCRIPT_PATH=embrace_platform_interface/lib/src/version.dart
