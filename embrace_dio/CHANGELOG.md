@@ -1,3 +1,7 @@
+# 4.7.0
+
+* Version bump
+
 # 4.6.0
 
 * Added W3C traceparent header injection in `EmbraceInterceptor`

@@ -1,3 +1,9 @@
+# 4.7.0
+
+* Added `EmbraceStartupTracker` for automatic time-to-first-frame span instrumentation
+* Added time-to-interactive (TTI) span instrumentation to `EmbraceNavigationObserver`
+* Moved `EmbraceGoRouterObserver` to the standalone `embrace_go_router` package
+
 # 4.6.0
 
 * Added OpenTelemetry API compliance: `EmbraceOTelFactory`, `EmbraceTracerProvider`, `EmbraceTracer`, `EmbraceLoggerProvider`, and `EmbraceLogger` are now registered with `dartastic_opentelemetry_api` on `Embrace.start()`

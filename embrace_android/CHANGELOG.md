@@ -1,3 +1,7 @@
+# 4.7.0
+
+* Updated Embrace Android SDK to 8.3.1
+
 # 4.6.0
 
 * Added native handlers for `setSpanStatus`, `updateSpanName`, and `addSpanLink`
