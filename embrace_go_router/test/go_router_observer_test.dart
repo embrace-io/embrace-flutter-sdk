@@ -123,7 +123,7 @@ void main() {
         debugEmbraceOverride = mockEmbrace;
         when(() => mockEmbrace.startView(any())).thenAnswer((_) {});
         when(() => mockEmbrace.endView(any())).thenAnswer((_) {});
-        when(() => mockEmbrace.startSpan('emb-flutter-time-to-interactive'))
+        when(() => mockEmbrace.startSpan('emb-time-to-interactive-flutter'))
             .thenAnswer((_) => Future.value(mockSpan));
         when(() => mockSpan.addAttribute(any(), any()))
             .thenAnswer((_) async => true);
@@ -142,7 +142,7 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', '/route')).called(1);
         verify(
@@ -178,7 +178,7 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', '/new')).called(1);
         verify(
@@ -226,7 +226,7 @@ void main() {
         () => mockEmbrace.startSpan('emb-state-screen-flutter-automatic'),
       ).thenAnswer((_) => Future.value(mockStateSpan));
       when(
-        () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+        () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
       ).thenAnswer((_) => Future.value(mockTtiSpan));
       when(() => mockStateSpan.addAttribute(any(), any()))
           .thenAnswer((_) async => true);
@@ -391,7 +391,7 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
         ).called(1);
         verify(() => mockTtiSpan.addAttribute('route', '/')).called(1);
         verify(
@@ -410,7 +410,7 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
         ).called(2);
         verify(() => mockTtiSpan.addAttribute('route', '/home')).called(1);
       });

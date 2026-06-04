@@ -20,7 +20,7 @@ class EmbraceStartupTracker {
   }
 
   /// Waits for the first rasterized frame and records an
-  /// `emb-flutter-time-to-first-frame` span covering Dart init → pixels on
+  /// `emb-time-to-first-frame-flutter` span covering Dart init → pixels on
   /// screen.
   static Future<void> recordFirstFrame() async {
     final stopwatch = _stopwatch;
@@ -30,7 +30,7 @@ class EmbraceStartupTracker {
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     final elapsedMs = stopwatch.elapsedMilliseconds;
     await EmbracePlatform.instance.recordCompletedSpan(
-      'emb-flutter-time-to-first-frame',
+      'emb-time-to-first-frame-flutter',
       startEpochMs,
       startEpochMs + elapsedMs,
     );

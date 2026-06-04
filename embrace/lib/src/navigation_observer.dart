@@ -70,7 +70,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
 
     Embrace.instance
         .startSpan(
-      'emb-flutter-time-to-interactive',
+      'emb-time-to-interactive-flutter',
       startTimeMs: startTimeMs,
     )
         .then(

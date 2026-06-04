@@ -146,7 +146,7 @@ void main() {
         when(() => mockEmbrace.endView(any())).thenAnswer((_) {});
         when(
           () => mockEmbrace.startSpan(
-            'emb-flutter-time-to-interactive',
+            'emb-time-to-interactive-flutter',
             startTimeMs: any(named: 'startTimeMs'),
           ),
         ).thenAnswer((_) => Future.value(mockSpan));
@@ -168,7 +168,7 @@ void main() {
 
         verify(
           () => mockEmbrace.startSpan(
-            'emb-flutter-time-to-interactive',
+            'emb-time-to-interactive-flutter',
             startTimeMs: any(named: 'startTimeMs'),
           ),
         ).called(1);
@@ -207,7 +207,7 @@ void main() {
 
         verify(
           () => mockEmbrace.startSpan(
-            'emb-flutter-time-to-interactive',
+            'emb-time-to-interactive-flutter',
             startTimeMs: any(named: 'startTimeMs'),
           ),
         ).called(1);
