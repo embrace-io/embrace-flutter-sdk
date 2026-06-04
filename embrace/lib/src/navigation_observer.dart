@@ -54,6 +54,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
   }
 
   void _startTtiSpan(String routeName) {
+    final startTimeMs = DateTime.now().millisecondsSinceEpoch;
     int? endTimeMs;
     EmbraceSpan? pendingSpan;
 
@@ -67,7 +68,12 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
       }
     }
 
-    Embrace.instance.startSpan('emb-flutter-time-to-interactive').then(
+    Embrace.instance
+        .startSpan(
+          'emb-flutter-time-to-interactive',
+          startTimeMs: startTimeMs,
+        )
+        .then(
       (span) {
         pendingSpan = span;
         tryStop();
