@@ -170,7 +170,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
       }
     }
 
-    Embrace.instance.startSpan('emb-flutter-time-to-interactive').then(
+    Embrace.instance.startSpan('emb-time-to-interactive-flutter').then(
       (span) {
         pendingSpan = span;
         tryStop();
