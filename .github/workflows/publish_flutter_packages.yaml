@@ -26,13 +26,13 @@ jobs:
 
     strategy:
       matrix:
-        package: ['embrace_platform_interface', 'embrace_ios', 'embrace_android', 'embrace', 'embrace_dio']
+        package: ['embrace_platform_interface', 'embrace_ios', 'embrace_android', 'embrace', 'embrace_dio', 'embrace_go_router']
       fail-fast: true
       max-parallel: 1  # Publish the packages in sequential order
 
     steps:
       - name: 📚 Git Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 

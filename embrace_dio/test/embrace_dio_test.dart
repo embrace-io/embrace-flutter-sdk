@@ -355,7 +355,7 @@ void main() {
       final span = tracer.startSpan('test');
 
       // ignore: inference_failure_on_function_invocation
-      await dio.get('/test_url');
+      await tracer.withSpanAsync(span, () => dio.get('/test_url'));
 
       verify(
         () => platform.logNetworkRequest(
@@ -401,7 +401,7 @@ void main() {
           '00-${sc.traceId.hexString}-${sc.spanId.hexString}-$flags';
 
       // ignore: inference_failure_on_function_invocation
-      await dio.get('/test_url');
+      await tracer.withSpanAsync(span, () => dio.get('/test_url'));
 
       verify(
         () => platform.logNetworkRequest(

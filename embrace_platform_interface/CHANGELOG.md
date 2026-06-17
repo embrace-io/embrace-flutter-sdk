@@ -1,3 +1,7 @@
+# 4.7.0
+
+* Fixed null returns from span method channel calls
+
 # 4.6.0
 
 * Added `EmbraceOTelSpan` (implements `APISpan`) with span lifecycle methods

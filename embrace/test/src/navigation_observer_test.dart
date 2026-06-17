@@ -144,8 +144,12 @@ void main() {
         debugEmbraceOverride = mockEmbrace;
         when(() => mockEmbrace.startView(any())).thenAnswer((_) {});
         when(() => mockEmbrace.endView(any())).thenAnswer((_) {});
-        when(() => mockEmbrace.startSpan('emb-flutter-time-to-interactive'))
-            .thenAnswer((_) => Future.value(mockSpan));
+        when(
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).thenAnswer((_) => Future.value(mockSpan));
         when(() => mockSpan.addAttribute(any(), any()))
             .thenAnswer((_) async => true);
         when(() => mockSpan.stop(endTimeMs: any(named: 'endTimeMs')))
@@ -163,7 +167,10 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', 'route')).called(1);
         verify(
@@ -199,7 +206,10 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-flutter-time-to-interactive'),
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', 'route')).called(1);
         verify(

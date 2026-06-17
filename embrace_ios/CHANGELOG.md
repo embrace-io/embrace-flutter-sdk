@@ -1,3 +1,7 @@
+# 4.7.0
+
+* Updated Embrace iOS SDK to 6.20.0
+
 # 4.6.0
 
 * Added native handlers for `setSpanStatus`, `updateSpanName`, and `addSpanLink`

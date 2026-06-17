@@ -4,16 +4,25 @@ import Flutter
 import EmbraceIO
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
 
     override init() {
         super.init()
         do {
+            // To capture push notifications, build capture services explicitly and pass
+            // KSCrashReporter() as the crashReporter. EmbraceCrashReporter is an internal
+            // wrapper class and is not a valid value for the crashReporter parameter.
+            let captureServices = CaptureServiceBuilder()
+                .addDefaults()
+                .add(.pushNotification())
+                .build()
             try Embrace
                 .setup(
                     options: Embrace.Options(
                         appId: "12345",
-                        platform: .flutter
+                        platform: .flutter,
+                        captureServices: captureServices,
+                        crashReporter: KSCrashReporter()
                     )
                 )
                 .start()
@@ -22,11 +31,7 @@ import EmbraceIO
         }
     }
 
-    override func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-    ) -> Bool {
-        GeneratedPluginRegistrant.register(with: self)
-        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    func didInitializeImplicitFlutterEngine(_ engineBridge: any FlutterImplicitEngineBridge) {
+        GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     }
 }
