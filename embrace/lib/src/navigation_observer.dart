@@ -101,6 +101,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
       final name = settings?.name;
       if (name != null) {
         Embrace.instance.startView(name);
+        Embrace.instance.setCurrentRoute(name);
       }
     }
   }

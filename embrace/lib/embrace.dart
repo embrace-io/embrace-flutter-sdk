@@ -5,6 +5,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
     hide Severity;
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/embrace_frame_detector.dart';
+import 'package:meta/meta.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -48,6 +49,13 @@ class Embrace implements EmbraceFlutterApi {
   Embrace._() {}
   EmbracePlatform get _platform => EmbracePlatform.instance;
   static final Embrace _instance = Embrace._();
+  EmbraceFrameDetector? _frameDetector;
+
+  @internal
+  // ignore: use_setters_to_change_properties
+  void setCurrentRoute(String? route) {
+    _frameDetector?.setRoute(route);
+  }
 
   /// Entry point for the SDK. Use this to call send logs and other information
   /// to Embrace.
@@ -566,7 +574,7 @@ Future<void> _start(
     enableIntegrationTesting: enableIntegrationTesting,
   );
 
-  EmbraceFrameDetector().start();
+  Embrace._instance._frameDetector = EmbraceFrameDetector()..start();
 
   if (action != null) {
     await _installErrorHandlers(action);

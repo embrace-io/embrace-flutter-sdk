@@ -23,6 +23,8 @@ FrameTiming _frameTiming({int buildMs = 0, int rasterMs = 0}) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late _MockEmbracePlatform platform;
   late EmbraceFrameDetector detector;
 
@@ -202,6 +204,85 @@ void main() {
 
         verify(() => platform.logInfo('slow-frames', any())).called(1);
         verify(() => platform.logWarning('frozen-frame', any())).called(1);
+      });
+    });
+
+    group('route correlation', () {
+      test('includes route in slow-frames log when route is set', () {
+        detector = EmbraceFrameDetector(
+          config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
+        )
+          ..setRoute('/home')
+          ..handleTimings([_frameTiming(buildMs: 20)]);
+
+        verify(
+          () => platform.logInfo('slow-frames', {
+            'count': '1',
+            'worst_build_ms': '20',
+            'worst_raster_ms': '0',
+            'route': '/home',
+          }),
+        ).called(1);
+      });
+
+      test('includes route in frozen-frame log when route is set', () {
+        detector
+          ..setRoute('/detail')
+          ..handleTimings([_frameTiming(buildMs: 800)]);
+
+        verify(
+          () => platform.logWarning(
+            'frozen-frame',
+            {'build_ms': '800', 'raster_ms': '0', 'route': '/detail'},
+          ),
+        ).called(1);
+      });
+
+      test('omits route key when no route has been set', () {
+        detector = EmbraceFrameDetector(
+          config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
+        )..handleTimings([_frameTiming(buildMs: 20)]);
+
+        verify(
+          () => platform.logInfo('slow-frames', {
+            'count': '1',
+            'worst_build_ms': '20',
+            'worst_raster_ms': '0',
+          }),
+        ).called(1);
+      });
+
+      test('updates route between batches', () {
+        detector = EmbraceFrameDetector(
+          config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
+        )
+          ..setRoute('/first')
+          ..handleTimings([_frameTiming(buildMs: 20)])
+          ..setRoute('/second')
+          ..handleTimings([_frameTiming(buildMs: 20)]);
+
+        verifyInOrder([
+          () => platform.logInfo('slow-frames', {
+                'count': '1',
+                'worst_build_ms': '20',
+                'worst_raster_ms': '0',
+                'route': '/first',
+              }),
+          () => platform.logInfo('slow-frames', {
+                'count': '1',
+                'worst_build_ms': '20',
+                'worst_raster_ms': '0',
+                'route': '/second',
+              }),
+        ]);
+      });
+    });
+
+    group('stop', () {
+      test('stop does not throw', () {
+        detector
+          ..start()
+          ..stop();
       });
     });
   });
