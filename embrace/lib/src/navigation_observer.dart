@@ -1,5 +1,6 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/embrace_frame_detector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -101,6 +102,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
       final name = settings?.name;
       if (name != null) {
         Embrace.instance.startView(name);
+        updateCurrentRoute(name);
       }
     }
   }
