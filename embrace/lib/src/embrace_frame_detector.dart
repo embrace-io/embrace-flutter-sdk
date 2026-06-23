@@ -2,6 +2,14 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:meta/meta.dart';
 
+EmbraceFrameDetector? _activeDetector;
+
+@internal
+// Called by EmbraceNavigationObserver when the active route changes.
+void updateCurrentRoute(String? route) {
+  _activeDetector?.currentRoute = route;
+}
+
 @internal
 class EmbraceFrameDetectionConfig {
   const EmbraceFrameDetectionConfig({
@@ -25,18 +33,16 @@ class EmbraceFrameDetector {
   int _slowFrameCount = 0;
   int _worstSlowBuildMs = 0;
   int _worstSlowRasterMs = 0;
-  String? _currentRoute;
+  String? currentRoute;
 
   void start() {
+    _activeDetector = this;
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
   }
 
   void stop() {
+    if (_activeDetector == this) _activeDetector = null;
     SchedulerBinding.instance.removeTimingsCallback(_onTimings);
-  }
-
-  void setRoute(String? route) {
-    _currentRoute = route;
   }
 
   @visibleForTesting
@@ -54,7 +60,7 @@ class EmbraceFrameDetector {
           {
             'build_ms': '$buildMs',
             'raster_ms': '$rasterMs',
-            if (_currentRoute != null) 'route': _currentRoute!,
+            if (currentRoute != null) 'route': currentRoute!,
           },
         );
       } else if (buildMs > _config.slowFrameThresholdMs ||
@@ -77,7 +83,7 @@ class EmbraceFrameDetector {
         'count': '$_slowFrameCount',
         'worst_build_ms': '$_worstSlowBuildMs',
         'worst_raster_ms': '$_worstSlowRasterMs',
-        if (_currentRoute != null) 'route': _currentRoute!,
+        if (currentRoute != null) 'route': currentRoute!,
       },
     );
     _slowFrameCount = 0;

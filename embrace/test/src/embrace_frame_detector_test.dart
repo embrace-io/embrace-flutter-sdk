@@ -212,7 +212,7 @@ void main() {
         detector = EmbraceFrameDetector(
           config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
         )
-          ..setRoute('/home')
+          ..currentRoute = '/home'
           ..handleTimings([_frameTiming(buildMs: 20)]);
 
         verify(
@@ -227,7 +227,7 @@ void main() {
 
       test('includes route in frozen-frame log when route is set', () {
         detector
-          ..setRoute('/detail')
+          ..currentRoute = '/detail'
           ..handleTimings([_frameTiming(buildMs: 800)]);
 
         verify(
@@ -256,9 +256,9 @@ void main() {
         detector = EmbraceFrameDetector(
           config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
         )
-          ..setRoute('/first')
+          ..currentRoute = '/first'
           ..handleTimings([_frameTiming(buildMs: 20)])
-          ..setRoute('/second')
+          ..currentRoute = '/second'
           ..handleTimings([_frameTiming(buildMs: 20)]);
 
         verifyInOrder([
