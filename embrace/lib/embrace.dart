@@ -49,7 +49,6 @@ class Embrace implements EmbraceFlutterApi {
   EmbracePlatform get _platform => EmbracePlatform.instance;
   static final Embrace _instance = Embrace._();
 
-
   /// Entry point for the SDK. Use this to call send logs and other information
   /// to Embrace.
   ///
