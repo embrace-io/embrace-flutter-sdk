@@ -105,7 +105,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Setup Java 17
-        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
         with:
           distribution: temurin
           java-version: '17'
@@ -138,7 +138,7 @@ jobs:
 
       # Cache the AVD (x86_64 + API 34); change API here if needed
       - name: AVD cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         id: avd-cache
         with:
           path: |
@@ -206,14 +206,14 @@ jobs:
           cache: true
       - name: Cache CocoaPods
         id: cocoapods-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         with:
           path: embrace/example/ios/Pods
           key: pods-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
           restore-keys: |
             pods-${{ runner.os }}-
       - name: Cache CocoaPods specs
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         with:
           path: ~/.cocoapods/repos/trunk
           key: pods-specs-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
