@@ -641,7 +641,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleGetCurrentSessionIdCall(call: MethodCall, result: Result) {
         val currentSessionId = safeSdkCall {
-            currentSessionId
+            currentUserSessionId
         }
         result.success(currentSessionId)
     }
