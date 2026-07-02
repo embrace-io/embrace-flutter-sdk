@@ -246,10 +246,26 @@ jobs:
             [[ -n "${RUNTIME:-}" ]] && break
           done
           if [[ -z "${RUNTIME:-}" ]]; then
-            echo "::error title=No iOS runtime::no iOS 17.x or 18.x runtime found"
-            echo "::group::Available runtimes"
-            xcrun simctl list runtimes
-            echo "::endgroup::"
+            selected=$(xcodebuild -version 2>/dev/null | tr '\n' ' ')
+            echo "::error title=No iOS runtime::no iOS 17.x or 18.x runtime found; ${selected}has no matching simulator runtime baked in"
+            {
+              echo "### ❌ No iOS 17.x/18.x simulator runtime available"
+              echo ""
+              echo "Selected Xcode: \`${selected}\`"
+              echo ""
+              echo "**Installed Xcode versions on this runner:**"
+              echo '```'
+              ls -d /Applications/Xcode_*.app 2>/dev/null || echo "(none found)"
+              echo '```'
+              echo "**Available runtimes:**"
+              echo '```'
+              xcrun simctl list runtimes
+              echo '```'
+              echo "**SDKs available in the selected Xcode:**"
+              echo '```'
+              xcodebuild -showsdks 2>/dev/null || echo "(xcodebuild -showsdks failed)"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           echo "Selected runtime: $RUNTIME"
