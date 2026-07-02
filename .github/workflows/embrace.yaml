@@ -138,7 +138,7 @@ jobs:
 
       # Cache the AVD (x86_64 + API 34); change API here if needed
       - name: AVD cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: avd-cache
         with:
           path: |
@@ -206,14 +206,14 @@ jobs:
           cache: true
       - name: Cache CocoaPods
         id: cocoapods-cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: embrace/example/ios/Pods
           key: pods-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
           restore-keys: |
             pods-${{ runner.os }}-
       - name: Cache CocoaPods specs
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cocoapods/repos/trunk
           key: pods-specs-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
