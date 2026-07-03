@@ -189,8 +189,8 @@ jobs:
           if-no-files-found: ignore
 
   ios:
-    name: iOS (Flutter integration test, macOS-15)
-    runs-on: macos-15
+    name: iOS (Flutter integration test, macOS-26)
+    runs-on: macos-26
     timeout-minutes: 45
     defaults:
       run:
@@ -228,7 +228,7 @@ jobs:
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-      - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
+      - name: Create & Boot iOS Simulator (latest available runtime)
         id: boot-sim
         timeout-minutes: 10
         shell: bash
@@ -237,19 +237,17 @@ jobs:
           xcrun simctl shutdown all || true
           xcrun simctl erase all || true
 
-          # Prefer iOS 17.*, then 18.*, avoid iOS 26+ (UIScene required, breaks flutter drive)
-          RUNTIME=""
-          for PREFIX in "17." "18."; do
-            RUNTIME=$(xcrun simctl list runtimes -j \
-              | jq -r --arg p "$PREFIX" '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith($p))) | .identifier' \
-              | sort -V | tail -n1)
-            [[ -n "${RUNTIME:-}" ]] && break
-          done
+          # macos-26 only ships iOS 26.x runtimes. The Runner app was migrated to the
+          # UIScene lifecycle (SceneDelegate.swift) that iOS 26 requires, so just take
+          # the newest available runtime instead of pinning to older versions.
+          RUNTIME=$(xcrun simctl list runtimes -j \
+            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
+            | sort -V | tail -n1)
           if [[ -z "${RUNTIME:-}" ]]; then
             selected=$(xcodebuild -version 2>/dev/null | tr '\n' ' ')
-            echo "::error title=No iOS runtime::no iOS 17.x or 18.x runtime found; ${selected}has no matching simulator runtime baked in"
+            echo "::error title=No iOS runtime::no available iOS runtime found; ${selected}has no simulator runtime baked in"
             {
-              echo "### ❌ No iOS 17.x/18.x simulator runtime available"
+              echo "### ❌ No iOS simulator runtime available"
               echo ""
               echo "Selected Xcode: \`${selected}\`"
               echo ""
@@ -271,7 +269,7 @@ jobs:
           echo "Selected runtime: $RUNTIME"
           echo "runtime=$RUNTIME" >> "$GITHUB_OUTPUT"
 
-          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
