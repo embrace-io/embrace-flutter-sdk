@@ -1,3 +1,7 @@
+# 4.8.0
+
+* Version bump
+
 # 4.7.0
 
 * Added `EmbraceStartupTracker` for automatic time-to-first-frame span instrumentation
