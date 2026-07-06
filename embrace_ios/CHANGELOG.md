@@ -1,3 +1,7 @@
+# 4.8.0
+
+* Version bump
+
 # 4.7.0
 
 * Updated Embrace iOS SDK to 6.20.0
