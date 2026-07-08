@@ -219,9 +219,20 @@ jobs:
           key: pods-specs-${{ runner.os }}-${{ hashFiles('embrace/example/ios/Podfile.lock') }}
       - name: Flutter Pub Get
         run: flutter pub get
-      - name: Update CocoaPods specs (cache stale or miss)
-        if: steps.cocoapods-cache.outputs.cache-hit != 'true'
-        run: pod repo update
+      - name: Install CocoaPods dependencies (refresh specs on stale/miss)
+        working-directory: embrace/example/ios
+        run: |
+          set -euo pipefail
+          if pod install 2>&1 | tee /tmp/pod_install.log; then
+            exit 0
+          fi
+          if ! grep -qiE 'could not find compatible versions|specs repository is too out-of-date' /tmp/pod_install.log; then
+            echo "::error title=pod install failed::non-retriable failure"
+            exit 1
+          fi
+          echo "::warning title=pod install retry::CocoaPods specs are stale; running pod repo update and retrying"
+          pod repo update
+          pod install
       - name: Configure App ID and API Token
         run: |
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Embrace-Info.plist
