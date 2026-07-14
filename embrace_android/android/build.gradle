@@ -7,7 +7,7 @@ version = "1.0-SNAPSHOT"
 
 android {
   namespace "io.embrace.flutter"
-  compileSdk 34
+  compileSdk 36
 
   defaultConfig { minSdk 21 }
 
