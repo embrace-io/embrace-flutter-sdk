@@ -189,8 +189,13 @@ jobs:
           if-no-files-found: ignore
 
   ios:
-    name: iOS (Flutter integration test, macOS-26)
-    runs-on: macos-26
+    # Temporarily pinned back from macos-26: GitHub's macos-26 image currently
+    # ships host macOS 26.4 (build 25E246) with Xcode 26.5, a combination Apple
+    # confirms hangs Simulator/CoreSimulatorService (fixed only once the HOST OS
+    # is also updated to 26.5, not just Xcode). Revert to macos-26 once GitHub
+    # ships an updated image with a matching host OS build.
+    name: iOS (Flutter integration test, macOS-15)
+    runs-on: macos-15
     timeout-minutes: 45
     defaults:
       run:
@@ -239,7 +244,7 @@ jobs:
           sed -i .bak 's/YOUR_API_KEY/${{ secrets.FLUTTER_TEST_IOS_APP_ID }}/' ios/Runner.xcodeproj/project.pbxproj
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Embrace-Info.plist
           sed -i .bak 's/YOUR_API_TOKEN/${{ secrets.FLUTTER_TEST_IOS_API_TOKEN }}/' ios/Runner.xcodeproj/project.pbxproj
-      - name: Create & Boot iOS Simulator (latest available runtime)
+      - name: Create & Boot iOS Simulator (prefer iOS 17.x or 18.x)
         id: boot-sim
         timeout-minutes: 10
         shell: bash
@@ -248,17 +253,19 @@ jobs:
           xcrun simctl shutdown all || true
           xcrun simctl erase all || true
 
-          # macos-26 only ships iOS 26.x runtimes. The Runner app was migrated to the
-          # UIScene lifecycle (SceneDelegate.swift) that iOS 26 requires, so just take
-          # the newest available runtime instead of pinning to older versions.
-          RUNTIME=$(xcrun simctl list runtimes -j \
-            | jq -r '.runtimes[] | select(.platform=="iOS" and .isAvailable==true) | .identifier' \
-            | sort -V | tail -n1)
+          # Prefer iOS 17.*, then 18.*, avoid iOS 26+ (UIScene required, breaks flutter drive)
+          RUNTIME=""
+          for PREFIX in "17." "18."; do
+            RUNTIME=$(xcrun simctl list runtimes -j \
+              | jq -r --arg p "$PREFIX" '.runtimes[] | select(.platform=="iOS" and .isAvailable==true and (.version|startswith($p))) | .identifier' \
+              | sort -V | tail -n1)
+            [[ -n "${RUNTIME:-}" ]] && break
+          done
           if [[ -z "${RUNTIME:-}" ]]; then
             selected=$(xcodebuild -version 2>/dev/null | tr '\n' ' ')
-            echo "::error title=No iOS runtime::no available iOS runtime found; ${selected}has no simulator runtime baked in"
+            echo "::error title=No iOS runtime::no iOS 17.x or 18.x runtime found; ${selected}has no matching simulator runtime baked in"
             {
-              echo "### ❌ No iOS simulator runtime available"
+              echo "### ❌ No iOS 17.x/18.x simulator runtime available"
               echo ""
               echo "Selected Xcode: \`${selected}\`"
               echo ""
@@ -280,7 +287,7 @@ jobs:
           echo "Selected runtime: $RUNTIME"
           echo "runtime=$RUNTIME" >> "$GITHUB_OUTPUT"
 
-          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17"
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro"
           UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
@@ -288,14 +295,6 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl status_bar "$UDID" override --time 9:41 || true
           xcrun simctl list devices | grep "$UDID"
-      - name: Stream Simulator Logs
-        run: |
-          xcrun simctl spawn "${STEPS_BOOT_SIM_OUTPUTS_UDID}" log stream --style syslog --level=debug \
-            --predicate 'process IN { "Runner", "SpringBoard", "launchd_sim", "CoreSimulator", "FrontBoard" }' \
-            > simlog.txt 2>&1 &
-          echo $! > log.pid
-        env:
-          STEPS_BOOT_SIM_OUTPUTS_UDID: ${{ steps.boot-sim.outputs.udid }}
       - name: Run iOS integration test
         timeout-minutes: 25
         env:
@@ -368,17 +367,7 @@ jobs:
             echo '```'
             tail -n 100 "$RUNNER_TEMP/flutter-test.log" 2>/dev/null || echo "(no log captured)"
             echo '```'
-            echo ""
-            echo "#### Last 200 lines of simulator log"
-            echo '```'
-            tail -n 200 simlog.txt 2>/dev/null || echo "(no log captured)"
-            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Kill log stream & tail
-        if: always()
-        run: |
-          kill $(cat log.pid) || true
-          tail -n 400 simlog.txt || true
       - name: Upload iOS diagnostics
         if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -387,7 +376,6 @@ jobs:
           path: |
             ${{ runner.temp }}/flutter-test.log
             ${{ runner.temp }}/flutter-test.attempt-*.log
-            embrace/example/simlog.txt
           if-no-files-found: ignore
           retention-days: 7
       - name: Shutdown simulator
