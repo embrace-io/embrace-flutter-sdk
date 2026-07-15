@@ -9,9 +9,9 @@ typedef EmbraceRouteSettingsExtractor = RouteSettings? Function(
 );
 
 /// {@template embrace_navigation_observer}
-/// A [NavigatorObserver] that automatically tracks app navigation
-/// This class registers in Embrace when a view starts or stops by listening
-/// when a route is pushed or popped.
+/// A [NavigatorObserver] that automatically tracks app navigation.
+/// Records an OTel span for each named route transition, from push/replace
+/// until the transition animation completes.
 ///
 /// [EmbraceNavigationObserver] should be added to the [navigationObserver](https://api.flutter.dev/flutter/material/MaterialApp/navigatorObservers.html)
 /// of [MaterialApp] or your main [Navigator].
@@ -88,47 +88,66 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
     SchedulerBinding.instance.scheduleFrame();
   }
 
-  void _updateView(Route<dynamic>? newRoute, Route<dynamic>? oldRoute) {
-    if (oldRoute != null) {
-      final settings = routeSettingsExtractor?.call(oldRoute);
-      final name = settings?.name;
-      if (name != null) {
-        Embrace.instance.endView(name);
+  void _startTransitionSpan(Route<dynamic> route, String routeName) {
+    final startTimeMs = DateTime.now().millisecondsSinceEpoch;
+    final animation = route is TransitionRoute ? route.animation : null;
+    EmbraceSpan? pendingSpan;
+    var stopped = false;
+
+    void stopSpan() {
+      if (stopped) return;
+      stopped = true;
+      pendingSpan?.stop(endTimeMs: DateTime.now().millisecondsSinceEpoch);
+    }
+
+    Embrace.instance.startSpan(routeName, startTimeMs: startTimeMs).then(
+      (span) {
+        if (span == null) return;
+        span.addAttribute('emb.type', 'view');
+        pendingSpan = span;
+        if (stopped) {
+          span.stop(endTimeMs: DateTime.now().millisecondsSinceEpoch);
+        }
+      },
+      onError: (_, __) {},
+    );
+
+    if (animation == null ||
+        animation.status == AnimationStatus.completed ||
+        animation.status == AnimationStatus.dismissed) {
+      stopSpan();
+      return;
+    }
+
+    void listener(AnimationStatus status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        animation.removeStatusListener(listener);
+        stopSpan();
       }
     }
-    if (newRoute != null) {
-      final settings = routeSettingsExtractor?.call(newRoute);
-      final name = settings?.name;
-      if (name != null) {
-        Embrace.instance.startView(name);
-      }
-    }
+
+    animation.addStatusListener(listener);
   }
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    _updateView(route, previousRoute);
     final routeName = routeSettingsExtractor?.call(route)?.name;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startTransitionSpan(route, routeName);
     }
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    _updateView(newRoute, oldRoute);
-    final routeName =
-        newRoute != null ? routeSettingsExtractor?.call(newRoute)?.name : null;
+    if (newRoute == null) return;
+    final routeName = routeSettingsExtractor?.call(newRoute)?.name;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startTransitionSpan(newRoute, routeName);
     }
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    super.didPop(route, previousRoute);
-    _updateView(previousRoute, route);
   }
 }
