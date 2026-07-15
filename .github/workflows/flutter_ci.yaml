@@ -41,6 +41,10 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      pub_get_ignore:
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build:
@@ -62,9 +66,11 @@ jobs:
           cache: true
 
       - name: 📦 Install Dependencies
+        env:
+          PUB_GET_IGNORE: ${{ inputs.pub_get_ignore }}
         run: |
           flutter pub global activate very_good_cli
-          very_good packages get --recursive
+          very_good packages get --recursive --ignore="$PUB_GET_IGNORE"
 
       - name: ✨ Check Formatting
         run: dart format --set-exit-if-changed lib test
