@@ -30,7 +30,11 @@ You can test Android changes in our Flutter SDK by altering the dependency in th
 
 ## Testing iOS changes locally
 
-### Local artefact
+`embrace_ios` supports both CocoaPods and Swift Package Manager (SPM). Which one your example app build uses depends on whether SPM is enabled for your Flutter install (`flutter config --enable-swift-package-manager`) — follow the section matching your setup.
+
+### CocoaPods
+
+#### Local artefact
 
 You can test changes local changes to the iOS SDK by updating the Flutter project's `podspec` and `Podfile` to point to the local copy.
 
@@ -38,12 +42,25 @@ You can test changes local changes to the iOS SDK by updating the Flutter projec
 2. In `embrace/example/ios/Podfile`, add the following line `pod 'EmbraceIO-LOCAL', :path => 'path/to/ios_sdk'`
 3. In `embrace/example/ios`, run the `pod update` command
 
-### Beta artefact
+#### Beta artefact
 
 1. Ask the iOS team to publish a beta of the iOS SDK to the `EmbraceIO-DEV` pod
 2. In `embrace_ios/ios/embrace_ios.podspec`, change the dependency on the iOS SDK to `s.dependency 'EmbraceIO-DEV'`
 3. In `embrace/example/ios/Podfile`, add the following line `pod 'EmbraceIO-DEV'`
 4. In `embrace/example/ios`, run the `pod update` command
+
+### Swift Package Manager
+
+#### Local artefact
+
+1. In `embrace_ios/ios/embrace_ios/Package.swift`, change the `embrace-apple-sdk` dependency to point at your local checkout: `.package(name: "EmbraceIO", path: "path/to/ios_sdk")`, and update the `EmbraceIO` target dependency to reference `package: "EmbraceIO"` instead of `package: "embrace-apple-sdk"`
+2. In Xcode, open `embrace/example/ios/Runner.xcworkspace` (or `.xcodeproj` if already SPM-migrated) and use **File > Packages > Reset Package Caches** to pick up the change, or run `flutter run` from `embrace/example`
+
+#### Beta artefact
+
+1. Ask the iOS team for the branch or tag of the SDK's beta build
+2. In `embrace_ios/ios/embrace_ios/Package.swift`, change the `embrace-apple-sdk` dependency's version requirement to point at that branch/tag, e.g. `.package(url: "https://github.com/embrace-io/embrace-apple-sdk", branch: "beta-branch-name")`
+3. Run `flutter run` from `embrace/example` (or reset package caches in Xcode) to resolve the new dependency
 
 # Releasing the SDK
 

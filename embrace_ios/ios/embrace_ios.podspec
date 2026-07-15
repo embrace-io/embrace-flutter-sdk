@@ -12,9 +12,8 @@ Pod::Spec.new do |s|
   s.license          = { :type => "Commercial", :text => "Copyright 2022 Embrace.io" }
   s.author                = "Embrace.io"
   s.documentation_url     = "https://embrace.io/docs/"
-  s.source           = { :path => '.' }  
-  s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h'
+  s.source           = { :path => '.' }
+  s.source_files = 'embrace_ios/Sources/embrace_ios/**/*'
   s.dependency 'Flutter'
   s.dependency 'EmbraceIO', '6.21.0'
   s.dependency 'OpenTelemetry-Swift-Api'

@@ -42,5 +42,6 @@ if [[ $action == "set" ]]; then
   # Example: https://github.com/embrace-io/embrace-flutter-sdk/pull/83/files#diff-e5d0042a93a4077ef0e0faeab47e4ecdddbdae595a19d7804934b7db1c0e7164
   if [[ $platform == "apple" ]]; then
     $SED "s/s.dependency 'EmbraceIO', '.*'/s.dependency 'EmbraceIO', '${version}'/" embrace_ios/ios/embrace_ios.podspec
+    $SED "s/embrace-apple-sdk\", .exact(\".*\")/embrace-apple-sdk\", .exact(\"${version}\")/" embrace_ios/ios/embrace_ios/Package.swift
   fi
 fi

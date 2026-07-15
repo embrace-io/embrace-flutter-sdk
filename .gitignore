@@ -43,6 +43,9 @@ GeneratedPluginRegistrant.swift
 build/
 .flutter-plugins
 
+.build/
+.swiftpm/
+
 .project
 .classpath
 .settings

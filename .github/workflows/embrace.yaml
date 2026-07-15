@@ -2,7 +2,7 @@ name: embrace
 
 env:
   ANDROID_API_LEVEL: 34
-  FLUTTER_VERSION: '3.38.5'
+  FLUTTER_VERSION: '3.44.6'
 
 on:
   pull_request:
@@ -35,6 +35,8 @@ jobs:
       flutter_channel: stable
       flutter_version: '3.38.5'
       working_directory: embrace
+      # embrace/example requires Flutter >=3.44.0 for its SPM setup, above this job's floor.
+      pub_get_ignore: example
 
   # Run tests on minimum supported version
   test_minimum:
@@ -48,7 +50,10 @@ jobs:
           persist-credentials: false
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: '3.38.5'
+      - name: Flutter Pub Get
+        # embrace/example requires Flutter >=3.44.0 for its SPM setup, above this job's floor.
+        run: flutter pub get --no-example
       - name: Tests for minimum version
         run: flutter test
 
@@ -209,6 +214,16 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - name: Xcode version
+        id: xcode-version
+        run: echo "version=$(xcodebuild -version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Swift Package Manager packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-xcode${{ steps.xcode-version.outputs.version }}-${{ hashFiles('embrace/example/ios/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-xcode${{ steps.xcode-version.outputs.version }}-
       - name: Cache CocoaPods
         id: cocoapods-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
