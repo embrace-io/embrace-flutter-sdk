@@ -318,8 +318,7 @@ void main() {
             startTimeMs: any(named: 'startTimeMs'),
           ),
         ).called(1);
-        verify(() => screenLoadSpan.addAttribute('emb.type', 'view'))
-            .called(1);
+        verify(() => screenLoadSpan.addAttribute('emb.type', 'view')).called(1);
         verify(
           () => screenLoadSpan.stop(endTimeMs: any(named: 'endTimeMs')),
         ).called(1);
@@ -365,8 +364,7 @@ void main() {
             startTimeMs: any(named: 'startTimeMs'),
           ),
         ).called(1);
-        verify(() => screenLoadSpan.addAttribute('emb.type', 'view'))
-            .called(1);
+        verify(() => screenLoadSpan.addAttribute('emb.type', 'view')).called(1);
         verify(
           () => screenLoadSpan.stop(endTimeMs: any(named: 'endTimeMs')),
         ).called(1);
