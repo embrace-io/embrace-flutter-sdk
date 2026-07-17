@@ -26,6 +26,15 @@ void main() {
     observer = EmbraceGoRouterObserver();
   });
 
+  // The TTI span's one-shot guard is static/global — reset it after every
+  // test in this file, not just the ones that exercise it directly, since
+  // any didPush/didReplace/route change (e.g. in the 'view tracking' and
+  // 'state span' groups) trips it too.
+  tearDown(
+    // ignore: invalid_use_of_visible_for_testing_member
+    EmbraceGoRouterObserver.resetTtiSpanForTesting,
+  );
+
   group('NavigatorObserver mode (no router)', () {
     group('view tracking', () {
       late MockEmbracePlatform platform;
@@ -123,8 +132,12 @@ void main() {
         debugEmbraceOverride = mockEmbrace;
         when(() => mockEmbrace.startView(any())).thenAnswer((_) {});
         when(() => mockEmbrace.endView(any())).thenAnswer((_) {});
-        when(() => mockEmbrace.startSpan('emb-time-to-interactive-flutter'))
-            .thenAnswer((_) => Future.value(mockSpan));
+        when(
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).thenAnswer((_) => Future.value(mockSpan));
         when(() => mockSpan.addAttribute(any(), any()))
             .thenAnswer((_) async => true);
         when(() => mockSpan.stop(endTimeMs: any(named: 'endTimeMs')))
@@ -142,12 +155,34 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', '/route')).called(1);
         verify(
           () => mockSpan.stop(endTimeMs: any(named: 'endTimeMs')),
         ).called(1);
+      });
+
+      testWidgets('only starts the TTI span once, on the first navigation',
+          (tester) async {
+        final firstRoute = FakeRoute(const RouteSettings(name: '/first'));
+        final secondRoute = FakeRoute(const RouteSettings(name: '/second'));
+        observer.didPush(firstRoute, null);
+        await tester.pump();
+        observer.didPush(secondRoute, firstRoute);
+        await tester.pump();
+
+        verify(
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).called(1);
+        verify(() => mockSpan.addAttribute('route', '/first')).called(1);
+        verifyNever(() => mockSpan.addAttribute('route', '/second'));
       });
 
       testWidgets('TTI span uses name from routeSettingsExtractor',
@@ -178,7 +213,10 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
         ).called(1);
         verify(() => mockSpan.addAttribute('route', '/new')).called(1);
         verify(
@@ -226,7 +264,10 @@ void main() {
         () => mockEmbrace.startSpan('emb-state-screen-flutter-automatic'),
       ).thenAnswer((_) => Future.value(mockStateSpan));
       when(
-        () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
+        () => mockEmbrace.startSpan(
+          'emb-time-to-interactive-flutter',
+          startTimeMs: any(named: 'startTimeMs'),
+        ),
       ).thenAnswer((_) => Future.value(mockTtiSpan));
       when(() => mockStateSpan.addAttribute(any(), any()))
           .thenAnswer((_) async => true);
@@ -391,7 +432,10 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
         ).called(1);
         verify(() => mockTtiSpan.addAttribute('route', '/')).called(1);
         verify(
@@ -399,7 +443,9 @@ void main() {
         ).called(1);
       });
 
-      testWidgets('starts a TTI span on route change', (tester) async {
+      testWidgets(
+          'does not start another TTI span on subsequent route '
+          'changes', (tester) async {
         final router = _buildRouter();
         await tester.pumpWidget(MaterialApp.router(routerConfig: router));
         final obs = EmbraceGoRouterObserver(router: router);
@@ -410,9 +456,12 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockEmbrace.startSpan('emb-time-to-interactive-flutter'),
-        ).called(2);
-        verify(() => mockTtiSpan.addAttribute('route', '/home')).called(1);
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).called(1);
+        verifyNever(() => mockTtiSpan.addAttribute('route', '/home'));
       });
     });
   });

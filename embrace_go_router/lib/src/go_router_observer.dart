@@ -1,5 +1,7 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+// ignore: implementation_imports
+import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -82,6 +84,15 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
     return route.settings;
   }
 
+  static bool _ttiSpanStarted = false;
+
+  /// Resets the one-shot TTI span state. Intended for use in test
+  /// `tearDown`.
+  @visibleForTesting
+  static void resetTtiSpanForTesting() {
+    _ttiSpanStarted = false;
+  }
+
   void _reportCurrentRoute() {
     if (_router == null) return;
     final name = _router!.routeInformationProvider.value.uri.path;
@@ -157,6 +168,11 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
   }
 
   void _startTtiSpan(String routeName) {
+    if (_ttiSpanStarted) return;
+    _ttiSpanStarted = true;
+
+    final startTimeMs = EmbraceStartupTracker.startEpochMs ??
+        DateTime.now().millisecondsSinceEpoch;
     int? endTimeMs;
     EmbraceSpan? pendingSpan;
 
@@ -170,7 +186,9 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
       }
     }
 
-    Embrace.instance.startSpan('emb-time-to-interactive-flutter').then(
+    Embrace.instance
+        .startSpan('emb-time-to-interactive-flutter', startTimeMs: startTimeMs)
+        .then(
       (span) {
         pendingSpan = span;
         tryStop();
