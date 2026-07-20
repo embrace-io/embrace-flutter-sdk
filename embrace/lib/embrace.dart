@@ -6,6 +6,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart'
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace/src/otel/otel.dart';
+import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:flutter/widgets.dart';
@@ -548,6 +549,7 @@ Future<void> _start(
 ) async {
   WidgetsFlutterBinding.ensureInitialized();
   EmbraceStartupTracker.init();
+  EmbracePointerInputTracker.init();
 
   if (OTelFactory.otelFactory == null) {
     OTelAPI.initialize(
