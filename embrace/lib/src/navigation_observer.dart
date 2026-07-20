@@ -1,6 +1,7 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
+import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -8,6 +9,20 @@ import 'package:flutter/scheduler.dart';
 typedef EmbraceRouteSettingsExtractor = RouteSettings? Function(
   Route<dynamic> route,
 );
+
+/// Configuration for the screen-load span timing recorded by
+/// [EmbraceNavigationObserver].
+class EmbraceScreenLoadConfig {
+  /// Creates a screen-load span timing configuration.
+  const EmbraceScreenLoadConfig({
+    this.recencyThreshold = const Duration(seconds: 1),
+  });
+
+  /// How old a recorded touch can be and still count as the input that
+  /// triggered a route transition. If the last touch is older than this,
+  /// the span falls back to using the route-push time as its start.
+  final Duration recencyThreshold;
+}
 
 /// {@template embrace_navigation_observer}
 /// A [NavigatorObserver] that automatically tracks app navigation
@@ -41,6 +56,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
   /// {@macro embrace_navigation_observer}
   EmbraceNavigationObserver({
     EmbraceRouteSettingsExtractor? routeSettingsExtractor,
+    this.screenLoadConfig = const EmbraceScreenLoadConfig(),
   }) : routeSettingsExtractor = routeSettingsExtractor ?? _defaultExtractor;
 
   /// A function that returns the settings from a given route
@@ -49,6 +65,9 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
   /// This can be used to modify the route names that are tracked by Embrace,
   /// or return null to avoid tracking a specific view
   final EmbraceRouteSettingsExtractor? routeSettingsExtractor;
+
+  /// Configuration for the screen-load span timing.
+  final EmbraceScreenLoadConfig screenLoadConfig;
 
   static RouteSettings? _defaultExtractor(Route<dynamic> route) {
     return route.settings;
@@ -61,6 +80,43 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
   @visibleForTesting
   static void resetTtiSpanForTesting() {
     _ttiSpanStarted = false;
+  }
+
+  void _startScreenLoadSpan(String routeName) {
+    final startTimeMs = EmbracePointerInputTracker.resolveStartTimeMs(
+      DateTime.now(),
+      screenLoadConfig.recencyThreshold,
+    );
+    int? endTimeMs;
+    EmbraceSpan? pendingSpan;
+
+    void tryStop() {
+      final span = pendingSpan;
+      final endMs = endTimeMs;
+      if (span != null && endMs != null) {
+        span.stop(endTimeMs: endMs);
+      }
+    }
+
+    Embrace.instance
+        .startSpan(
+      routeName,
+      startTimeMs: startTimeMs,
+    )
+        .then(
+      (span) {
+        pendingSpan = span;
+        span?.addAttribute('emb.type', 'view');
+        tryStop();
+      },
+      onError: (_, __) {},
+    );
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      endTimeMs = DateTime.now().millisecondsSinceEpoch;
+      tryStop();
+    });
+    SchedulerBinding.instance.scheduleFrame();
   }
 
   void _startTtiSpan(String routeName) {
@@ -126,6 +182,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
     final routeName = routeSettingsExtractor?.call(route)?.name;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startScreenLoadSpan(routeName);
     }
   }
 
@@ -137,6 +194,7 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
         newRoute != null ? routeSettingsExtractor?.call(newRoute)?.name : null;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startScreenLoadSpan(routeName);
     }
   }
 
