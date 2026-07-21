@@ -71,7 +71,7 @@ EmbraceOTelSpan _makeSpan(MockEmbracePlatform platform) {
     spanId: otel.OTelFactory.otelFactory!.spanId(),
     parentSpanId: otel.OTelFactory.otelFactory!.spanIdInvalid(),
   );
-  final scope = otel.InstrumentationScopeCreate.create(name: 'test');
+  final scope = otel.OTelAPI.instrumentationScope(name: 'test');
   return EmbraceOTelSpan(
     name: 'test-span',
     nativeSpanId: platform.startSpan('test-span'),
