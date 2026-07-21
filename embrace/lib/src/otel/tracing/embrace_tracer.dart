@@ -20,13 +20,11 @@ class EmbraceTracer implements APITracer {
   /// Creates an [EmbraceTracer] backed by [provider].
   EmbraceTracer({required EmbraceTracerProvider provider})
       : _provider = provider,
-        _delegate = TracerCreate.create(name: 'embrace'),
-        _instrumentationScope =
-            InstrumentationScopeCreate.create(name: 'embrace');
+        _instrumentationScope = OTelAPI.instrumentationScope(name: 'embrace');
 
   final EmbraceTracerProvider _provider;
-  final APITracer _delegate;
   final InstrumentationScope _instrumentationScope;
+  Attributes? _attributes;
 
   @override
   bool get enabled => _provider.enabled && !_provider.isShutdown;
@@ -43,15 +41,10 @@ class EmbraceTracer implements APITracer {
     bool? isRecording = true,
   }) {
     if (!enabled) {
-      return _delegate.startSpan(
-        name,
+      return _nonRecordingSpan(
         context: context,
         spanContext: spanContext,
         parentSpan: parentSpan,
-        kind: kind,
-        attributes: attributes,
-        links: links,
-        isRecording: false,
       );
     }
 
@@ -97,17 +90,10 @@ class EmbraceTracer implements APITracer {
     Context? context,
   }) {
     if (!enabled) {
-      return _delegate.createSpan(
-        name: name,
+      return _nonRecordingSpan(
+        context: context,
         spanContext: spanContext,
         parentSpan: parentSpan,
-        kind: kind,
-        attributes: attributes,
-        links: links,
-        spanEvents: spanEvents,
-        startTime: startTime,
-        isRecording: false,
-        context: context,
       );
     }
 
@@ -143,25 +129,25 @@ class EmbraceTracer implements APITracer {
   }
 
   @override
-  String get name => _delegate.name;
+  String get name => 'embrace';
 
   @override
-  String? get version => _delegate.version;
+  String? get version => null;
 
   @override
-  String? get schemaUrl => _delegate.schemaUrl;
+  String? get schemaUrl => null;
 
   @override
-  Attributes? get attributes => _delegate.attributes;
+  Attributes? get attributes => _attributes;
 
   @override
-  set attributes(Attributes? value) => _delegate.attributes = value;
+  set attributes(Attributes? value) => _attributes = value;
 
   @override
   APISpan? get currentSpan => OTelContextUtils.currentSpan();
 
   @override
-  TimeProvider get timeProvider => _delegate.timeProvider;
+  TimeProvider get timeProvider => defaultTimeProvider;
 
   @override
   T withSpan<T>(APISpan span, T Function() fn) =>
@@ -170,6 +156,21 @@ class EmbraceTracer implements APITracer {
   @override
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
       Context.current.withSpan(span).run(fn);
+
+  APISpan _nonRecordingSpan({
+    APISpan? parentSpan,
+    Context? context,
+    SpanContext? spanContext,
+  }) {
+    final effectiveContext = context ?? Context.current;
+    final effectiveParentSpan = parentSpan ?? effectiveContext.span;
+    final parentSpanContext = spanContext ??
+        effectiveParentSpan?.spanContext ??
+        effectiveContext.spanContext;
+    final effectiveSpanContext =
+        parentSpanContext ?? OTelAPI.spanContextInvalid();
+    return OTelAPI.nonRecordingSpan(effectiveSpanContext);
+  }
 
   SpanContext _buildSpanContext({
     APISpan? parentSpan,
