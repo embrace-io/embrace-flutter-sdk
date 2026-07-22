@@ -2,6 +2,8 @@ import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
 // ignore: implementation_imports
 import 'package:embrace/src/embrace_startup_tracker.dart';
+// ignore: implementation_imports
+import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -55,6 +57,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
   EmbraceGoRouterObserver({
     GoRouter? router,
     EmbraceRouteSettingsExtractor? routeSettingsExtractor,
+    this.screenLoadConfig = const EmbraceScreenLoadConfig(),
   })  : _router = router,
         routeSettingsExtractor = routeSettingsExtractor ?? _defaultExtractor {
     if (router != null) {
@@ -80,6 +83,9 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
   /// specific route.
   final EmbraceRouteSettingsExtractor? routeSettingsExtractor;
 
+  /// Configuration for the screen-load span timing.
+  final EmbraceScreenLoadConfig screenLoadConfig;
+
   static RouteSettings? _defaultExtractor(Route<dynamic> route) {
     return route.settings;
   }
@@ -100,6 +106,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
     _currentView = name;
     _initStateSpan(name);
     _startTtiSpan(name);
+    _startScreenLoadSpan(name);
   }
 
   void _initStateSpan(String initialRoute) {
@@ -146,6 +153,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
     _currentView = name;
     _recordTransition(name);
     _startTtiSpan(name);
+    _startScreenLoadSpan(name);
   }
 
   /// Removes the listener from the [GoRouter] and stops the state span.
@@ -203,6 +211,43 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
     SchedulerBinding.instance.scheduleFrame();
   }
 
+  void _startScreenLoadSpan(String routeName) {
+    final startTimeMs = EmbracePointerInputTracker.resolveStartTimeMs(
+      DateTime.now(),
+      screenLoadConfig.recencyThreshold,
+    );
+    int? endTimeMs;
+    EmbraceSpan? pendingSpan;
+
+    void tryStop() {
+      final span = pendingSpan;
+      final endMs = endTimeMs;
+      if (span != null && endMs != null) {
+        span.stop(endTimeMs: endMs);
+      }
+    }
+
+    Embrace.instance
+        .startSpan(
+      routeName,
+      startTimeMs: startTimeMs,
+    )
+        .then(
+      (span) {
+        pendingSpan = span;
+        span?.addAttribute('emb.type', 'view');
+        tryStop();
+      },
+      onError: (_, __) {},
+    );
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      endTimeMs = DateTime.now().millisecondsSinceEpoch;
+      tryStop();
+    });
+    SchedulerBinding.instance.scheduleFrame();
+  }
+
   void _updateView(Route<dynamic>? newRoute, Route<dynamic>? oldRoute) {
     if (oldRoute != null) {
       final settings = routeSettingsExtractor?.call(oldRoute);
@@ -227,6 +272,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
     final routeName = routeSettingsExtractor?.call(route)?.name;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startScreenLoadSpan(routeName);
     }
   }
 
@@ -238,6 +284,7 @@ class EmbraceGoRouterObserver extends NavigatorObserver {
         newRoute != null ? routeSettingsExtractor?.call(newRoute)?.name : null;
     if (routeName != null) {
       _startTtiSpan(routeName);
+      _startScreenLoadSpan(routeName);
     }
   }
 
