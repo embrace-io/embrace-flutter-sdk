@@ -1,17 +1,17 @@
 name: embrace_go_router
 description: Provides go_router navigation tracking for the Embrace SDK.
-version: 4.8.0
+version: 4.9.0
 homepage: https://embrace.io
 environment:
   sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.10.0"
 dependencies:
-  embrace: ^4.8.0
+  embrace: ^4.9.0
   flutter:
     sdk: flutter
   go_router: ">=6.0.0 <16.0.0"
 dev_dependencies:
-  embrace_platform_interface: ">=4.8.0 <4.9.0"
+  embrace_platform_interface: ">=4.9.0 <4.10.0"
   flutter_test:
     sdk: flutter
   mocktail: ">=0.3.0 <2.0.0"

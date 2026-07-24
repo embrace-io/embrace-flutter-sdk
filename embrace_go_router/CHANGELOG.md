@@ -1,3 +1,8 @@
+# 4.9.0
+
+* Added a screen-load span to `EmbraceGoRouterObserver`, timed from the last user touch to the first frame of the new route
+* Bug fixes
+
 # 4.8.0
 
 * Version bump

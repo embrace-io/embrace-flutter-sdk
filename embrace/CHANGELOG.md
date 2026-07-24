@@ -1,7 +1,12 @@
+# 4.9.0
+
+* Added a screen-load span to `EmbraceNavigationObserver`, timed from the last user touch to the first frame of the new route
+* Bug fixes
+* Updated Embrace iOS SDK to 6.21.0
+
 # 4.8.0
 
 * Version bump
-* Added a screen-load span to `EmbraceNavigationObserver`, timed from the last user touch to the first frame of the new route
 
 # 4.7.0
 
