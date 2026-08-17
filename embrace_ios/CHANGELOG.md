@@ -1,3 +1,12 @@
+# 4.9.0
+
+* Added Swift Package Manager support
+* Updated Embrace iOS SDK to 6.21.0
+
+# 4.8.0
+
+* Version bump
+
 # 4.7.0
 
 * Updated Embrace iOS SDK to 6.20.0

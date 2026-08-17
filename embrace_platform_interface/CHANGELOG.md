@@ -1,3 +1,11 @@
+# 4.9.0
+
+* Version bump
+
+# 4.8.0
+
+* Updated minimum required Embrace Android SDK to 8.4.0
+
 # 4.7.0
 
 * Fixed null returns from span method channel calls

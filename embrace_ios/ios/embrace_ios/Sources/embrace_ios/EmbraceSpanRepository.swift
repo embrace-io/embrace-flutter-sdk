@@ -1,5 +1,11 @@
 import Foundation
 import EmbraceIO
+// CocoaPods merges every embrace-apple-sdk subspec (including EmbraceSemantics) into a single
+// EmbraceIO module, so SpanErrorCode is already visible there. SPM keeps them as separate
+// modules, so it needs this import explicitly; canImport keeps both build paths working.
+#if canImport(EmbraceSemantics)
+import EmbraceSemantics
+#endif
 import OpenTelemetryApi
 
 class EmbraceSpanRepository {
