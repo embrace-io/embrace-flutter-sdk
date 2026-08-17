@@ -14,10 +14,12 @@ void updateCurrentRoute(String? route) {
 class EmbraceFrameDetectionConfig {
   const EmbraceFrameDetectionConfig({
     this.slowFrameThresholdMs = 16,
+    this.frozenFrameThresholdMs = 700,
     this.slowFrameBatchSize = 60,
   });
 
   final int slowFrameThresholdMs;
+  final int frozenFrameThresholdMs;
   final int slowFrameBatchSize;
 }
 
@@ -50,7 +52,17 @@ class EmbraceFrameDetector {
       final buildMs = timing.buildDuration.inMilliseconds;
       final rasterMs = timing.rasterDuration.inMilliseconds;
 
-      if (buildMs > _config.slowFrameThresholdMs ||
+      if (buildMs >= _config.frozenFrameThresholdMs ||
+          rasterMs >= _config.frozenFrameThresholdMs) {
+        EmbracePlatform.instance.logWarning(
+          'frozen-frame',
+          {
+            'build_ms': '$buildMs',
+            'raster_ms': '$rasterMs',
+            if (currentRoute != null) 'route': currentRoute!,
+          },
+        );
+      } else if (buildMs > _config.slowFrameThresholdMs ||
           rasterMs > _config.slowFrameThresholdMs) {
         _slowFrameCount++;
         if (buildMs > _worstSlowBuildMs) _worstSlowBuildMs = buildMs;

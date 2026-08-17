@@ -38,15 +38,18 @@ void main() {
     test('has expected defaults', () {
       const config = EmbraceFrameDetectionConfig();
       expect(config.slowFrameThresholdMs, 16);
+      expect(config.frozenFrameThresholdMs, 700);
       expect(config.slowFrameBatchSize, 60);
     });
 
     test('accepts custom values', () {
       const config = EmbraceFrameDetectionConfig(
         slowFrameThresholdMs: 8,
+        frozenFrameThresholdMs: 500,
         slowFrameBatchSize: 10,
       );
       expect(config.slowFrameThresholdMs, 8);
+      expect(config.frozenFrameThresholdMs, 500);
       expect(config.slowFrameBatchSize, 10);
     });
   });
@@ -55,6 +58,7 @@ void main() {
     group('normal frames', () {
       test('does not report frames at or below slow threshold', () {
         detector.handleTimings([_frameTiming(buildMs: 16)]);
+        verifyNever(() => platform.logWarning(any(), any()));
         verifyNever(() => platform.logInfo(any(), any()));
       });
     });
@@ -138,6 +142,71 @@ void main() {
       });
     });
 
+    group('frozen frames', () {
+      test('reports logWarning immediately for frozen build duration', () {
+        detector.handleTimings([_frameTiming(buildMs: 701)]);
+
+        verify(
+          () => platform.logWarning(
+            'frozen-frame',
+            {'build_ms': '701', 'raster_ms': '0'},
+          ),
+        ).called(1);
+      });
+
+      test('reports logWarning for frame at exactly frozen threshold', () {
+        detector.handleTimings([_frameTiming(buildMs: 700)]);
+
+        verify(
+          () => platform.logWarning(
+            'frozen-frame',
+            {'build_ms': '700', 'raster_ms': '0'},
+          ),
+        ).called(1);
+      });
+
+      test('reports logWarning immediately for frozen raster duration', () {
+        detector.handleTimings([_frameTiming(rasterMs: 701)]);
+
+        verify(
+          () => platform.logWarning(
+            'frozen-frame',
+            {'build_ms': '0', 'raster_ms': '701'},
+          ),
+        ).called(1);
+      });
+
+      test('does not count frozen frames as slow frames', () {
+        detector = EmbraceFrameDetector(
+          config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
+        )..handleTimings([_frameTiming(buildMs: 701)]);
+
+        verifyNever(() => platform.logInfo(any(), any()));
+      });
+
+      test('reports each frozen frame independently', () {
+        detector
+          ..handleTimings([_frameTiming(buildMs: 800)])
+          ..handleTimings([_frameTiming(buildMs: 900)]);
+
+        verify(() => platform.logWarning('frozen-frame', any())).called(2);
+      });
+    });
+
+    group('mixed frames in a single batch', () {
+      test('handles slow and frozen frames in the same callback', () {
+        detector = EmbraceFrameDetector(
+          config: const EmbraceFrameDetectionConfig(slowFrameBatchSize: 1),
+        )..handleTimings([
+            _frameTiming(buildMs: 20),
+            _frameTiming(buildMs: 800),
+          ]);
+
+        verify(() => platform.logInfo('slow-frames', any())).called(1);
+        verify(() => platform.logWarning('frozen-frame', any())).called(1);
+      });
+    });
+
     group('route correlation', () {
       test('includes route in slow-frames log when route is set', () {
         detector = EmbraceFrameDetector(
@@ -153,6 +222,19 @@ void main() {
             'worst_raster_ms': '0',
             'route': '/home',
           }),
+        ).called(1);
+      });
+
+      test('includes route in frozen-frame log when route is set', () {
+        detector
+          ..currentRoute = '/detail'
+          ..handleTimings([_frameTiming(buildMs: 800)]);
+
+        verify(
+          () => platform.logWarning(
+            'frozen-frame',
+            {'build_ms': '800', 'raster_ms': '0', 'route': '/detail'},
+          ),
         ).called(1);
       });
 
