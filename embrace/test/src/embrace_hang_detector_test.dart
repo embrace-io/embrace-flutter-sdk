@@ -1,5 +1,9 @@
 import 'package:embrace/src/embrace_hang_detector.dart';
+import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+import 'observer_test_helpers.dart';
 
 void main() {
   group('EmbraceHangDetectionConfig', () {
@@ -74,11 +78,60 @@ void main() {
   });
 
   group('EmbraceHangDetector', () {
+    late MockEmbracePlatform platform;
+
+    setUp(() {
+      platform = MockEmbracePlatform();
+      EmbracePlatform.instance = platform;
+      when(
+        () => platform.recordCompletedSpan(
+          any(),
+          any(),
+          any(),
+          attributes: any(named: 'attributes'),
+        ),
+      ).thenAnswer((_) async => true);
+    });
+
     test('start and stop do not throw', () async {
       final detector = EmbraceHangDetector();
 
       await detector.start();
       expect(detector.stop, returnsNormally);
+    });
+
+    test('records a completed span when a hang is reported', () {
+      EmbraceHangDetector().handleMonitorMessage([1000, 1700]);
+
+      verify(
+        () => platform.recordCompletedSpan(
+          'emb-dart-isolate-hang',
+          1000,
+          1700,
+          attributes: {'duration_ms': '700'},
+        ),
+      ).called(1);
+    });
+
+    test('ignores ping tokens and handshake messages', () {
+      final detector = EmbraceHangDetector();
+
+      expect(() => detector.handleMonitorMessage(1234), returnsNormally);
+      verifyNever(() => platform.recordCompletedSpan(any(), any(), any()));
+    });
+
+    test('forwards uncaught errors from the monitor isolate', () {
+      EmbraceHangDetector().handleMonitorError(['Exception: boom', '#0 main']);
+
+      verify(
+        () => platform.logDartError(
+          '#0 main',
+          'Exception: boom',
+          any(),
+          null,
+          errorType: 'IsolateUncaughtError',
+        ),
+      ).called(1);
     });
   });
 }

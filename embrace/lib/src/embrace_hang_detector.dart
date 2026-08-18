@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:meta/meta.dart';
 
 /// Configuration for the Dart UI isolate hang detector's ping interval and
 /// hang threshold.
@@ -77,6 +78,8 @@ class EmbraceHangDetector {
   final EmbraceHangDetectionConfig _config;
 
   ReceivePort? _mainReceivePort;
+  ReceivePort? _errorPort;
+  ReceivePort? _exitPort;
   Isolate? _monitorIsolate;
   SendPort? _monitorSendPort;
 
@@ -86,6 +89,14 @@ class EmbraceHangDetector {
     _mainReceivePort = mainReceivePort;
     mainReceivePort.listen(_handleMonitorMessage);
 
+    final errorPort = ReceivePort();
+    _errorPort = errorPort;
+    errorPort.listen(_handleMonitorError);
+
+    final exitPort = ReceivePort();
+    _exitPort = exitPort;
+    exitPort.listen((_) => _closeErrorAndExitPorts());
+
     _monitorIsolate = await Isolate.spawn(
       _monitorEntryPoint,
       [
@@ -93,6 +104,8 @@ class EmbraceHangDetector {
         _config.pingInterval.inMilliseconds,
         _config.hangThreshold.inMilliseconds,
       ],
+      onError: errorPort.sendPort,
+      onExit: exitPort.sendPort,
     );
   }
 
@@ -103,7 +116,43 @@ class EmbraceHangDetector {
     _mainReceivePort?.close();
     _mainReceivePort = null;
     _monitorSendPort = null;
+    _closeErrorAndExitPorts();
   }
+
+  void _closeErrorAndExitPorts() {
+    _errorPort?.close();
+    _errorPort = null;
+    _exitPort?.close();
+    _exitPort = null;
+  }
+
+  /// Handles an uncaught error from the monitor isolate as if it had
+  /// arrived over the real error port. Exposed for testing error forwarding
+  /// without spawning a real isolate.
+  @visibleForTesting
+  void handleMonitorError(dynamic message) => _handleMonitorError(message);
+
+  void _handleMonitorError(dynamic message) {
+    _closeErrorAndExitPorts();
+
+    final params = message as List<dynamic>;
+    final error = params[0] as String;
+    final stackTrace = params[1] as String;
+    EmbracePlatform.instance.logDartError(
+      stackTrace,
+      error,
+      "Uncaught error in the Dart UI isolate hang detector's monitor "
+      'isolate',
+      null,
+      errorType: 'IsolateUncaughtError',
+    );
+  }
+
+  /// Handles a message from the monitor isolate as if it had arrived over
+  /// the real port. Exposed for testing the reporting mechanism without
+  /// spawning a real isolate.
+  @visibleForTesting
+  void handleMonitorMessage(dynamic message) => _handleMonitorMessage(message);
 
   void _handleMonitorMessage(dynamic message) {
     if (message is SendPort) {
