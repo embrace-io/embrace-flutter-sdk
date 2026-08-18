@@ -1,4 +1,5 @@
 import 'package:embrace/embrace.dart';
+import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,15 @@ void main() {
   setUp(() {
     observer = EmbraceNavigationObserver();
   });
+
+  // The TTI span's one-shot guard is static/global — reset it after every
+  // test in this file, not just the ones that exercise it directly, since
+  // any didPush/didReplace call (e.g. in the 'view tracking' group) trips
+  // it too.
+  tearDown(
+    // ignore: invalid_use_of_visible_for_testing_member
+    EmbraceNavigationObserver.resetTtiSpanForTesting,
+  );
 
   group('EmbraceNavigationObserver', () {
     group('view tracking', () {
@@ -176,6 +186,8 @@ void main() {
       tearDown(() {
         // ignore: invalid_use_of_visible_for_testing_member
         debugEmbraceOverride = null;
+        // ignore: invalid_use_of_visible_for_testing_member
+        EmbraceStartupTracker.resetForTesting();
       });
 
       testWidgets('starts a TTI span on push', (tester) async {
@@ -251,6 +263,40 @@ void main() {
         await tester.pump();
 
         verifyNever(() => mockEmbrace.startSpan(any()));
+      });
+
+      testWidgets('only starts the TTI span once, on the first navigation',
+          (tester) async {
+        final firstRoute = FakeRoute(const RouteSettings(name: 'first'));
+        final secondRoute = FakeRoute(const RouteSettings(name: 'second'));
+        observer.didPush(firstRoute, null);
+        await tester.pump();
+        observer.didPush(secondRoute, firstRoute);
+        await tester.pump();
+
+        verify(
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: any(named: 'startTimeMs'),
+          ),
+        ).called(1);
+      });
+
+      testWidgets('uses the app-launch timestamp as the start time',
+          (tester) async {
+        EmbraceStartupTracker.init();
+        final launchEpochMs = EmbraceStartupTracker.startEpochMs;
+
+        final route = FakeRoute(const RouteSettings(name: 'route'));
+        observer.didPush(route, null);
+        await tester.pump();
+
+        verify(
+          () => mockEmbrace.startSpan(
+            'emb-time-to-interactive-flutter',
+            startTimeMs: launchEpochMs,
+          ),
+        ).called(1);
       });
     });
 

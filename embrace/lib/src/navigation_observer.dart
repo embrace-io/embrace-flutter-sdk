@@ -1,5 +1,6 @@
 import 'package:embrace/embrace.dart';
 import 'package:embrace/embrace_api.dart';
+import 'package:embrace/src/embrace_startup_tracker.dart';
 import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -72,6 +73,15 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
     return route.settings;
   }
 
+  static bool _ttiSpanStarted = false;
+
+  /// Resets the one-shot TTI span state. Intended for use in test
+  /// `tearDown`.
+  @visibleForTesting
+  static void resetTtiSpanForTesting() {
+    _ttiSpanStarted = false;
+  }
+
   void _startScreenLoadSpan(String routeName) {
     final startTimeMs = EmbracePointerInputTracker.resolveStartTimeMs(
       DateTime.now(),
@@ -110,7 +120,11 @@ class EmbraceNavigationObserver extends RouteObserver<ModalRoute<dynamic>> {
   }
 
   void _startTtiSpan(String routeName) {
-    final startTimeMs = DateTime.now().millisecondsSinceEpoch;
+    if (_ttiSpanStarted) return;
+    _ttiSpanStarted = true;
+
+    final startTimeMs = EmbraceStartupTracker.startEpochMs ??
+        DateTime.now().millisecondsSinceEpoch;
     int? endTimeMs;
     EmbraceSpan? pendingSpan;
 

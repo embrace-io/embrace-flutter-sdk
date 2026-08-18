@@ -11,6 +11,10 @@ class EmbraceStartupTracker {
   static Stopwatch? _stopwatch;
   static int? _startEpochMs;
 
+  /// The wall-clock timestamp (epoch ms) captured by [init], or `null` if
+  /// [init] hasn't been called yet.
+  static int? get startEpochMs => _startEpochMs;
+
   /// Captures the start timestamp. Must be called as early as possible in the
   /// SDK lifecycle, before [recordFirstFrame]. Safe to call multiple times —
   /// only the first call sets the timestamp.
@@ -34,5 +38,12 @@ class EmbraceStartupTracker {
       startEpochMs,
       startEpochMs + elapsedMs,
     );
+  }
+
+  /// Resets all static state. Intended for use in test `tearDown`.
+  @visibleForTesting
+  static void resetForTesting() {
+    _stopwatch = null;
+    _startEpochMs = null;
   }
 }
