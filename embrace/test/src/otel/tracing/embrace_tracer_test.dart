@@ -149,7 +149,7 @@ void main() {
           spanId: linkedSpanId,
           parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
         );
-        final link = SpanLinkCreate.create(spanContext: linkedContext);
+        final link = OTelAPI.spanLink(linkedContext, OTelAPI.attributes());
         tracer.startSpan('op', links: [link]);
         await _pump();
 
@@ -248,7 +248,7 @@ void main() {
           spanId: linkedSpanId,
           parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
         );
-        final link = SpanLinkCreate.create(spanContext: linkedContext);
+        final link = OTelAPI.spanLink(linkedContext, OTelAPI.attributes());
         tracer.createSpan(name: 'op', links: [link]);
         await _pump();
 
@@ -266,10 +266,7 @@ void main() {
         _stubStartSpan(platform);
         _stubSpanMutations(platform);
 
-        final event = SpanEventCreate.create(
-          name: 'my-event',
-          timestamp: DateTime.now(),
-        );
+        final event = OTelAPI.spanEvent('my-event', null, DateTime.now());
         tracer.createSpan(name: 'op', spanEvents: [event]);
         await _pump();
 
