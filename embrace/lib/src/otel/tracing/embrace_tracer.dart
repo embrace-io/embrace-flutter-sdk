@@ -129,13 +129,13 @@ class EmbraceTracer implements APITracer {
   }
 
   @override
-  String get name => 'embrace';
+  String get name => _instrumentationScope.name;
 
   @override
-  String? get version => null;
+  String? get version => _instrumentationScope.version;
 
   @override
-  String? get schemaUrl => null;
+  String? get schemaUrl => _instrumentationScope.schemaUrl;
 
   @override
   Attributes? get attributes => _attributes;
