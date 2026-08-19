@@ -873,6 +873,29 @@ void main() {
       });
     });
 
+    group('disable', () {
+      test('invokes disable method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.disable();
+        expect(log, contains(isMethodCall('disable', arguments: null)));
+      });
+
+      test('marks the SDK as no longer started', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.disable();
+        expect(methodChannelEmbrace.isStarted, isFalse);
+      });
+
+      test('throws StateError if not started', () {
+        expect(methodChannelEmbrace.disable, throwsA(isA<StateError>()));
+        expect(log, isEmpty);
+      });
+    });
+
     group('endSession', () {
       test('invokes endSession method in the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
