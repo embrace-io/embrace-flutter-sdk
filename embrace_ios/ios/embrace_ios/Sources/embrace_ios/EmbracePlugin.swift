@@ -9,6 +9,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
 
     // Method Names
     static let AttachSdkMethodName = "attachToHostSdk"
+    static let DisableMethodName = "disable"
     static let AddBreadcrumbMethodName = "addBreadcrumb"
     static let LogPushNotificationMethodName = "logPushNotification"
     static let LogInfoMethodName = "logInfo"
@@ -131,6 +132,8 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         switch call.method {
             case EmbracePlugin.AttachSdkMethodName:
                 handleAttachSdkCall(call, result: result)
+            case EmbracePlugin.DisableMethodName:
+                handleDisableCall(call, result: result)
             case EmbracePlugin.AddBreadcrumbMethodName:
                 handleAddBreadcrumbCall(call, result: result)
             case EmbracePlugin.LogPushNotificationMethodName:
@@ -234,6 +237,13 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         // required by Flutter, and passing any Flutter-specific data down to the
         // iOS SDK.
         result(NSNumber(value: started))
+    }
+
+    private func handleDisableCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        callAppleSdk { client in
+            try? client.stop()
+        }
+        result(nil)
     }
 
     private func handleAddBreadcrumbCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
