@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 /// Configuration for the Dart UI isolate hang detector's ping interval and
 /// hang threshold.
@@ -69,7 +69,12 @@ class EmbraceHangTracker {
 /// pings the main isolate on a fixed interval; if the main isolate doesn't
 /// echo a ping within [EmbraceHangDetectionConfig.hangThreshold], the time
 /// until it next responds is recorded as a hang.
-class EmbraceHangDetector {
+///
+/// Monitoring pauses while the app is backgrounded and restarts fresh on
+/// foreground, since the OS may suspend the process while backgrounded —
+/// without this, resuming would otherwise look like an isolate hang lasting
+/// the entire time in the background.
+class EmbraceHangDetector with WidgetsBindingObserver {
   /// Creates a hang detector using [config], or the default configuration
   /// if none is given.
   EmbraceHangDetector({EmbraceHangDetectionConfig? config})
@@ -83,21 +88,53 @@ class EmbraceHangDetector {
   Isolate? _monitorIsolate;
   SendPort? _monitorSendPort;
 
-  /// Spawns the monitor isolate and begins pinging the main isolate.
+  /// Bumped by every [_startMonitoring]/[_stopMonitoring] call so an
+  /// in-flight isolate spawn can detect that a later start/stop superseded
+  /// it — e.g. a background/foreground flip landing while `Isolate.spawn`
+  /// is still resolving — and discard itself instead of overwriting the
+  /// newer state.
+  int _monitoringGeneration = 0;
+
+  /// Spawns the monitor isolate, begins pinging the main isolate, and starts
+  /// observing app lifecycle changes so monitoring can pause while
+  /// backgrounded.
   Future<void> start() async {
-    final mainReceivePort = ReceivePort();
-    _mainReceivePort = mainReceivePort;
-    mainReceivePort.listen(_handleMonitorMessage);
+    WidgetsBinding.instance.addObserver(this);
+    await _startMonitoring();
+  }
 
-    final errorPort = ReceivePort();
-    _errorPort = errorPort;
-    errorPort.listen(_handleMonitorError);
+  /// Kills the monitor isolate, stops listening for its messages, and stops
+  /// observing app lifecycle changes.
+  void stop() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopMonitoring();
+  }
 
-    final exitPort = ReceivePort();
-    _exitPort = exitPort;
-    exitPort.listen((_) => _closeErrorAndExitPorts());
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        _stopMonitoring();
+      case AppLifecycleState.resumed:
+        if (_monitorIsolate == null) {
+          unawaited(_startMonitoring());
+        }
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
 
-    _monitorIsolate = await Isolate.spawn(
+  Future<void> _startMonitoring() async {
+    final generation = ++_monitoringGeneration;
+
+    final mainReceivePort = ReceivePort()..listen(_handleMonitorMessage);
+    final errorPort = ReceivePort()..listen(_handleMonitorError);
+    final exitPort = ReceivePort()
+      ..listen((_) => _closeErrorAndExitPorts());
+
+    final isolate = await Isolate.spawn(
       _monitorEntryPoint,
       [
         mainReceivePort.sendPort,
@@ -107,10 +144,26 @@ class EmbraceHangDetector {
       onError: errorPort.sendPort,
       onExit: exitPort.sendPort,
     );
+
+    if (generation != _monitoringGeneration) {
+      // A stop (or a newer start) happened while this isolate was
+      // spawning. It was never published, so tear it down rather than
+      // adopting it over the newer state.
+      isolate.kill(priority: Isolate.immediate);
+      mainReceivePort.close();
+      errorPort.close();
+      exitPort.close();
+      return;
+    }
+
+    _mainReceivePort = mainReceivePort;
+    _errorPort = errorPort;
+    _exitPort = exitPort;
+    _monitorIsolate = isolate;
   }
 
-  /// Kills the monitor isolate and stops listening for its messages.
-  void stop() {
+  void _stopMonitoring() {
+    _monitoringGeneration++;
     _monitorIsolate?.kill(priority: Isolate.immediate);
     _monitorIsolate = null;
     _mainReceivePort?.close();
@@ -118,6 +171,11 @@ class EmbraceHangDetector {
     _monitorSendPort = null;
     _closeErrorAndExitPorts();
   }
+
+  /// Whether the monitor isolate is currently running. Exposed for testing
+  /// the pause/resume behavior around app lifecycle changes.
+  @visibleForTesting
+  bool get isMonitoring => _monitorIsolate != null;
 
   void _closeErrorAndExitPorts() {
     _errorPort?.close();

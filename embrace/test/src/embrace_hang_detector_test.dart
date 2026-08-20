@@ -1,11 +1,14 @@
 import 'package:embrace/src/embrace_hang_detector.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'observer_test_helpers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('EmbraceHangDetectionConfig', () {
     test('has expected defaults', () {
       const config = EmbraceHangDetectionConfig();
@@ -132,6 +135,66 @@ void main() {
           errorType: 'IsolateUncaughtError',
         ),
       ).called(1);
+    });
+
+    test('stops monitoring when the app is backgrounded', () async {
+      final detector = EmbraceHangDetector();
+      await detector.start();
+      expect(detector.isMonitoring, isTrue);
+
+      detector.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(detector.isMonitoring, isFalse);
+      detector.stop();
+    });
+
+    test('restarts monitoring when the app returns to the foreground',
+        () async {
+      final detector = EmbraceHangDetector();
+      await detector.start();
+      detector
+        ..didChangeAppLifecycleState(AppLifecycleState.paused)
+        ..didChangeAppLifecycleState(AppLifecycleState.resumed);
+      while (!detector.isMonitoring) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      expect(detector.isMonitoring, isTrue);
+      detector.stop();
+    });
+
+    test(
+        'discards a monitor isolate whose spawn resolves after a later '
+        'pause', () async {
+      final detector = EmbraceHangDetector();
+      await detector.start();
+      detector.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(detector.isMonitoring, isFalse);
+
+      // Resume kicks off an unawaited isolate spawn; pausing again right
+      // after races a stop against that still in-flight start.
+      detector
+        ..didChangeAppLifecycleState(AppLifecycleState.resumed)
+        ..didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      // Give the in-flight spawn from the resume above time to resolve.
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      expect(detector.isMonitoring, isFalse);
+      detector.stop();
+    });
+
+    test('ignores transient lifecycle states', () async {
+      final detector = EmbraceHangDetector();
+      await detector.start();
+
+      detector
+        ..didChangeAppLifecycleState(AppLifecycleState.inactive)
+        ..didChangeAppLifecycleState(AppLifecycleState.hidden)
+        ..didChangeAppLifecycleState(AppLifecycleState.detached);
+
+      expect(detector.isMonitoring, isTrue);
+      detector.stop();
     });
   });
 }
