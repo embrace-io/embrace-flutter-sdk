@@ -142,8 +142,7 @@ class EmbraceHangDetector with WidgetsBindingObserver {
 
     final mainReceivePort = ReceivePort()..listen(_handleMonitorMessage);
     final errorPort = ReceivePort()..listen(_handleMonitorError);
-    final exitPort = ReceivePort()
-      ..listen((_) => _closeErrorAndExitPorts());
+    final exitPort = ReceivePort()..listen((_) => _closeErrorAndExitPorts());
 
     final isolate = await Isolate.spawn(
       _monitorEntryPoint,
