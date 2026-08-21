@@ -196,5 +196,21 @@ void main() {
       expect(detector.isMonitoring, isTrue);
       detector.stop();
     });
+
+    group('stopActiveHangDetector', () {
+      test('does nothing when no detector is active', () {
+        expect(stopActiveHangDetector, returnsNormally);
+      });
+
+      test('stops the active detector', () async {
+        final detector = EmbraceHangDetector();
+        await detector.start();
+        expect(detector.isMonitoring, isTrue);
+
+        stopActiveHangDetector();
+
+        expect(detector.isMonitoring, isFalse);
+      });
+    });
   });
 }

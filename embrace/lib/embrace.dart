@@ -103,6 +103,7 @@ class Embrace implements EmbraceFlutterApi {
   void disable() {
     _runCatching('disable', () {
       stopActiveFrameDetector();
+      stopActiveHangDetector();
       _platform.disable();
     });
   }

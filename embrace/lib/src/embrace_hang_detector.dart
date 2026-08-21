@@ -3,6 +3,15 @@ import 'dart:isolate';
 
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+EmbraceHangDetector? _activeDetector;
+
+@internal
+// Called by Embrace.disable() to tear down hang detection.
+void stopActiveHangDetector() {
+  _activeDetector?.stop();
+}
 
 /// Configuration for the Dart UI isolate hang detector's ping interval and
 /// hang threshold.
@@ -99,6 +108,7 @@ class EmbraceHangDetector with WidgetsBindingObserver {
   /// observing app lifecycle changes so monitoring can pause while
   /// backgrounded.
   Future<void> start() async {
+    _activeDetector = this;
     WidgetsBinding.instance.addObserver(this);
     await _startMonitoring();
   }
@@ -106,6 +116,7 @@ class EmbraceHangDetector with WidgetsBindingObserver {
   /// Kills the monitor isolate, stops listening for its messages, and stops
   /// observing app lifecycle changes.
   void stop() {
+    if (_activeDetector == this) _activeDetector = null;
     WidgetsBinding.instance.removeObserver(this);
     _stopMonitoring();
   }
