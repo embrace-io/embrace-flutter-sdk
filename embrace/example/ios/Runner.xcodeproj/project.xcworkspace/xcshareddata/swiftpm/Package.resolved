@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/embrace-io/embrace-apple-sdk",
       "state" : {
-        "revision" : "5ea2eea55883d0c7f5e4fd670acb986f5adbe782",
-        "version" : "6.21.0"
+        "revision" : "9ce44e4ab3b8d5443a6fad5cb45ec3fb066a1277",
+        "version" : "6.22.0"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kstenerud/KSCrash",
       "state" : {
-        "revision" : "95a8895d75f3c22aa9ad9f2a15d2fbd97b0a55e2",
-        "version" : "2.5.1"
+        "revision" : "3f77f379c2db001e0c261c2a51b7e2b115d31f91",
+        "version" : "2.6.0"
       }
     },
     {
