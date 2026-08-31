@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        .package(url: "https://github.com/embrace-io/embrace-apple-sdk", .exact("6.21.0")),
+        .package(url: "https://github.com/embrace-io/embrace-apple-sdk", .exact("6.22.0")),
         .package(url: "https://github.com/open-telemetry/opentelemetry-swift-core", from: "2.1.1")
     ],
     targets: [
