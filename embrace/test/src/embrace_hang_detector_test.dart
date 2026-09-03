@@ -13,7 +13,7 @@ void main() {
     test('has expected defaults', () {
       const config = EmbraceHangDetectionConfig();
 
-      expect(config.tickInterval, const Duration(milliseconds: 200));
+      expect(config.tickInterval, const Duration(milliseconds: 100));
       expect(config.hangThreshold, const Duration(milliseconds: 700));
     });
 

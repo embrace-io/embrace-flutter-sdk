@@ -17,7 +17,7 @@ void stopActiveHangDetector() {
 class EmbraceHangDetectionConfig {
   /// Creates a hang-detection configuration.
   const EmbraceHangDetectionConfig({
-    this.tickInterval = const Duration(milliseconds: 200),
+    this.tickInterval = const Duration(milliseconds: 100),
     this.hangThreshold = const Duration(milliseconds: 700),
   });
 
