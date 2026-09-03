@@ -26,8 +26,10 @@ class EmbraceTracer implements APITracer {
   final InstrumentationScope _instrumentationScope;
   Attributes? _attributes;
 
-  @override
   bool get enabled => _provider.enabled && !_provider.isShutdown;
+
+  @override
+  bool isEnabled({SpanKind? kind, Context? context}) => enabled;
 
   @override
   APISpan startSpan(

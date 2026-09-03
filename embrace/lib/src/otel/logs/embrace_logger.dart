@@ -38,8 +38,15 @@ class EmbraceLogger implements APILogger {
   @override
   final Attributes? attributes;
 
-  @override
   bool get enabled => _provider.enabled;
+
+  @override
+  bool isEnabled({
+    Context? context,
+    Severity? severityNumber,
+    String? eventName,
+  }) =>
+      enabled;
 
   @override
   void emit({
