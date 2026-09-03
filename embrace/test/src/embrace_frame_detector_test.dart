@@ -285,5 +285,22 @@ void main() {
           ..stop();
       });
     });
+
+    group('stopActiveFrameDetector', () {
+      test('does nothing when no detector is active', () {
+        expect(stopActiveFrameDetector, returnsNormally);
+      });
+
+      test('stops the active detector', () {
+        detector.start();
+        updateCurrentRoute('/before');
+        expect(detector.currentRoute, '/before');
+
+        stopActiveFrameDetector();
+        updateCurrentRoute('/after');
+
+        expect(detector.currentRoute, '/before');
+      });
+    });
   });
 }

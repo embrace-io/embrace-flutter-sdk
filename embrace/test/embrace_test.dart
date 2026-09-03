@@ -967,6 +967,24 @@ void main() {
       });
     });
 
+    group('disable', () {
+      test('disables the platform implementation', () {
+        Embrace.instance.disable();
+        verify(() => embracePlatform.disable()).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.disable()).thenThrow(MockError());
+        Embrace.instance.disable();
+
+        verify(
+          () => embracePlatform.logInternalError('disable', errorMessage),
+        ).called(1);
+      });
+    });
+
     group('getDeviceId', () {
       test('returns device ID when platform implementation exists', () async {
         const platformName = '__test_platform__';

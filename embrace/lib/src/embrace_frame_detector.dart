@@ -11,6 +11,12 @@ void updateCurrentRoute(String? route) {
 }
 
 @internal
+// Called by Embrace.disable() to tear down frame detection.
+void stopActiveFrameDetector() {
+  _activeDetector?.stop();
+}
+
+@internal
 class EmbraceFrameDetectionConfig {
   const EmbraceFrameDetectionConfig({
     this.slowFrameThresholdMs = 16,

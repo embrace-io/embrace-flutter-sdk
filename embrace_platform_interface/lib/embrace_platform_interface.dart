@@ -75,6 +75,15 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('attachToHostSdk() has not been implemented.');
   }
 
+  /// Stops the Embrace SDK from capturing and generating any further data.
+  ///
+  /// On iOS this calls the native SDK's `stop()`. On Android this calls the
+  /// native SDK's `disable()`, which also clears any cached data that has
+  /// not yet been exported. The SDK cannot be restarted after this call.
+  void disable() {
+    throw UnimplementedError('disable() has not been implemented.');
+  }
+
   /// Logs a breadcrumb.
   void logBreadcrumb(String message) {
     throw UnimplementedError('logBreadcrumb(String) has not been implemented');

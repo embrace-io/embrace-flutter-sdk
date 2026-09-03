@@ -19,6 +19,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
   // Method Names
   static const String _attachSdkMethodName = 'attachToHostSdk';
+  static const String _disableMethodName = 'disable';
   static const String _addBreadcrumbMethodName = 'addBreadcrumb';
   static const String _logPushNotificationMethodName = 'logPushNotification';
   static const String _startViewMethodName = 'startView';
@@ -710,6 +711,13 @@ class MethodChannelEmbrace extends EmbracePlatform {
       _headersArgName: headers,
       _timeoutSecondsArgName: timeoutSeconds,
     });
+  }
+
+  @override
+  void disable() {
+    throwIfNotStarted();
+    methodChannel.invokeMethod(_disableMethodName);
+    _isStarted = false;
   }
 
   /// Throws a [StateError] if the SDK has not been started.

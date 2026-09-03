@@ -99,6 +99,14 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  void disable() {
+    _runCatching('disable', () {
+      stopActiveFrameDetector();
+      _platform.disable();
+    });
+  }
+
+  @override
   void addBreadcrumb(String message) {
     _runCatching('addBreadcrumb', () => _platform.addBreadcrumb(message));
   }

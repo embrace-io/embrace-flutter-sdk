@@ -34,6 +34,7 @@ internal object EmbraceConstants {
 
     // Method Names
     internal const val ATTACH_SDK_METHOD_NAME : String = "attachToHostSdk"
+    internal const val DISABLE_METHOD_NAME : String = "disable"
     internal const val ADD_BREADCRUMB_METHOD_NAME : String = "addBreadcrumb"
     internal const val LOG_INFO_METHOD_NAME : String = "logInfo"
     internal const val LOG_WARNING_METHOD_NAME : String = "logWarning"
@@ -155,6 +156,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         try {
             when (call.method) {
                 EmbraceConstants.ATTACH_SDK_METHOD_NAME -> handleAttachSdkCall(call, result)
+                EmbraceConstants.DISABLE_METHOD_NAME -> handleDisableCall(call, result)
                 EmbraceConstants.ADD_BREADCRUMB_METHOD_NAME -> handleAddBreadcrumbCall(call, result)
                 EmbraceConstants.LOG_INFO_METHOD_NAME -> handleLogInfoCall(call, result)
                 EmbraceConstants.LOG_WARNING_METHOD_NAME -> handleLogWarningCall(call, result)
@@ -306,6 +308,14 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         // required by Flutter, and passing any Flutter-specific data down to the
         // Android SDK.
         result.success(started)
+        return
+    }
+
+    private fun handleDisableCall(call: MethodCall, result: Result) : Unit {
+        safeSdkCall {
+            disable()
+        }
+        result.success(null)
         return
     }
 

@@ -47,6 +47,13 @@ abstract class EmbraceFlutterApi implements EmbraceApi {
   /// ```
   Future<void> installErrorHandlers(FutureOr<void> Function() action);
 
+  /// Stops the Embrace SDK from capturing and generating any further data.
+  ///
+  /// This also tears down the Dart-side background monitors started by
+  /// [start] (such as frame drop detection). The SDK cannot be restarted
+  /// after this call.
+  void disable();
+
   /// Manually logs a Dart error or exception to Embrace. You should use this
   /// if you want to capture errors/exceptions and report them to Embrace.
   /// A good example would be to call this function from within a try-catch
