@@ -7,6 +7,7 @@ import 'package:embrace/embrace_api.dart';
 import 'package:embrace/src/embrace_frame_detector.dart';
 import 'package:embrace/src/embrace_hang_detector.dart';
 import 'package:embrace/src/embrace_startup_tracker.dart';
+import 'package:embrace/src/lifecycle_observer.dart';
 import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
 export 'src/http_client.dart';
+export 'src/lifecycle_observer.dart' hide stopActiveLifecycleObserver;
 export 'src/navigation_observer.dart';
 export 'src/otel/propagation/w3c_trace_context.dart';
 
@@ -104,6 +106,7 @@ class Embrace implements EmbraceFlutterApi {
     _runCatching('disable', () {
       stopActiveFrameDetector();
       stopActiveHangDetector();
+      stopActiveLifecycleObserver();
       _platform.disable();
     });
   }
@@ -580,6 +583,7 @@ Future<void> _start(
 
   EmbraceFrameDetector().start();
   await EmbraceHangDetector().start();
+  EmbraceLifecycleObserver().start();
 
   if (action != null) {
     await _installErrorHandlers(action);
