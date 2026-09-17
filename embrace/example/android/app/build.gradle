@@ -17,7 +17,7 @@ def flutterVersionName = (localProperties.getProperty('flutter.versionName') ?: 
 android {
     namespace "io.embrace.flutter.example"
 
-    compileSdkVersion 37
+    compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     compileOptions {
