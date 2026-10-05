@@ -43,5 +43,22 @@ if [[ $action == "set" ]]; then
   if [[ $platform == "apple" ]]; then
     $SED "s/s.dependency 'EmbraceIO', '.*'/s.dependency 'EmbraceIO', '${version}'/" embrace_ios/ios/embrace_ios.podspec
     $SED "s/embrace-apple-sdk\", .exact(\".*\")/embrace-apple-sdk\", .exact(\"${version}\")/" embrace_ios/ios/embrace_ios/Package.swift
+
+    # The example app pins the SDK too; SPM fails to resolve if it disagrees with embrace_ios.
+    pbxproj=embrace/example/ios/Runner.xcodeproj/project.pbxproj
+    $SED "/XCRemoteSwiftPackageReference \"embrace-apple-sdk\"/,/};/s/version = .*;/version = ${version};/" $pbxproj
+
+    # Peeled (^{}) entry wins for annotated tags; lightweight tags only have the plain entry.
+    revision=$(git ls-remote https://github.com/embrace-io/embrace-apple-sdk "refs/tags/${version}" "refs/tags/${version}^{}" | sort -k2 | tail -1 | cut -f1)
+    if [[ -z $revision ]]; then
+      echo "Could not find tag ${version} in embrace-apple-sdk"
+      exit 1
+    fi
+    for resolved in \
+      embrace/example/ios/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved \
+      embrace/example/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved; do
+      $SED "/\"identity\" : \"embrace-apple-sdk\"/,/}/s/\"revision\" : \".*\"/\"revision\" : \"${revision}\"/" $resolved
+      $SED "/\"identity\" : \"embrace-apple-sdk\"/,/}/s/\"version\" : \".*\"/\"version\" : \"${version}\"/" $resolved
+    done
   fi
 fi
