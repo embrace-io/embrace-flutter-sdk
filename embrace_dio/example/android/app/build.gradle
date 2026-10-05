@@ -28,7 +28,7 @@ apply plugin: 'io.embrace.gradle'
 
 android {
     namespace "com.example.example"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 37
     ndkVersion flutter.ndkVersion
 
     compileOptions {
