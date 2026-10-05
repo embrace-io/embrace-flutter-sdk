@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import io.embrace.android.embracesdk.Embrace
+import io.embrace.android.embracesdk.PropertyScope
 import io.embrace.android.embracesdk.network.http.HttpMethod
 import io.embrace.android.embracesdk.internal.EmbraceInternalApi
 import io.embrace.android.embracesdk.internal.FlutterInternalInterface
@@ -579,7 +580,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
         val permanent = call.getBooleanArgument(EmbraceConstants.PERMANENT_ARG_NAME)
         safeSdkCall {
-            addSessionProperty(key, value, permanent)
+            addUserSessionProperty(
+                key,
+                value,
+                if (permanent) PropertyScope.PERMANENT else PropertyScope.USER_SESSION,
+            )
         }
         result.success(null)
         return
@@ -588,7 +593,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleRemoveSessionPropertyCall(call: MethodCall, result: Result) : Unit {
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         safeSdkCall {
-            removeSessionProperty(key)
+            removeUserSessionProperty(key)
         }
         result.success(null)
         return
@@ -597,7 +602,13 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleEndSessionCall(call: MethodCall, result: Result) : Unit {
         val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
         safeSdkCall {
-            endSession(clearUserInfo)
+            if (clearUserInfo) {
+                clearUserIdentifier()
+                clearUserEmail()
+                clearUsername()
+                clearAllUserPersonas()
+            }
+            endUserSession()
         }
         result.success(null)
         return
@@ -651,7 +662,7 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
 
     private fun handleGetCurrentSessionIdCall(call: MethodCall, result: Result) {
         val currentSessionId = safeSdkCall {
-            currentSessionId
+            currentUserSessionId
         }
         result.success(currentSessionId)
     }
