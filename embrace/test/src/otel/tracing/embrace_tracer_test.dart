@@ -80,13 +80,16 @@ void main() {
         verify(() => platform.startSpan('op')).called(1);
       });
 
-      test('passes parentSpanId when explicit parentSpan is given', () {
+      test('passes parentSpanId when context holds a parent span', () {
         _stubStartSpan(platform);
 
         final parent = tracer.startSpan('parent');
         final expectedParentId = parent.spanContext.spanId.toString();
 
-        tracer.startSpan('child', parentSpan: parent);
+        final child = tracer.startSpan(
+          'child',
+          context: Context.current.withSpan(parent),
+        );
 
         verify(
           () => platform.startSpan(
@@ -94,6 +97,38 @@ void main() {
             parentSpanId: expectedParentId,
           ),
         ).called(1);
+        expect(child.spanContext.traceId, parent.spanContext.traceId);
+        expect(child.parentSpan, parent);
+      });
+
+      test('ignores context parent when root is true', () {
+        _stubStartSpan(platform);
+
+        final parent = tracer.startSpan('parent');
+        final child = tracer.startSpan(
+          'child',
+          context: Context.current.withSpan(parent),
+          root: true,
+        );
+
+        verify(() => platform.startSpan('child')).called(1);
+        expect(child.spanContext.traceId, isNot(parent.spanContext.traceId));
+        expect(child.parentSpan, isNull);
+      });
+
+      test('passes startTimeMs when startTime is given', () {
+        _stubStartSpan(platform);
+
+        final startTime = DateTime.fromMillisecondsSinceEpoch(1234567890);
+        final span = tracer.startSpan('op', startTime: startTime);
+
+        verify(
+          () => platform.startSpan(
+            'op',
+            startTimeMs: 1234567890,
+          ),
+        ).called(1);
+        expect(span.startTime, startTime);
       });
 
       test('passes null parentSpanId when no parent or context span', () {
@@ -187,13 +222,16 @@ void main() {
         ).called(1);
       });
 
-      test('passes parentSpanId when explicit parentSpan is given', () {
+      test('passes parentSpanId when context holds a parent span', () {
         _stubStartSpan(platform);
 
         final parent = tracer.startSpan('parent');
         final expectedParentId = parent.spanContext.spanId.toString();
 
-        tracer.createSpan(name: 'child', parentSpan: parent);
+        tracer.createSpan(
+          name: 'child',
+          context: Context.current.withSpan(parent),
+        );
 
         verify(
           () => platform.startSpan(

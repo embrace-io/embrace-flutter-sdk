@@ -35,54 +35,27 @@ class EmbraceTracer implements APITracer {
   APISpan startSpan(
     String name, {
     Context? context,
-    SpanContext? spanContext,
-    APISpan? parentSpan,
+    bool root = false,
     SpanKind kind = SpanKind.internal,
     Attributes? attributes,
     List<SpanLink>? links,
+    DateTime? startTime,
     bool? isRecording = true,
-  }) {
-    if (!enabled) {
-      return _nonRecordingSpan(
+  }) =>
+      createSpan(
+        name: name,
         context: context,
-        spanContext: spanContext,
-        parentSpan: parentSpan,
+        root: root,
+        kind: kind,
+        attributes: attributes,
+        links: links,
+        startTime: startTime,
+        isRecording: isRecording,
       );
-    }
-
-    final effectiveContext = context ?? Context.current;
-    final otelSpanContext = _buildSpanContext(
-      parentSpan: parentSpan,
-      context: effectiveContext,
-      spanContext: spanContext,
-    );
-
-    final nativeSpanId = EmbracePlatform.instance.startSpan(
-      name,
-      parentSpanId:
-          _resolveParentSpanId(parentSpan: parentSpan, context: context),
-    );
-
-    final span = EmbraceOTelSpan(
-      name: name,
-      nativeSpanId: nativeSpanId,
-      spanContext: otelSpanContext,
-      instrumentationScope: _instrumentationScope,
-      parentSpan: parentSpan,
-      kind: kind,
-    );
-
-    if (attributes != null) span.addAttributes(attributes);
-    links?.forEach(span.addSpanLink);
-
-    return span;
-  }
 
   @override
   APISpan createSpan({
     required String name,
-    SpanContext? spanContext,
-    APISpan? parentSpan,
     SpanKind kind = SpanKind.internal,
     Attributes? attributes,
     List<SpanLink>? links,
@@ -90,35 +63,30 @@ class EmbraceTracer implements APITracer {
     DateTime? startTime,
     bool? isRecording,
     Context? context,
+    bool root = false,
   }) {
+    final parent = root
+        ? (parentSpanContext: null, parentSpan: null)
+        : _resolveParent(context ?? Context.current);
+
     if (!enabled) {
-      return _nonRecordingSpan(
-        context: context,
-        spanContext: spanContext,
-        parentSpan: parentSpan,
+      return OTelAPI.nonRecordingSpan(
+        parent.parentSpanContext ?? OTelAPI.spanContextInvalid(),
       );
     }
 
-    final effectiveContext = context ?? Context.current;
-    final otelSpanContext = _buildSpanContext(
-      parentSpan: parentSpan,
-      context: effectiveContext,
-      spanContext: spanContext,
-    );
-
     final nativeSpanId = EmbracePlatform.instance.startSpan(
       name,
-      parentSpanId:
-          _resolveParentSpanId(parentSpan: parentSpan, context: context),
+      parentSpanId: parent.parentSpan?.spanContext.spanId.toString(),
       startTimeMs: startTime?.millisecondsSinceEpoch,
     );
 
     final span = EmbraceOTelSpan(
       name: name,
       nativeSpanId: nativeSpanId,
-      spanContext: otelSpanContext,
+      spanContext: _buildSpanContext(parent.parentSpanContext),
       instrumentationScope: _instrumentationScope,
-      parentSpan: parentSpan,
+      parentSpan: parent.parentSpan,
       kind: kind,
       startTime: startTime,
     );
@@ -159,50 +127,57 @@ class EmbraceTracer implements APITracer {
   Future<T> withSpanAsync<T>(APISpan span, Future<T> Function() fn) =>
       Context.current.withSpan(span).run(fn);
 
-  APISpan _nonRecordingSpan({
-    APISpan? parentSpan,
-    Context? context,
-    SpanContext? spanContext,
-  }) {
-    final effectiveContext = context ?? Context.current;
-    final effectiveParentSpan = parentSpan ?? effectiveContext.span;
-    final parentSpanContext = spanContext ??
-        effectiveParentSpan?.spanContext ??
-        effectiveContext.spanContext;
-    final effectiveSpanContext =
-        parentSpanContext ?? OTelAPI.spanContextInvalid();
-    return OTelAPI.nonRecordingSpan(effectiveSpanContext);
-  }
+  /// Resolves the parent for a span created in [context], using the same
+  /// precedence as [APITracer.createSpan]: remote span context, then local
+  /// span, then non-remote span context.
+  ({SpanContext? parentSpanContext, APISpan? parentSpan}) _resolveParent(
+    Context context,
+  ) {
+    final contextSpanContext = context.spanContext;
+    final contextSpan = context.span;
 
-  SpanContext _buildSpanContext({
-    APISpan? parentSpan,
-    Context? context,
-    SpanContext? spanContext,
-  }) {
-    if (spanContext != null && spanContext.isValid) return spanContext;
-
-    final effectiveContext = context ?? Context.current;
-    final effectiveParent = parentSpan ?? effectiveContext.span;
-
-    if (effectiveParent != null) {
-      return OTelFactory.otelFactory!.spanContext(
-        traceId: effectiveParent.spanContext.traceId,
-        spanId: OTelFactory.otelFactory!.spanId(),
-        parentSpanId: effectiveParent.spanContext.spanId,
-        traceFlags: effectiveParent.spanContext.traceFlags,
-        traceState: effectiveParent.spanContext.traceState,
+    if (contextSpanContext != null &&
+        contextSpanContext.isValid &&
+        contextSpanContext.isRemote) {
+      final contextSpanSc = contextSpan?.spanContext;
+      final isSameSpan = contextSpanSc != null &&
+          contextSpanSc.traceId == contextSpanContext.traceId &&
+          contextSpanSc.spanId == contextSpanContext.spanId;
+      return (
+        parentSpanContext: contextSpanContext,
+        parentSpan: isSameSpan ? contextSpan : null,
       );
     }
 
-    return OTelFactory.otelFactory!.spanContext(
-      traceId: OTelFactory.otelFactory!.traceId(),
-      spanId: OTelFactory.otelFactory!.spanId(),
-      parentSpanId: OTelFactory.otelFactory!.spanIdInvalid(),
-    );
+    if (contextSpan != null && contextSpan.spanContext.isValid) {
+      return (
+        parentSpanContext: contextSpan.spanContext,
+        parentSpan: contextSpan,
+      );
+    }
+
+    if (contextSpanContext != null && contextSpanContext.isValid) {
+      return (parentSpanContext: contextSpanContext, parentSpan: null);
+    }
+
+    return (parentSpanContext: null, parentSpan: null);
   }
 
-  String? _resolveParentSpanId({APISpan? parentSpan, Context? context}) {
-    final effectiveParent = parentSpan ?? context?.span ?? Context.current.span;
-    return effectiveParent?.spanContext.spanId.toString();
+  SpanContext _buildSpanContext(SpanContext? parentSpanContext) {
+    final factory = OTelFactory.otelFactory!;
+    if (parentSpanContext == null) {
+      return factory.spanContext(
+        traceId: factory.traceId(),
+        spanId: factory.spanId(),
+        parentSpanId: factory.spanIdInvalid(),
+      );
+    }
+    return factory.spanContext(
+      traceId: parentSpanContext.traceId,
+      spanId: factory.spanId(),
+      parentSpanId: parentSpanContext.spanId,
+      traceFlags: parentSpanContext.traceFlags,
+      traceState: parentSpanContext.traceState,
+    );
   }
 }

@@ -45,7 +45,6 @@ class EmbraceOTelSpan implements otel.APISpan {
   DateTime? _endTime;
   bool _isEnded = false;
   otel.SpanStatusCode _status = otel.SpanStatusCode.Unset;
-  String? _statusDescription;
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
@@ -68,12 +67,6 @@ class EmbraceOTelSpan implements otel.APISpan {
   bool get isEnded => _isEnded;
 
   @override
-  otel.SpanStatusCode get status => _status;
-
-  @override
-  String? get statusDescription => _statusDescription;
-
-  @override
   otel.SpanContext get spanContext => _spanContext;
 
   @override
@@ -88,24 +81,8 @@ class EmbraceOTelSpan implements otel.APISpan {
   @override
   otel.SpanKind get kind => _kind;
 
-  /// Returns an empty unmodifiable list — span events are owned by the
-  /// native SDK.
-  @override
-  List<otel.SpanEvent>? get spanEvents => const [];
-
-  /// Returns an empty unmodifiable list — span links are owned by the
-  /// native SDK.
-  @override
-  List<otel.SpanLink>? get spanLinks => const [];
-
   @override
   bool get isRecording => !_isEnded;
-
-  /// Always returns an empty [otel.Attributes] — attributes are owned by the
-  /// native SDK and are not readable from the Dart layer.
-  @override
-  @visibleForTesting
-  otel.Attributes get attributes => otel.Attributes.of({});
 
   /// No-op — attributes are owned by the native SDK.
   @override
@@ -238,12 +215,8 @@ class EmbraceOTelSpan implements otel.APISpan {
     if (_isEnded || statusCode == otel.SpanStatusCode.Unset) return;
     if (statusCode == otel.SpanStatusCode.Ok) {
       _status = statusCode;
-      _statusDescription = null;
     } else if (_status != otel.SpanStatusCode.Ok) {
       _status = statusCode;
-      if (description != null && description.isNotEmpty) {
-        _statusDescription = description;
-      }
     } else {
       // Current status is Ok; Error cannot downgrade Ok — skip platform call.
       return;
