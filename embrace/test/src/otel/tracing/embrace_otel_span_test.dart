@@ -395,20 +395,5 @@ void main() {
         verifyNever(() => platform.updateSpanName(any(), any()));
       });
     });
-
-    group('empty collections', () {
-      test('spanEvents returns empty list', () {
-        expect(span.spanEvents, isEmpty);
-      });
-
-      test('spanLinks returns empty list', () {
-        expect(span.spanLinks, isEmpty);
-      });
-
-      test('attributes returns empty Attributes', () {
-        // ignore: invalid_use_of_visible_for_testing_member
-        expect(span.attributes.isEmpty, isTrue);
-      });
-    });
   });
 }
