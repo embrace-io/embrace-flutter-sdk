@@ -352,8 +352,8 @@ abstract class SessionApi {
   /// Only call this method if you have an application that will stay in the
   /// foreground for an extended time, such as a point-of-sale app.
   ///
-  /// Unlike [endSession], this does not clear any user info. Call the
-  /// relevant clear methods on [UserApi] if needed.
+  /// This does not clear any user info. Call the relevant clear methods on
+  /// [UserApi] if needed.
   void endUserSession();
 
   /// Get the ID for the current user session.
