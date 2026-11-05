@@ -47,7 +47,7 @@ class _CurrentSessionDemoState extends State<CurrentSessionDemo> {
   }
 
   void _updateIds() {
-    Embrace.instance.getCurrentSessionId().then((sessionId) {
+    Embrace.instance.getCurrentUserSessionId().then((sessionId) {
       setState(() {
         _currentsessionId = sessionId;
       });
@@ -61,7 +61,7 @@ class _CurrentSessionDemoState extends State<CurrentSessionDemo> {
   }
 
   void _endSession() {
-    Embrace.instance.endSession();
+    Embrace.instance.endUserSession();
     _updateIds();
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 ///
@@ -270,6 +271,7 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// properties per session. If the property is [permanent], it will be added
   /// to all future sessions on this device. Otherwise, the property will just
   /// be added to the current session.
+  @Deprecated('Use addUserSessionProperty instead')
   void addSessionProperty(String key, String value, {required bool permanent}) {
     throw UnimplementedError('addSessionProperty() has not been implemented');
   }
@@ -278,6 +280,7 @@ abstract class EmbracePlatform extends PlatformInterface {
   ///
   /// If the property was permament, it will be removed from all future
   /// sessions.
+  @Deprecated('Use removeUserSessionProperty instead')
   void removeSessionProperty(String key) {
     throw UnimplementedError(
       'removeSessionProperty() has not been implemented',
@@ -291,8 +294,34 @@ abstract class EmbracePlatform extends PlatformInterface {
   ///
   /// If [clearUserInfo] is true, it clears any username, user ID, and email
   /// values set when ending the session.
+  @Deprecated('Use endUserSession instead')
   void endSession({bool clearUserInfo = true}) {
     throw UnimplementedError('endSession() has not been implemented');
+  }
+
+  /// Adds a property to the current user session, overwriting any previous
+  /// property set with the given [key]. The [scope] determines how long the
+  /// property is retained.
+  void addUserSessionProperty(
+    String key,
+    String value, {
+    required PropertyScope scope,
+  }) {
+    throw UnimplementedError(
+      'addUserSessionProperty() has not been implemented',
+    );
+  }
+
+  /// Removes a property from the current user session.
+  void removeUserSessionProperty(String key) {
+    throw UnimplementedError(
+      'removeUserSessionProperty() has not been implemented',
+    );
+  }
+
+  /// Ends the current user session and starts a new one.
+  void endUserSession() {
+    throw UnimplementedError('endUserSession() has not been implemented');
   }
 
   /// Logs an internal error within the SDK.
@@ -379,8 +408,16 @@ abstract class EmbracePlatform extends PlatformInterface {
   }
 
   /// Returns the id of the current session.
+  @Deprecated('Use getCurrentUserSessionId instead')
   Future<String?> getCurrentSessionId() {
     throw UnimplementedError('getCurrentSessionId() has not been implemented');
+  }
+
+  /// Returns the id of the current user session.
+  Future<String?> getCurrentUserSessionId() {
+    throw UnimplementedError(
+      'getCurrentUserSessionId() has not been implemented',
+    );
   }
 
   /// Gets the trace ID for a given span ID.
