@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 import 'package:embrace_platform_interface/src/sdk_version.dart';
 import 'package:embrace_platform_interface/src/version.dart';
 import 'package:flutter/foundation.dart';
@@ -44,12 +45,14 @@ class MethodChannelEmbrace extends EmbracePlatform {
       'generateW3cTraceparent';
   static const String _logInternalErrorMethodName = 'logInternalError';
   static const String _logDartErrorMethodName = 'logDartError';
-  static const String _addSessionPropertyMethodName = 'addSessionProperty';
-  static const String _removeSessionPropertyMethodName =
-      'removeSessionProperty';
-  static const String _endSessionMethodName = 'endSession';
+  static const String _addUserSessionPropertyMethodName =
+      'addUserSessionProperty';
+  static const String _removeUserSessionPropertyMethodName =
+      'removeUserSessionProperty';
+  static const String _endUserSessionMethodName = 'endUserSession';
   static const String _getLastRunEndStateMethodName = 'getLastRunEndState';
-  static const String _getCurrentSessionIdMethodName = 'getCurrentSessionId';
+  static const String _getCurrentUserSessionIdMethodName =
+      'getCurrentUserSessionId';
   static const String _startSpanMethodName = 'startSpan';
   static const String _stopSpanMethodName = 'stopSpan';
   static const String _addSpanEventMethodName = 'addSpanEvent';
@@ -94,8 +97,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _errorWasHandledArgName = 'wasHandled';
   static const String _keyArgName = 'key';
   static const String _valueArgName = 'value';
-  static const String _permanentArgName = 'permanent';
-  static const String _clearUserInfoArgName = 'clearUserInfo';
+  static const String _scopeArgName = 'scope';
   static const String _titleArgName = 'title';
   static const String _bodyArgName = 'body';
   static const String _subtitleArgName = 'subtitle';
@@ -123,7 +125,7 @@ class MethodChannelEmbrace extends EmbracePlatform {
 
   /// Minimum Embrace Android SDK version compatible with this version of
   /// the Embrace Flutter SDK
-  static const String minimumAndroidVersion = '8.4.0';
+  static const String minimumAndroidVersion = '9.4.0';
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -435,31 +437,63 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
+  @Deprecated('Use addUserSessionProperty instead')
   void addSessionProperty(String key, String value, {required bool permanent}) {
+    addUserSessionProperty(
+      key,
+      value,
+      scope: permanent ? PropertyScope.permanent : PropertyScope.userSession,
+    );
+  }
+
+  @override
+  @Deprecated('Use removeUserSessionProperty instead')
+  void removeSessionProperty(String key) {
+    removeUserSessionProperty(key);
+  }
+
+  @override
+  @Deprecated('Use endUserSession instead')
+  void endSession({bool clearUserInfo = true}) {
+    endUserSession();
+    if (clearUserInfo) {
+      clearUserIdentifier();
+      clearUserName();
+      clearUserEmail();
+      clearAllUserPersonas();
+    }
+  }
+
+  @override
+  void addUserSessionProperty(
+    String key,
+    String value, {
+    required PropertyScope scope,
+  }) {
     throwIfNotStarted();
     methodChannel.invokeMethod(
-      _addSessionPropertyMethodName,
+      _addUserSessionPropertyMethodName,
       {
         _keyArgName: key,
         _valueArgName: value,
-        _permanentArgName: permanent,
+        _scopeArgName: scope.name,
       },
     );
   }
 
   @override
-  void removeSessionProperty(String key) {
+  void removeUserSessionProperty(String key) {
     throwIfNotStarted();
-    methodChannel
-        .invokeMethod(_removeSessionPropertyMethodName, {_keyArgName: key});
+    methodChannel.invokeMethod(
+      _removeUserSessionPropertyMethodName,
+      {_keyArgName: key},
+    );
   }
 
   @override
-  void endSession({bool clearUserInfo = true}) {
+  void endUserSession() {
     throwIfNotStarted();
-    methodChannel.invokeMethod(_endSessionMethodName, {
-      _clearUserInfoArgName: clearUserInfo,
-    });
+    methodChannel.invokeMethod(_endUserSessionMethodName);
   }
 
   @override
@@ -524,8 +558,15 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
+  @Deprecated('Use getCurrentUserSessionId instead')
   Future<String?> getCurrentSessionId() async {
-    return methodChannel.invokeMethod<String?>(_getCurrentSessionIdMethodName);
+    return getCurrentUserSessionId();
+  }
+
+  @override
+  Future<String?> getCurrentUserSessionId() async {
+    return methodChannel
+        .invokeMethod<String?>(_getCurrentUserSessionIdMethodName);
   }
   // lib/method_channel_embrace.dart: 364, 373, 378, 380, 390
 

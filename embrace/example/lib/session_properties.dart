@@ -35,7 +35,7 @@ class _SessionPropertiesDemoState extends State<SessionPropertiesDemo> {
             ),
             ElevatedButton(
               onPressed: () {
-                Embrace.instance.addSessionProperty(
+                Embrace.instance.addUserSessionProperty(
                   _keyController.text,
                   _valueController.text,
                 );
@@ -44,7 +44,7 @@ class _SessionPropertiesDemoState extends State<SessionPropertiesDemo> {
             ),
             ElevatedButton(
               onPressed: () {
-                Embrace.instance.removeSessionProperty(_keyController.text);
+                Embrace.instance.removeUserSessionProperty(_keyController.text);
               },
               child: const Text('Remove'),
             ),
