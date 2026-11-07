@@ -22,24 +22,20 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let TriggerSignalMethodName = "triggerRaisedSignal"
     static let TriggerChannelErrorMethodName = "triggerMethodChannelError"
     static let SetUserIdentifierMethodName = "setUserIdentifier"
-    static let SetUserNameMethodName = "setUserName"
-    static let SetUserEmailMethodName = "setUserEmail"
     static let SetUserAsPayerMethodName = "setUserAsPayer"
     static let AddUserPersonaMethodName = "addUserPersona"
     static let ClearUserIdentifierMethodName = "clearUserIdentifier"
-    static let ClearUserNameMethodName = "clearUserName"
-    static let ClearUserEmailMethodName = "clearUserEmail"
     static let ClearUserAsPayerMethodName = "clearUserAsPayer"
     static let ClearUserPersonaMethodName = "clearUserPersona"
     static let ClearAllUserPersonasMethodName = "clearAllUserPersonas"
     static let LogNetworkRequestMethodName = "logNetworkRequest"
     static let LogInternalErrorMethodName = "logInternalError"
     static let LogDartErrorMethodName = "logDartError"
-    static let AddSessionPropertyMethodName = "addSessionProperty"
-    static let RemoveSessionPropertyMethodName = "removeSessionProperty"
-    static let EndSessionMethodName = "endSession"
+    static let AddUserSessionPropertyMethodName = "addUserSessionProperty"
+    static let RemoveUserSessionPropertyMethodName = "removeUserSessionProperty"
+    static let EndUserSessionMethodName = "endUserSession"
     static let GetLastRunEndStateMethodName = "getLastRunEndState"
-    static let GetCurrentSessionIdMethodName = "getCurrentSessionId"
+    static let GetCurrentUserSessionIdMethodName = "getCurrentUserSessionId"
     static let GetSdkVersionMethodName = "getSdkVersion"
     static let StartSpanMethodName = "startSpan"
     static let StopSpanMethodName = "stopSpan"
@@ -57,8 +53,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let MessageArgName = "message"
     static let IdentifierArgName = "identifier"
     static let UserIdentifierArgName = "identifier"
-    static let UserNameArgName = "name"
-    static let UserEmailArgName = "email"
     static let UserPersonaArgName = "persona"
     static let UrlArgName = "url"
     static let HttpMethodArgName = "httpMethod"
@@ -80,8 +74,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let ErrorWasHandledArgName = "wasHandled"
     static let KeyArgName = "key"
     static let ValueArgName = "value"
-    static let PermanentArgName = "permanent"
-    static let ClearUserInfoArgName = "clearUserInfo"
+    static let ScopeArgName = "scope"
     static let TitleArgName = "title"
     static let BodyArgName = "body"
     static let SubtitleArgName = "subtitle"
@@ -162,14 +155,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleSetUserIdentifierCall(call, result: result)
             case EmbracePlugin.ClearUserIdentifierMethodName:
                 handleClearUserIdentifierCall(call, result: result)
-            case EmbracePlugin.SetUserNameMethodName:
-                handleSetUserNameCall(call, result: result)
-            case EmbracePlugin.ClearUserNameMethodName:
-                handleClearUserNameCall(call, result: result)
-            case EmbracePlugin.SetUserEmailMethodName:
-                handleSetUserEmailCall(call, result: result)
-            case EmbracePlugin.ClearUserEmailMethodName:
-                handleClearUserEmailCall(call, result: result)
             case EmbracePlugin.SetUserAsPayerMethodName:
                 handleSetUserAsPayerCall(call, result: result)
             case EmbracePlugin.ClearUserAsPayerMethodName:
@@ -180,20 +165,20 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleClearUserPersonaCall(call, result: result)
             case EmbracePlugin.ClearAllUserPersonasMethodName:
                 handleClearAllUserPersonasCall(call, result: result)
-            case EmbracePlugin.AddSessionPropertyMethodName:
-                handleAddSessionPropertyCall(call, result: result)
-            case EmbracePlugin.RemoveSessionPropertyMethodName:
-                handleRemoveSessionPropertyCall(call, result: result)
-            case EmbracePlugin.EndSessionMethodName:
-                handleEndSessionCall(call, result: result)
+            case EmbracePlugin.AddUserSessionPropertyMethodName:
+                handleAddUserSessionPropertyCall(call, result: result)
+            case EmbracePlugin.RemoveUserSessionPropertyMethodName:
+                handleRemoveUserSessionPropertyCall(call, result: result)
+            case EmbracePlugin.EndUserSessionMethodName:
+                handleEndUserSessionCall(call, result: result)
             case EmbracePlugin.LogInternalErrorMethodName:
                 handleLogInternalErrorCall(call, result: result)
             case EmbracePlugin.LogDartErrorMethodName:
                 handleLogDartErrorCall(call, result: result)
             case EmbracePlugin.GetLastRunEndStateMethodName:
                 handleGetLastRunEndStateCall(call, result: result)
-            case EmbracePlugin.GetCurrentSessionIdMethodName:
-                handleGetCurrentSessionIdCall(call, result: result)
+            case EmbracePlugin.GetCurrentUserSessionIdMethodName:
+                handleGetCurrentUserSessionIdCall(call, result: result)
             case EmbracePlugin.GetSdkVersionMethodName:
                 handleGetSdkVersionCall(call, result: result)
             case EmbracePlugin.StartSpanMethodName:
@@ -443,40 +428,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleSetUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            if let args = call.arguments as? [String: Any],
-                let userName = args[EmbracePlugin.UserNameArgName] as? String {
-                    client.metadata.userName = userName
-                }
-            result(nil)
-        }
-    }
-
-    private func handleClearUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            client.metadata.userName = nil
-            result(nil)
-        }
-    }
-
-    private func handleSetUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            if let args = call.arguments as? [String: Any],
-                let userEmail = args[EmbracePlugin.UserEmailArgName] as? String {
-                    client.metadata.userEmail = userEmail
-                }
-            result(nil)
-        }
-    }
-
-    private func handleClearUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            client.metadata.userEmail = nil
-            result(nil)
-        }
-    }
-
     private func handleSetUserAsPayerCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             try? client.metadata.add(persona: PersonaTag("payer"), lifespan: .process)
@@ -518,29 +469,39 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleAddSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func handleAddUserSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             if let args = call.arguments as? [String: Any],
                 let keyStr = args[EmbracePlugin.KeyArgName] as? String,
                 let valueStr = args[EmbracePlugin.ValueArgName] as? String {
-                    let perm = args[EmbracePlugin.PermanentArgName] as? Bool ?? false
-                    try? client.metadata.addProperty(key: keyStr, value: valueStr, lifespan: perm ? .permanent : .session)
+                    let lifespan: MetadataLifespan
+                    switch args[EmbracePlugin.ScopeArgName] as? String {
+                        case "permanent":
+                            lifespan = .permanent
+                        case "process":
+                            lifespan = .process
+                        default:
+                            lifespan = .session
+                    }
+                    try? client.metadata.addProperty(key: keyStr, value: valueStr, lifespan: lifespan)
                 }
             result(nil)
         }
     }
 
-    private func handleRemoveSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func handleRemoveUserSessionPropertyCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             if let args = call.arguments as? [String: Any],
                 let keyStr = args[EmbracePlugin.KeyArgName] as? String {
-                    try? client.metadata.removeProperty(key: keyStr)
+                    for lifespan in [MetadataLifespan.session, .process, .permanent] {
+                        try? client.metadata.removeProperty(key: keyStr, lifespan: lifespan)
+                    }
                 }
             result(nil)
         }
     }
 
-    private func handleEndSessionCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func handleEndUserSessionCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             client.endCurrentSession()
             result(nil)
@@ -588,7 +549,7 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleGetCurrentSessionIdCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    private func handleGetCurrentUserSessionIdCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             result(client.currentSessionId())
         }

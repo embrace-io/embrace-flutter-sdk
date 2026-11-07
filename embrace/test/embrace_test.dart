@@ -694,79 +694,38 @@ void main() {
     });
 
     group('setUserName', () {
-      const userName = '__userName__';
-      test('sets the user name when platform implementation exists', () {
-        Embrace.instance.setUserName(userName);
-        verify(() => embracePlatform.setUserName(userName)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(
-          () => embracePlatform.setUserName(userName),
-        ).thenThrow(MockError());
-        Embrace.instance.setUserName(userName);
-
-        verify(
-          () => embracePlatform.logInternalError('setUserName', errorMessage),
-        ).called(1);
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.setUserName('__userName__');
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.setUserName(any()));
       });
     });
 
     group('clearUserName', () {
-      test('sets the user email when platform implementation exists', () {
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.clearUserName();
-        verify(embracePlatform.clearUserName).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(embracePlatform.clearUserName).thenThrow(MockError());
-        Embrace.instance.clearUserName();
-
-        verify(
-          () => embracePlatform.logInternalError('clearUserName', errorMessage),
-        ).called(1);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserName());
       });
     });
 
     group('setUserEmail', () {
-      const email = '__email__';
-      test('sets the user email when platform implementation exists', () {
-        Embrace.instance.setUserEmail(email);
-        verify(() => embracePlatform.setUserEmail(email)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.setUserEmail(email)).thenThrow(MockError());
-        Embrace.instance.setUserEmail(email);
-
-        verify(
-          () => embracePlatform.logInternalError('setUserEmail', errorMessage),
-        ).called(1);
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.setUserEmail('__email__');
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.setUserEmail(any()));
       });
     });
 
     group('clearUserEmail', () {
-      test('clears the user email when platform implementation exists', () {
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.clearUserEmail();
-        verify(embracePlatform.clearUserEmail).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(embracePlatform.clearUserEmail).thenThrow(MockError());
-        Embrace.instance.clearUserEmail();
-
-        verify(
-          () =>
-              embracePlatform.logInternalError('clearUserEmail', errorMessage),
-        ).called(1);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserEmail());
       });
     });
 
@@ -880,14 +839,26 @@ void main() {
     group('addSessionProperty', () {
       const key = '__key__';
       const value = '__value__';
-      const permanent = false;
-      test('adds session property when platform implementation exists', () {
+      test('adds user session property with userSession scope by default', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.addSessionProperty(key, value);
         verify(
-          () => embracePlatform.addSessionProperty(
+          () => embracePlatform.addUserSessionProperty(
             key,
             value,
-            permanent: permanent,
+            scope: PropertyScope.userSession,
+          ),
+        ).called(1);
+      });
+
+      test('adds user session property with permanent scope', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.addSessionProperty(key, value, permanent: true);
+        verify(
+          () => embracePlatform.addUserSessionProperty(
+            key,
+            value,
+            scope: PropertyScope.permanent,
           ),
         ).called(1);
       });
@@ -896,12 +867,13 @@ void main() {
           'logs internal error when platform implementation '
           'throws an error', () {
         when(
-          () => embracePlatform.addSessionProperty(
+          () => embracePlatform.addUserSessionProperty(
             key,
             value,
-            permanent: permanent,
+            scope: PropertyScope.userSession,
           ),
         ).thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.addSessionProperty(key, value);
 
         verify(
@@ -915,17 +887,19 @@ void main() {
 
     group('removeSessionProperty', () {
       const key = '__key__';
-      test('removes session property when platform implementation exists', () {
+      test('removes user session property', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.removeSessionProperty(key);
-        verify(() => embracePlatform.removeSessionProperty(key)).called(1);
+        verify(() => embracePlatform.removeUserSessionProperty(key)).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
         when(
-          () => embracePlatform.removeSessionProperty(key),
+          () => embracePlatform.removeUserSessionProperty(key),
         ).thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.removeSessionProperty(key);
 
         verify(
@@ -938,31 +912,130 @@ void main() {
     });
 
     group('endSession', () {
-      test('ends session when platform implementation exists', () {
+      test('ends user session and clears user info by default', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.endSession();
+        verifyInOrder([
+          () => embracePlatform.endUserSession(),
+          () => embracePlatform.clearUserIdentifier(),
+          () => embracePlatform.clearAllUserPersonas(),
+        ]);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserName());
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserEmail());
+      });
+
+      test('does not clear user info when clearUserInfo is false', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.endSession(clearUserInfo: false);
+        verify(() => embracePlatform.endUserSession()).called(1);
+        verifyNever(() => embracePlatform.clearUserIdentifier());
+        verifyNever(() => embracePlatform.clearAllUserPersonas());
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.endUserSession()).thenThrow(MockError());
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.endSession();
+
         verify(
-          () => embracePlatform.endSession(
-            clearUserInfo: any(named: 'clearUserInfo'),
+          () => embracePlatform.logInternalError('endSession', errorMessage),
+        ).called(1);
+      });
+    });
+
+    group('addUserSessionProperty', () {
+      const key = '__key__';
+      const value = '__value__';
+      test('scope defaults to userSession', () {
+        Embrace.instance.addUserSessionProperty(key, value);
+        verify(
+          () => embracePlatform.addUserSessionProperty(
+            key,
+            value,
+            scope: PropertyScope.userSession,
           ),
         ).called(1);
       });
 
-      test('clearUserInfo defaults to true', () {
-        Embrace.instance.endSession();
+      test('passes scope to platform implementation', () {
+        Embrace.instance
+            .addUserSessionProperty(key, value, scope: PropertyScope.process);
         verify(
-          // ignore: avoid_redundant_argument_values
-          () => embracePlatform.endSession(clearUserInfo: true),
+          () => embracePlatform.addUserSessionProperty(
+            key,
+            value,
+            scope: PropertyScope.process,
+          ),
         ).called(1);
       });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
-        when(() => embracePlatform.endSession()).thenThrow(MockError());
-        Embrace.instance.endSession();
+        when(
+          () => embracePlatform.addUserSessionProperty(
+            key,
+            value,
+            scope: PropertyScope.userSession,
+          ),
+        ).thenThrow(MockError());
+        Embrace.instance.addUserSessionProperty(key, value);
 
         verify(
-          () => embracePlatform.logInternalError('endSession', errorMessage),
+          () => embracePlatform.logInternalError(
+            'addUserSessionProperty',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('removeUserSessionProperty', () {
+      const key = '__key__';
+      test('removes user session property', () {
+        Embrace.instance.removeUserSessionProperty(key);
+        verify(() => embracePlatform.removeUserSessionProperty(key)).called(1);
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(
+          () => embracePlatform.removeUserSessionProperty(key),
+        ).thenThrow(MockError());
+        Embrace.instance.removeUserSessionProperty(key);
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'removeUserSessionProperty',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('endUserSession', () {
+      test('ends user session without clearing user info', () {
+        Embrace.instance.endUserSession();
+        verify(() => embracePlatform.endUserSession()).called(1);
+        verifyNever(() => embracePlatform.clearUserIdentifier());
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(() => embracePlatform.endUserSession()).thenThrow(MockError());
+        Embrace.instance.endUserSession();
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'endUserSession',
+            errorMessage,
+          ),
         ).called(1);
       });
     });
@@ -1018,28 +1091,53 @@ void main() {
       });
     });
     group('getCurrentSessionId', () {
-      test(
-        'returns current session ID when platform implementation exists',
-        () {
-          final id = Embrace.instance.getCurrentSessionId();
-          verify(() => embracePlatform.getCurrentSessionId()).called(1);
+      test('returns current user session ID', () {
+        // ignore: deprecated_member_use_from_same_package
+        final id = Embrace.instance.getCurrentSessionId();
+        verify(() => embracePlatform.getCurrentUserSessionId()).called(1);
 
-          expect(id, isA<Future<String?>>());
-        },
-      );
+        expect(id, isA<Future<String?>>());
+      });
 
       test(
           'logs internal error when platform implementation '
           'throws an error', () {
         when(
-          () => embracePlatform.getCurrentSessionId(),
+          () => embracePlatform.getCurrentUserSessionId(),
         ).thenThrow(MockError());
 
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.getCurrentSessionId();
 
         verify(
           () => embracePlatform.logInternalError(
             'getCurrentSessionId',
+            errorMessage,
+          ),
+        ).called(1);
+      });
+    });
+
+    group('getCurrentUserSessionId', () {
+      test('returns current user session ID', () {
+        final id = Embrace.instance.getCurrentUserSessionId();
+        verify(() => embracePlatform.getCurrentUserSessionId()).called(1);
+
+        expect(id, isA<Future<String?>>());
+      });
+
+      test(
+          'logs internal error when platform implementation '
+          'throws an error', () {
+        when(
+          () => embracePlatform.getCurrentUserSessionId(),
+        ).thenThrow(MockError());
+
+        Embrace.instance.getCurrentUserSessionId();
+
+        verify(
+          () => embracePlatform.logInternalError(
+            'getCurrentUserSessionId',
             errorMessage,
           ),
         ).called(1);

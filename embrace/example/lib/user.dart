@@ -40,34 +40,6 @@ class _UserDemoState extends State<UserDemo> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 ElevatedButton(
-                  onPressed: () =>
-                      Embrace.instance.setUserName(_controller.text),
-                  child: const Text('Set Name'),
-                ),
-                ElevatedButton(
-                  onPressed: Embrace.instance.clearUserName,
-                  child: const Text('Clear Name'),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: () =>
-                      Embrace.instance.setUserEmail(_controller.text),
-                  child: const Text('Set Email'),
-                ),
-                ElevatedButton(
-                  onPressed: Embrace.instance.clearUserEmail,
-                  child: const Text('Clear Email'),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ElevatedButton(
                   onPressed: Embrace.instance.setUserAsPayer,
                   child: const Text('Set As Payer'),
                 ),

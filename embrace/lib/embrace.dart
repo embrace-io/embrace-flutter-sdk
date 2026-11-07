@@ -12,9 +12,12 @@ import 'package:embrace/src/otel/otel.dart';
 import 'package:embrace/src/pointer_input_tracker.dart';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 import 'package:flutter/widgets.dart';
 
 export 'package:embrace_platform_interface/http_method.dart' show HttpMethod;
+export 'package:embrace_platform_interface/property_scope.dart'
+    show PropertyScope;
 export 'src/http_client.dart';
 export 'src/lifecycle_observer.dart' hide stopActiveLifecycleObserver;
 export 'src/navigation_observer.dart';
@@ -229,24 +232,32 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
-  void setUserName(String name) {
-    _runCatching('setUserName', () => _platform.setUserName(name));
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserName(String name) {}
 
   @override
-  void clearUserName() {
-    _runCatching('clearUserName', () => _platform.clearUserName());
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserName() {}
 
   @override
-  void setUserEmail(String email) {
-    _runCatching('setUserEmail', () => _platform.setUserEmail(email));
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserEmail(String email) {}
 
   @override
-  void clearUserEmail() {
-    _runCatching('clearUserEmail', () => _platform.clearUserEmail());
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserEmail() {}
 
   @override
   void setUserAsPayer() {
@@ -277,26 +288,68 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  @Deprecated('Use addUserSessionProperty instead')
   void addSessionProperty(String key, String value, {bool permanent = false}) {
     _runCatching(
       'addSessionProperty',
-      () => _platform.addSessionProperty(key, value, permanent: permanent),
+      () => _platform.addUserSessionProperty(
+        key,
+        value,
+        scope: permanent ? PropertyScope.permanent : PropertyScope.userSession,
+      ),
     );
   }
 
   @override
+  @Deprecated('Use removeUserSessionProperty instead')
   void removeSessionProperty(String key) {
     _runCatching(
       'removeSessionProperty',
-      () => _platform.removeSessionProperty(key),
+      () => _platform.removeUserSessionProperty(key),
     );
   }
 
   @override
+  @Deprecated('Use endUserSession instead')
   void endSession({bool clearUserInfo = true}) {
     return _runCatching(
       'endSession',
-      () => _platform.endSession(clearUserInfo: clearUserInfo),
+      () {
+        _platform.endUserSession();
+        if (clearUserInfo) {
+          _platform
+            ..clearUserIdentifier()
+            ..clearAllUserPersonas();
+        }
+      },
+    );
+  }
+
+  @override
+  void addUserSessionProperty(
+    String key,
+    String value, {
+    PropertyScope scope = PropertyScope.userSession,
+  }) {
+    _runCatching(
+      'addUserSessionProperty',
+      () => _platform.addUserSessionProperty(key, value, scope: scope),
+    );
+  }
+
+  @override
+  void removeUserSessionProperty(String key) {
+    _runCatching(
+      'removeUserSessionProperty',
+      () => _platform.removeUserSessionProperty(key),
+    );
+  }
+
+  @override
+  void endUserSession() {
+    _runCatching(
+      'endUserSession',
+      () => _platform.endUserSession(),
     );
   }
 
@@ -434,10 +487,20 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
+  @Deprecated('Use getCurrentUserSessionId instead')
   Future<String?> getCurrentSessionId() async {
     return _runCatchingAndReturn<String?>(
       'getCurrentSessionId',
-      () => _platform.getCurrentSessionId(),
+      () => _platform.getCurrentUserSessionId(),
+      defaultValue: null,
+    );
+  }
+
+  @override
+  Future<String?> getCurrentUserSessionId() async {
+    return _runCatchingAndReturn<String?>(
+      'getCurrentUserSessionId',
+      () => _platform.getCurrentUserSessionId(),
       defaultValue: null,
     );
   }

@@ -1,3 +1,8 @@
+# 4.10.0
+
+* Deprecated `setUserName`, `clearUserName`, `setUserEmail` and `clearUserEmail`. They no longer do anything on iOS or Android and will be removed in a future release. User name and email are not supported by Embrace Apple SDK 7.x, and the Android behavior has been aligned to match. Use `setUserIdentifier`, user personas, or user session properties instead
+* `endSession(clearUserInfo: true)` now clears only the user identifier and user personas
+
 # 4.9.0
 
 * Added a screen-load span to `EmbraceNavigationObserver`, timed from the last user touch to the first frame of the new route

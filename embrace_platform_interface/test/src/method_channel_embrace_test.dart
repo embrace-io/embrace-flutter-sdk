@@ -2,6 +2,7 @@ import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
 import 'package:embrace_platform_interface/method_channel_embrace.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 import 'package:embrace_platform_interface/src/version.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -574,107 +575,73 @@ void main() {
     });
 
     group('setUserName', () {
-      const userName = '__userName__';
-      test('invokes setUserName method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
-        methodChannelEmbrace.setUserName(userName);
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'setUserName',
-              arguments: {'name': userName},
-            ),
-          ),
-        );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserName('__userName__');
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.setUserName(userName),
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserName('__userName__');
         expect(log, isEmpty);
       });
     });
 
     group('clearUserName', () {
-      test('invokes clearUserName method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.clearUserName();
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'clearUserName',
-              arguments: null,
-            ),
-          ),
-        );
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          methodChannelEmbrace.clearUserName,
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.clearUserName();
         expect(log, isEmpty);
       });
     });
 
     group('setUserEmail', () {
-      const userEmail = '__userEmail__';
-      test('invokes setUserEmail method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
-        methodChannelEmbrace.setUserEmail(userEmail);
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'setUserEmail',
-              arguments: {'email': userEmail},
-            ),
-          ),
-        );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserEmail('__userEmail__');
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.setUserEmail(userEmail),
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserEmail('__userEmail__');
         expect(log, isEmpty);
       });
     });
 
     group('clearUserEmail', () {
-      test('invokes clearUserEmail method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.clearUserEmail();
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'clearUserEmail',
-              arguments: null,
-            ),
-          ),
-        );
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          methodChannelEmbrace.clearUserEmail,
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.clearUserEmail();
         expect(log, isEmpty);
       });
     });
@@ -816,17 +783,35 @@ void main() {
     group('addSessionProperty', () {
       const key = '__key__';
       const value = '__value__';
-      test('invokes addSessionProperty method in the method channel', () async {
+      test('invokes addUserSessionProperty with userSession scope', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.addSessionProperty(key, value, permanent: false);
         expect(
           log,
           contains(
             isMethodCall(
-              'addSessionProperty',
-              arguments: {'key': key, 'value': value, 'permanent': false},
+              'addUserSessionProperty',
+              arguments: {'key': key, 'value': value, 'scope': 'userSession'},
+            ),
+          ),
+        );
+      });
+
+      test('invokes addUserSessionProperty with permanent scope', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.addSessionProperty(key, value, permanent: true);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'addUserSessionProperty',
+              arguments: {'key': key, 'value': value, 'scope': 'permanent'},
             ),
           ),
         );
@@ -834,6 +819,7 @@ void main() {
 
       test('throws StateError if not started', () {
         expect(
+          // ignore: deprecated_member_use_from_same_package
           () => methodChannelEmbrace.addSessionProperty(
             key,
             value,
@@ -847,17 +833,18 @@ void main() {
 
     group('removeSessionProperty', () {
       const key = '__key__';
-      test('invokes removeSessionProperty method in the method channel',
+      test('invokes removeUserSessionProperty method in the method channel',
           () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.removeSessionProperty(key);
         expect(
           log,
           contains(
             isMethodCall(
-              'removeSessionProperty',
+              'removeUserSessionProperty',
               arguments: {'key': key},
             ),
           ),
@@ -866,7 +853,71 @@ void main() {
 
       test('throws StateError if not started', () {
         expect(
+          // ignore: deprecated_member_use_from_same_package
           () => methodChannelEmbrace.removeSessionProperty(key),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('addUserSessionProperty', () {
+      const key = '__key__';
+      const value = '__value__';
+      for (final scope in PropertyScope.values) {
+        test('invokes addUserSessionProperty with ${scope.name} scope',
+            () async {
+          await methodChannelEmbrace.attachToHostSdk(
+            enableIntegrationTesting: false,
+          );
+          methodChannelEmbrace.addUserSessionProperty(key, value, scope: scope);
+          expect(
+            log,
+            contains(
+              isMethodCall(
+                'addUserSessionProperty',
+                arguments: {'key': key, 'value': value, 'scope': scope.name},
+              ),
+            ),
+          );
+        });
+      }
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.addUserSessionProperty(
+            key,
+            value,
+            scope: PropertyScope.userSession,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('removeUserSessionProperty', () {
+      const key = '__key__';
+      test('invokes removeUserSessionProperty method in the method channel',
+          () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.removeUserSessionProperty(key);
+        expect(
+          log,
+          contains(
+            isMethodCall(
+              'removeUserSessionProperty',
+              arguments: {'key': key},
+            ),
+          ),
+        );
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          () => methodChannelEmbrace.removeUserSessionProperty(key),
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);
@@ -897,38 +948,78 @@ void main() {
     });
 
     group('endSession', () {
-      test('invokes endSession method in the method channel', () async {
+      test('ends user session without clearing user info', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.endSession(clearUserInfo: false);
-        expect(
-          log,
-          contains(
-            isMethodCall('endSession', arguments: {'clearUserInfo': false}),
-          ),
-        );
+        expect(log, [isMethodCall('endUserSession', arguments: null)]);
       });
 
-      test('clearUserInfo is true by default', () async {
+      test('ends user session then clears user info by default', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.endSession();
+        expect(log, [
+          isMethodCall('endUserSession', arguments: null),
+          isMethodCall('clearUserIdentifier', arguments: null),
+          isMethodCall('clearAllUserPersonas', arguments: null),
+        ]);
+      });
+
+      test('throws StateError if not started', () {
+        expect(
+          // ignore: deprecated_member_use_from_same_package
+          () => methodChannelEmbrace.endSession(),
+          throwsA(isA<StateError>()),
+        );
+        expect(log, isEmpty);
+      });
+    });
+
+    group('endUserSession', () {
+      test('invokes endUserSession method in the method channel', () async {
+        await methodChannelEmbrace.attachToHostSdk(
+          enableIntegrationTesting: false,
+        );
+        methodChannelEmbrace.endUserSession();
         expect(
           log,
-          contains(
-            isMethodCall('endSession', arguments: {'clearUserInfo': true}),
-          ),
+          contains(isMethodCall('endUserSession', arguments: null)),
         );
       });
 
       test('throws StateError if not started', () {
         expect(
-          () => methodChannelEmbrace.endSession(),
+          methodChannelEmbrace.endUserSession,
           throwsA(isA<StateError>()),
         );
         expect(log, isEmpty);
+      });
+    });
+
+    group('getCurrentUserSessionId', () {
+      test('invokes getCurrentUserSessionId method in the method channel',
+          () async {
+        await methodChannelEmbrace.getCurrentUserSessionId();
+        expect(
+          log,
+          contains(isMethodCall('getCurrentUserSessionId', arguments: null)),
+        );
+      });
+
+      test('getCurrentSessionId invokes getCurrentUserSessionId', () async {
+        // ignore: deprecated_member_use_from_same_package
+        await methodChannelEmbrace.getCurrentSessionId();
+        expect(
+          log,
+          contains(isMethodCall('getCurrentUserSessionId', arguments: null)),
+        );
       });
     });
 

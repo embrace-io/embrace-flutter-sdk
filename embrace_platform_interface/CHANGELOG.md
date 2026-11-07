@@ -1,3 +1,7 @@
+# 4.10.0
+
+* Deprecated `setUserName`, `clearUserName`, `setUserEmail` and `clearUserEmail`. `MethodChannelEmbrace` no longer sends these calls to the native plugins
+
 # 4.9.0
 
 * Version bump

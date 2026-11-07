@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
 import 'package:embrace_platform_interface/last_run_end_state.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 
 /// Declares the functions that consist of Embrace's public API - specifically
 /// those that are only declared on Flutter. You should not use
@@ -300,12 +301,14 @@ abstract class SessionApi {
   /// properties per session. If the property is [permanent], it will be added
   /// to all future sessions on this device. Otherwise, the property will just
   /// be added to the current session.
+  @Deprecated('Use addUserSessionProperty instead')
   void addSessionProperty(String key, String value, {bool permanent = false});
 
   /// Remove an existing property from the session
   ///
   /// If the property was permanent, it will be removed from all future
   /// sessions.
+  @Deprecated('Use removeUserSessionProperty instead')
   void removeSessionProperty(String key);
 
   /// Manually forces the end of the current session and starts a new session.
@@ -313,15 +316,51 @@ abstract class SessionApi {
   /// Only call this method if you have an application that will stay in the
   /// foreground for an extended time, such as a point-of-sale app.
   ///
-  /// If [clearUserInfo] is true, it clears any username, user ID, and email
-  /// values set when ending the session.
+  /// If [clearUserInfo] is true, it clears any user ID and user personas
+  /// set when ending the session.
+  @Deprecated('Use endUserSession instead')
   void endSession({bool clearUserInfo = true});
 
   /// Get the ID for the current session.
   ///
   /// Returns null if a session has not been started yet or the SDK hasn't been
   /// initialized.
+  @Deprecated('Use getCurrentUserSessionId instead')
   Future<String?> getCurrentSessionId();
+
+  /// Annotates the current user session with a property defined by a [key]
+  /// and [value], overwriting any previous property with the same [key].
+  ///
+  /// The [scope] determines how long the property is retained:
+  /// [PropertyScope.userSession] properties are cleared when the user session
+  /// ends, [PropertyScope.process] properties are cleared when the app process
+  /// terminates, and [PropertyScope.permanent] properties persist across app
+  /// launches until removed.
+  void addUserSessionProperty(
+    String key,
+    String value, {
+    PropertyScope scope = PropertyScope.userSession,
+  });
+
+  /// Removes an existing property from the current user session, regardless
+  /// of its scope.
+  void removeUserSessionProperty(String key);
+
+  /// Manually forces the end of the current user session and starts a new
+  /// one.
+  ///
+  /// Only call this method if you have an application that will stay in the
+  /// foreground for an extended time, such as a point-of-sale app.
+  ///
+  /// This does not clear any user info. Call the relevant clear methods on
+  /// [UserApi] if needed.
+  void endUserSession();
+
+  /// Get the ID for the current user session.
+  ///
+  /// Returns null if a user session has not been started yet or the SDK
+  /// hasn't been initialized.
+  Future<String?> getCurrentUserSessionId();
 }
 
 /// Declares the functions that consist of Embrace's public API. You should
@@ -338,16 +377,42 @@ abstract class UserApi {
   /// Clears the currently set user identifier.
   void clearUserIdentifier();
 
-  /// Sets the current user's name.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  ///
+  /// Use [setUserIdentifier], user personas, or user session properties
+  /// instead.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserName(String name);
 
-  /// Clear the currently set user name.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserName();
 
-  /// Sets the current user's email.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  ///
+  /// Use [setUserIdentifier], user personas, or user session properties
+  /// instead.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserEmail(String email);
 
-  /// Clear the currently set user email.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserEmail();
 
   /// Sets this user as a paying user.

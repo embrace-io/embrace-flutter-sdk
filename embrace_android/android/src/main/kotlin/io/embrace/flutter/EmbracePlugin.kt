@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import io.embrace.android.embracesdk.Embrace
+import io.embrace.android.embracesdk.PropertyScope
 import io.embrace.android.embracesdk.network.http.HttpMethod
 import io.embrace.android.embracesdk.internal.EmbraceInternalApi
 import io.embrace.android.embracesdk.internal.FlutterInternalInterface
@@ -47,13 +48,9 @@ internal object EmbraceConstants {
     internal const val TRIGGER_SIGNAL_METHOD_NAME : String = "triggerRaisedSignal"
     internal const val TRIGGER_CHANNEL_ERROR_METHOD_NAME : String = "triggerMethodChannelError"
     internal const val SET_USER_IDENTIFIER_METHOD_NAME : String = "setUserIdentifier"
-    internal const val SET_USER_NAME_METHOD_NAME : String = "setUserName"
-    internal const val SET_USER_EMAIL_METHOD_NAME : String = "setUserEmail"
     internal const val SET_USER_AS_PAYER_METHOD_NAME : String = "setUserAsPayer"
     internal const val ADD_USER_PERSONA_METHOD_NAME : String = "addUserPersona"
     internal const val CLEAR_USER_IDENTIFIER_METHOD_NAME : String = "clearUserIdentifier"
-    internal const val CLEAR_USER_NAME_METHOD_NAME : String = "clearUserName"
-    internal const val CLEAR_USER_EMAIL_METHOD_NAME : String = "clearUserEmail"
     internal const val CLEAR_USER_AS_PAYER_METHOD_NAME : String = "clearUserAsPayer"
     internal const val CLEAR_USER_PERSONA_METHOD_NAME : String = "clearUserPersona"
     internal const val CLEAR_ALL_USER_PERSONAS_METHOD_NAME : String = "clearAllUserPersonas"
@@ -62,11 +59,11 @@ internal object EmbraceConstants {
     internal const val LOG_INTERNAL_ERROR_METHOD_NAME : String = "logInternalError"
     internal const val LOG_DART_ERROR_METHOD_NAME : String = "logDartError"
     internal const val LOG_PUSH_NOTIFICATION_METHOD_NAME : String = "logPushNotification"
-    internal const val ADD_SESSION_PROPERTY_METHOD_NAME : String = "addSessionProperty"
-    internal const val REMOVE_SESSION_PROPERTY_METHOD_NAME : String = "removeSessionProperty"
-    internal const val END_SESSION_METHOD_NAME : String = "endSession"
+    internal const val ADD_USER_SESSION_PROPERTY_METHOD_NAME : String = "addUserSessionProperty"
+    internal const val REMOVE_USER_SESSION_PROPERTY_METHOD_NAME : String = "removeUserSessionProperty"
+    internal const val END_USER_SESSION_METHOD_NAME : String = "endUserSession"
     internal const val GET_LAST_RUN_END_STATE_METHOD_NAME : String = "getLastRunEndState"
-    internal const val GET_CURRENT_SESSION_ID_METHOD_NAME : String = "getCurrentSessionId"
+    internal const val GET_CURRENT_USER_SESSION_ID_METHOD_NAME : String = "getCurrentUserSessionId"
     internal const val GET_SDK_VERSION_METHOD_NAME : String = "getSdkVersion"
     internal const val START_SPAN_METHOD_NAME : String = "startSpan"
     internal const val STOP_SPAN_METHOD_NAME : String = "stopSpan"
@@ -84,8 +81,6 @@ internal object EmbraceConstants {
     internal const val MESSAGE_ARG_NAME : String = "message"
     internal const val IDENTIFIER_ARG_NAME : String = "identifier"
     internal const val USER_IDENTIFIER_ARG_NAME : String = "identifier"
-    internal const val USER_NAME_ARG_NAME : String = "name"
-    internal const val USER_EMAIL_ARG_NAME : String = "email"
     internal const val USER_PERSONA_ARG_NAME : String = "persona"
     internal const val URL_ARG_NAME : String = "url"
     internal const val HTTP_METHOD_ARG_NAME : String = "httpMethod"
@@ -108,8 +103,7 @@ internal object EmbraceConstants {
     internal const val ERROR_WAS_HANDLED_ARG_NAME : String = "wasHandled"
     internal const val KEY_ARG_NAME : String = "key"
     internal const val VALUE_ARG_NAME : String = "value"
-    internal const val PERMANENT_ARG_NAME : String = "permanent"
-    internal const val CLEAR_USER_INFO_ARG_NAME : String = "clearUserInfo"
+    internal const val SCOPE_ARG_NAME : String = "scope"
     internal const val PUSH_TITLE_ARG_NAME : String = "title"
     internal const val PUSH_BODY_ARG_NAME : String = "body"
     internal const val PUSH_FROM_ARG_NAME : String = "from"
@@ -172,23 +166,19 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.TRIGGER_CHANNEL_ERROR_METHOD_NAME -> handleTriggerMethodChannelError(call, result)
                 EmbraceConstants.SET_USER_IDENTIFIER_METHOD_NAME -> handleSetUserIdentifierCall(call, result)
                 EmbraceConstants.CLEAR_USER_IDENTIFIER_METHOD_NAME -> handleClearUserIdentifierCall(call, result)
-                EmbraceConstants.SET_USER_NAME_METHOD_NAME -> handleSetUserNameCall(call, result)
-                EmbraceConstants.CLEAR_USER_NAME_METHOD_NAME -> handleClearUserNameCall(call, result)
-                EmbraceConstants.SET_USER_EMAIL_METHOD_NAME -> handleSetUserEmailCall(call, result)
-                EmbraceConstants.CLEAR_USER_EMAIL_METHOD_NAME -> handleClearUserEmailCall(call, result)
                 EmbraceConstants.SET_USER_AS_PAYER_METHOD_NAME -> handleSetUserAsPayerCall(call, result)
                 EmbraceConstants.CLEAR_USER_AS_PAYER_METHOD_NAME -> handleClearUserAsPayerCall(call, result)
                 EmbraceConstants.ADD_USER_PERSONA_METHOD_NAME -> handleAddUserPersonaCall(call, result)
                 EmbraceConstants.CLEAR_USER_PERSONA_METHOD_NAME -> handleClearUserPersonaCall(call, result)
                 EmbraceConstants.CLEAR_ALL_USER_PERSONAS_METHOD_NAME -> handleClearAllUserPersonasCall(call, result)
-                EmbraceConstants.ADD_SESSION_PROPERTY_METHOD_NAME -> handleAddSessionPropertyCall(call, result)
-                EmbraceConstants.REMOVE_SESSION_PROPERTY_METHOD_NAME -> handleRemoveSessionPropertyCall(call, result)
-                EmbraceConstants.END_SESSION_METHOD_NAME -> handleEndSessionCall(call, result)
+                EmbraceConstants.ADD_USER_SESSION_PROPERTY_METHOD_NAME -> handleAddUserSessionPropertyCall(call, result)
+                EmbraceConstants.REMOVE_USER_SESSION_PROPERTY_METHOD_NAME -> handleRemoveUserSessionPropertyCall(call, result)
+                EmbraceConstants.END_USER_SESSION_METHOD_NAME -> handleEndUserSessionCall(call, result)
                 EmbraceConstants.LOG_INTERNAL_ERROR_METHOD_NAME -> handleLogInternalErrorCall(call, result)
                 EmbraceConstants.LOG_DART_ERROR_METHOD_NAME -> handleLogDartErrorCall(call, result)
                 EmbraceConstants.LOG_PUSH_NOTIFICATION_METHOD_NAME -> handleLogPushNotificationCall(call, result)
                 EmbraceConstants.GET_LAST_RUN_END_STATE_METHOD_NAME -> handleGetLastRunEndStateCall(call, result)
-                EmbraceConstants.GET_CURRENT_SESSION_ID_METHOD_NAME -> handleGetCurrentSessionIdCall(call, result)
+                EmbraceConstants.GET_CURRENT_USER_SESSION_ID_METHOD_NAME -> handleGetCurrentUserSessionIdCall(call, result)
                 EmbraceConstants.GET_SDK_VERSION_METHOD_NAME -> handleGetSdkVersion(call, result)
                 EmbraceConstants.START_SPAN_METHOD_NAME -> handleStartSpan(call, result)
                 EmbraceConstants.STOP_SPAN_METHOD_NAME -> handleStopSpan(call, result)
@@ -497,40 +487,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         result.success(null)
         return
     }
-    
-    private fun handleSetUserNameCall(call: MethodCall, result: Result) : Unit {
-        val name = call.getStringArgument(EmbraceConstants.USER_NAME_ARG_NAME)
-        safeSdkCall {
-            setUsername(name)
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleClearUserNameCall(call: MethodCall, result: Result) : Unit {
-        safeSdkCall {
-            clearUsername()
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleSetUserEmailCall(call: MethodCall, result: Result) : Unit {
-        val email = call.getStringArgument(EmbraceConstants.USER_EMAIL_ARG_NAME)
-        safeSdkCall {
-            setUserEmail(email)
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleClearUserEmailCall(call: MethodCall, result: Result) : Unit {
-        safeSdkCall {
-            clearUserEmail()
-        }
-        result.success(null)
-        return
-    }
 
     private fun handleSetUserAsPayerCall(call: MethodCall, result: Result) : Unit {
         safeSdkCall {
@@ -574,30 +530,33 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return
     }
 
-    private fun handleAddSessionPropertyCall(call: MethodCall, result: Result) : Unit {
+    private fun handleAddUserSessionPropertyCall(call: MethodCall, result: Result) : Unit {
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         val value = call.getStringArgument(EmbraceConstants.VALUE_ARG_NAME)
-        val permanent = call.getBooleanArgument(EmbraceConstants.PERMANENT_ARG_NAME)
+        val scope = when (call.getStringArgument(EmbraceConstants.SCOPE_ARG_NAME)) {
+            "permanent" -> PropertyScope.PERMANENT
+            "process" -> PropertyScope.PROCESS
+            else -> PropertyScope.USER_SESSION
+        }
         safeSdkCall {
-            addSessionProperty(key, value, permanent)
+            addUserSessionProperty(key, value, scope)
         }
         result.success(null)
         return
     }
 
-    private fun handleRemoveSessionPropertyCall(call: MethodCall, result: Result) : Unit {
+    private fun handleRemoveUserSessionPropertyCall(call: MethodCall, result: Result) : Unit {
         val key = call.getStringArgument(EmbraceConstants.KEY_ARG_NAME)
         safeSdkCall {
-            removeSessionProperty(key)
+            removeUserSessionProperty(key)
         }
         result.success(null)
         return
     }
 
-    private fun handleEndSessionCall(call: MethodCall, result: Result) : Unit {
-        val clearUserInfo = call.getBooleanArgument(EmbraceConstants.CLEAR_USER_INFO_ARG_NAME)
+    private fun handleEndUserSessionCall(call: MethodCall, result: Result) : Unit {
         safeSdkCall {
-            endSession(clearUserInfo)
+            endUserSession()
         }
         result.success(null)
         return
@@ -649,11 +608,11 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
         return
     }
 
-    private fun handleGetCurrentSessionIdCall(call: MethodCall, result: Result) {
-        val currentSessionId = safeSdkCall {
-            currentSessionId
+    private fun handleGetCurrentUserSessionIdCall(call: MethodCall, result: Result) {
+        val sessionId = safeSdkCall {
+            currentUserSessionId
         }
-        result.success(currentSessionId)
+        result.success(sessionId)
     }
 
     private fun handleGetSdkVersion(call: MethodCall, result: Result) {

@@ -1,5 +1,6 @@
 import 'package:embrace_platform_interface/embrace_platform_interface.dart';
 import 'package:embrace_platform_interface/http_method.dart';
+import 'package:embrace_platform_interface/property_scope.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -174,6 +175,7 @@ void main() {
 
     test('setUserName throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.setUserName('__name__'),
         throwsA(isA<UnimplementedError>()),
       );
@@ -181,6 +183,7 @@ void main() {
 
     test('clearUserName throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.clearUserName(),
         throwsA(isA<UnimplementedError>()),
       );
@@ -188,6 +191,7 @@ void main() {
 
     test('setUserEmail throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.setUserEmail('__email__'),
         throwsA(isA<UnimplementedError>()),
       );
@@ -195,6 +199,7 @@ void main() {
 
     test('clearUserEmail throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.clearUserEmail(),
         throwsA(isA<UnimplementedError>()),
       );
@@ -237,6 +242,7 @@ void main() {
 
     test('addSessionProperty throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.addSessionProperty(
           'key',
           'value',
@@ -248,6 +254,7 @@ void main() {
 
     test('removeSessionProperty throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.removeSessionProperty('key'),
         throwsA(isA<UnimplementedError>()),
       );
@@ -255,7 +262,40 @@ void main() {
 
     test('endSession throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.endSession(),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('addUserSessionProperty throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.addUserSessionProperty(
+          'key',
+          'value',
+          scope: PropertyScope.userSession,
+        ),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('removeUserSessionProperty throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.removeUserSessionProperty('key'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('endUserSession throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.endUserSession(),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('getCurrentUserSessionId throws an UnimplementedError', () {
+      expect(
+        () => embracePlatform.getCurrentUserSessionId(),
         throwsA(isA<UnimplementedError>()),
       );
     });
