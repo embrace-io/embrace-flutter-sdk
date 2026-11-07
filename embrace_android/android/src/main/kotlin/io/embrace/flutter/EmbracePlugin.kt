@@ -48,13 +48,9 @@ internal object EmbraceConstants {
     internal const val TRIGGER_SIGNAL_METHOD_NAME : String = "triggerRaisedSignal"
     internal const val TRIGGER_CHANNEL_ERROR_METHOD_NAME : String = "triggerMethodChannelError"
     internal const val SET_USER_IDENTIFIER_METHOD_NAME : String = "setUserIdentifier"
-    internal const val SET_USER_NAME_METHOD_NAME : String = "setUserName"
-    internal const val SET_USER_EMAIL_METHOD_NAME : String = "setUserEmail"
     internal const val SET_USER_AS_PAYER_METHOD_NAME : String = "setUserAsPayer"
     internal const val ADD_USER_PERSONA_METHOD_NAME : String = "addUserPersona"
     internal const val CLEAR_USER_IDENTIFIER_METHOD_NAME : String = "clearUserIdentifier"
-    internal const val CLEAR_USER_NAME_METHOD_NAME : String = "clearUserName"
-    internal const val CLEAR_USER_EMAIL_METHOD_NAME : String = "clearUserEmail"
     internal const val CLEAR_USER_AS_PAYER_METHOD_NAME : String = "clearUserAsPayer"
     internal const val CLEAR_USER_PERSONA_METHOD_NAME : String = "clearUserPersona"
     internal const val CLEAR_ALL_USER_PERSONAS_METHOD_NAME : String = "clearAllUserPersonas"
@@ -85,8 +81,6 @@ internal object EmbraceConstants {
     internal const val MESSAGE_ARG_NAME : String = "message"
     internal const val IDENTIFIER_ARG_NAME : String = "identifier"
     internal const val USER_IDENTIFIER_ARG_NAME : String = "identifier"
-    internal const val USER_NAME_ARG_NAME : String = "name"
-    internal const val USER_EMAIL_ARG_NAME : String = "email"
     internal const val USER_PERSONA_ARG_NAME : String = "persona"
     internal const val URL_ARG_NAME : String = "url"
     internal const val HTTP_METHOD_ARG_NAME : String = "httpMethod"
@@ -172,10 +166,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
                 EmbraceConstants.TRIGGER_CHANNEL_ERROR_METHOD_NAME -> handleTriggerMethodChannelError(call, result)
                 EmbraceConstants.SET_USER_IDENTIFIER_METHOD_NAME -> handleSetUserIdentifierCall(call, result)
                 EmbraceConstants.CLEAR_USER_IDENTIFIER_METHOD_NAME -> handleClearUserIdentifierCall(call, result)
-                EmbraceConstants.SET_USER_NAME_METHOD_NAME -> handleSetUserNameCall(call, result)
-                EmbraceConstants.CLEAR_USER_NAME_METHOD_NAME -> handleClearUserNameCall(call, result)
-                EmbraceConstants.SET_USER_EMAIL_METHOD_NAME -> handleSetUserEmailCall(call, result)
-                EmbraceConstants.CLEAR_USER_EMAIL_METHOD_NAME -> handleClearUserEmailCall(call, result)
                 EmbraceConstants.SET_USER_AS_PAYER_METHOD_NAME -> handleSetUserAsPayerCall(call, result)
                 EmbraceConstants.CLEAR_USER_AS_PAYER_METHOD_NAME -> handleClearUserAsPayerCall(call, result)
                 EmbraceConstants.ADD_USER_PERSONA_METHOD_NAME -> handleAddUserPersonaCall(call, result)
@@ -493,40 +483,6 @@ public class EmbracePlugin : FlutterPlugin, MethodCallHandler {
     private fun handleClearUserIdentifierCall(call: MethodCall, result: Result) : Unit {
         safeSdkCall {
             clearUserIdentifier()
-        }
-        result.success(null)
-        return
-    }
-    
-    private fun handleSetUserNameCall(call: MethodCall, result: Result) : Unit {
-        val name = call.getStringArgument(EmbraceConstants.USER_NAME_ARG_NAME)
-        safeSdkCall {
-            setUsername(name)
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleClearUserNameCall(call: MethodCall, result: Result) : Unit {
-        safeSdkCall {
-            clearUsername()
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleSetUserEmailCall(call: MethodCall, result: Result) : Unit {
-        val email = call.getStringArgument(EmbraceConstants.USER_EMAIL_ARG_NAME)
-        safeSdkCall {
-            setUserEmail(email)
-        }
-        result.success(null)
-        return
-    }
-
-    private fun handleClearUserEmailCall(call: MethodCall, result: Result) : Unit {
-        safeSdkCall {
-            clearUserEmail()
         }
         result.success(null)
         return

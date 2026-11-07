@@ -575,107 +575,73 @@ void main() {
     });
 
     group('setUserName', () {
-      const userName = '__userName__';
-      test('invokes setUserName method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
-        methodChannelEmbrace.setUserName(userName);
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'setUserName',
-              arguments: {'name': userName},
-            ),
-          ),
-        );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserName('__userName__');
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.setUserName(userName),
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserName('__userName__');
         expect(log, isEmpty);
       });
     });
 
     group('clearUserName', () {
-      test('invokes clearUserName method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.clearUserName();
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'clearUserName',
-              arguments: null,
-            ),
-          ),
-        );
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          methodChannelEmbrace.clearUserName,
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.clearUserName();
         expect(log, isEmpty);
       });
     });
 
     group('setUserEmail', () {
-      const userEmail = '__userEmail__';
-      test('invokes setUserEmail method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
-        methodChannelEmbrace.setUserEmail(userEmail);
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'setUserEmail',
-              arguments: {'email': userEmail},
-            ),
-          ),
-        );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserEmail('__userEmail__');
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          () => methodChannelEmbrace.setUserEmail(userEmail),
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.setUserEmail('__userEmail__');
         expect(log, isEmpty);
       });
     });
 
     group('clearUserEmail', () {
-      test('invokes clearUserEmail method in the method channel', () async {
+      test('does not invoke the method channel', () async {
         await methodChannelEmbrace.attachToHostSdk(
           enableIntegrationTesting: false,
         );
+        log.clear();
+        // ignore: deprecated_member_use_from_same_package
         methodChannelEmbrace.clearUserEmail();
-        expect(
-          log,
-          contains(
-            isMethodCall(
-              'clearUserEmail',
-              arguments: null,
-            ),
-          ),
-        );
+        expect(log, isEmpty);
       });
 
-      test('throws StateError if not started', () {
-        expect(
-          methodChannelEmbrace.clearUserEmail,
-          throwsA(isA<StateError>()),
-        );
+      test('does not throw if not started', () {
+        // ignore: deprecated_member_use_from_same_package
+        methodChannelEmbrace.clearUserEmail();
         expect(log, isEmpty);
       });
     });
@@ -1002,8 +968,6 @@ void main() {
         expect(log, [
           isMethodCall('endUserSession', arguments: null),
           isMethodCall('clearUserIdentifier', arguments: null),
-          isMethodCall('clearUserName', arguments: null),
-          isMethodCall('clearUserEmail', arguments: null),
           isMethodCall('clearAllUserPersonas', arguments: null),
         ]);
       });

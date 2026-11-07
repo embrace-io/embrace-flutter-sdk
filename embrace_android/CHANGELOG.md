@@ -1,3 +1,7 @@
+# 4.10.0
+
+* Removed the native handlers for `setUserName`, `clearUserName`, `setUserEmail` and `clearUserEmail`
+
 # 4.9.0
 
 * Version bump
