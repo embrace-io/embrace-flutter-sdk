@@ -218,22 +218,42 @@ abstract class EmbracePlatform extends PlatformInterface {
     throw UnimplementedError('clearUserIdentifier() has not been implemented');
   }
 
-  /// Sets the current user name to the provided [name].
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserName(String name) {
     throw UnimplementedError('setUserName(String) has not been implemented');
   }
 
-  /// Clears the current user name.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserName() {
     throw UnimplementedError('clearUserName() has not been implemented');
   }
 
-  /// Sets the current user email to the provided [email].
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserEmail(String email) {
     throw UnimplementedError('setUserEmail(String) has not been implemented');
   }
 
-  /// Clears the current user email.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserEmail() {
     throw UnimplementedError('clearUserEmail has not been implemented');
   }
@@ -292,8 +312,8 @@ abstract class EmbracePlatform extends PlatformInterface {
   /// Only call this method if you have an application that will stay in the
   /// foreground for an extended time, such as a point-of-sale app.
   ///
-  /// If [clearUserInfo] is true, it clears any username, user ID, and email
-  /// values set when ending the session.
+  /// If [clearUserInfo] is true, it clears any user ID and user personas
+  /// set when ending the session.
   @Deprecated('Use endUserSession instead')
   void endSession({bool clearUserInfo = true}) {
     throw UnimplementedError('endSession() has not been implemented');

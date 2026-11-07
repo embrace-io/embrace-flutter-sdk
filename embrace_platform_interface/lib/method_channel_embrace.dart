@@ -30,13 +30,9 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _logWarningMethodName = 'logWarning';
   static const String _logErrorMethodName = 'logError';
   static const String _setUserIdentifierMethodName = 'setUserIdentifier';
-  static const String _setUserNameMethodName = 'setUserName';
-  static const String _setUserEmailMethodName = 'setUserEmail';
   static const String _setUserAsPayerMethodName = 'setUserAsPayer';
   static const String _addUserPersonaMethodName = 'addUserPersona';
   static const String _clearUserIdentifierMethodName = 'clearUserIdentifier';
-  static const String _clearUserNameMethodName = 'clearUserName';
-  static const String _clearUserEmailMethodName = 'clearUserEmail';
   static const String _clearUserAsPayerMethodName = 'clearUserAsPayer';
   static const String _clearUserPersonaMethodName = 'clearUserPersona';
   static const String _clearAllUserPersonasMethodName = 'clearAllUserPersonas';
@@ -70,8 +66,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
   static const String _messageArgName = 'message';
   static const String _nameArgName = 'name';
   static const String _userIdArgName = 'identifier';
-  static const String _userNameArgName = 'name';
-  static const String _userEmailArgName = 'email';
   static const String _userPersonaArgName = 'persona';
   static const String _enableIntegrationTestingArgName =
       'enableIntegrationTesting';
@@ -375,30 +369,32 @@ class MethodChannelEmbrace extends EmbracePlatform {
   }
 
   @override
-  void setUserName(String name) {
-    throwIfNotStarted();
-    methodChannel
-        .invokeMethod(_setUserNameMethodName, {_userNameArgName: name});
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserName(String name) {}
 
   @override
-  void clearUserName() {
-    throwIfNotStarted();
-    methodChannel.invokeMethod(_clearUserNameMethodName);
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserName() {}
 
   @override
-  void setUserEmail(String email) {
-    throwIfNotStarted();
-    methodChannel
-        .invokeMethod(_setUserEmailMethodName, {_userEmailArgName: email});
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserEmail(String email) {}
 
   @override
-  void clearUserEmail() {
-    throwIfNotStarted();
-    methodChannel.invokeMethod(_clearUserEmailMethodName);
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserEmail() {}
 
   @override
   void setUserAsPayer() {
@@ -458,8 +454,6 @@ class MethodChannelEmbrace extends EmbracePlatform {
     endUserSession();
     if (clearUserInfo) {
       clearUserIdentifier();
-      clearUserName();
-      clearUserEmail();
       clearAllUserPersonas();
     }
   }

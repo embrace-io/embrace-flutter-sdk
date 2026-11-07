@@ -232,24 +232,32 @@ class Embrace implements EmbraceFlutterApi {
   }
 
   @override
-  void setUserName(String name) {
-    _runCatching('setUserName', () => _platform.setUserName(name));
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserName(String name) {}
 
   @override
-  void clearUserName() {
-    _runCatching('clearUserName', () => _platform.clearUserName());
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserName() {}
 
   @override
-  void setUserEmail(String email) {
-    _runCatching('setUserEmail', () => _platform.setUserEmail(email));
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void setUserEmail(String email) {}
 
   @override
-  void clearUserEmail() {
-    _runCatching('clearUserEmail', () => _platform.clearUserEmail());
-  }
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
+  void clearUserEmail() {}
 
   @override
   void setUserAsPayer() {
@@ -311,8 +319,6 @@ class Embrace implements EmbraceFlutterApi {
         if (clearUserInfo) {
           _platform
             ..clearUserIdentifier()
-            ..clearUserName()
-            ..clearUserEmail()
             ..clearAllUserPersonas();
         }
       },

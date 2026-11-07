@@ -175,6 +175,7 @@ void main() {
 
     test('setUserName throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.setUserName('__name__'),
         throwsA(isA<UnimplementedError>()),
       );
@@ -182,6 +183,7 @@ void main() {
 
     test('clearUserName throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.clearUserName(),
         throwsA(isA<UnimplementedError>()),
       );
@@ -189,6 +191,7 @@ void main() {
 
     test('setUserEmail throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.setUserEmail('__email__'),
         throwsA(isA<UnimplementedError>()),
       );
@@ -196,6 +199,7 @@ void main() {
 
     test('clearUserEmail throws an UnimplementedError', () {
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => embracePlatform.clearUserEmail(),
         throwsA(isA<UnimplementedError>()),
       );

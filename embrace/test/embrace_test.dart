@@ -694,79 +694,38 @@ void main() {
     });
 
     group('setUserName', () {
-      const userName = '__userName__';
-      test('sets the user name when platform implementation exists', () {
-        Embrace.instance.setUserName(userName);
-        verify(() => embracePlatform.setUserName(userName)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(
-          () => embracePlatform.setUserName(userName),
-        ).thenThrow(MockError());
-        Embrace.instance.setUserName(userName);
-
-        verify(
-          () => embracePlatform.logInternalError('setUserName', errorMessage),
-        ).called(1);
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.setUserName('__userName__');
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.setUserName(any()));
       });
     });
 
     group('clearUserName', () {
-      test('sets the user email when platform implementation exists', () {
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.clearUserName();
-        verify(embracePlatform.clearUserName).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(embracePlatform.clearUserName).thenThrow(MockError());
-        Embrace.instance.clearUserName();
-
-        verify(
-          () => embracePlatform.logInternalError('clearUserName', errorMessage),
-        ).called(1);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserName());
       });
     });
 
     group('setUserEmail', () {
-      const email = '__email__';
-      test('sets the user email when platform implementation exists', () {
-        Embrace.instance.setUserEmail(email);
-        verify(() => embracePlatform.setUserEmail(email)).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(() => embracePlatform.setUserEmail(email)).thenThrow(MockError());
-        Embrace.instance.setUserEmail(email);
-
-        verify(
-          () => embracePlatform.logInternalError('setUserEmail', errorMessage),
-        ).called(1);
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
+        Embrace.instance.setUserEmail('__email__');
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.setUserEmail(any()));
       });
     });
 
     group('clearUserEmail', () {
-      test('clears the user email when platform implementation exists', () {
+      test('does not call the platform implementation', () {
+        // ignore: deprecated_member_use_from_same_package
         Embrace.instance.clearUserEmail();
-        verify(embracePlatform.clearUserEmail).called(1);
-      });
-
-      test(
-          'logs internal error when platform implementation '
-          'throws an error', () {
-        when(embracePlatform.clearUserEmail).thenThrow(MockError());
-        Embrace.instance.clearUserEmail();
-
-        verify(
-          () =>
-              embracePlatform.logInternalError('clearUserEmail', errorMessage),
-        ).called(1);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserEmail());
       });
     });
 
@@ -959,10 +918,12 @@ void main() {
         verifyInOrder([
           () => embracePlatform.endUserSession(),
           () => embracePlatform.clearUserIdentifier(),
-          () => embracePlatform.clearUserName(),
-          () => embracePlatform.clearUserEmail(),
           () => embracePlatform.clearAllUserPersonas(),
         ]);
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserName());
+        // ignore: deprecated_member_use
+        verifyNever(() => embracePlatform.clearUserEmail());
       });
 
       test('does not clear user info when clearUserInfo is false', () {
@@ -970,8 +931,6 @@ void main() {
         Embrace.instance.endSession(clearUserInfo: false);
         verify(() => embracePlatform.endUserSession()).called(1);
         verifyNever(() => embracePlatform.clearUserIdentifier());
-        verifyNever(() => embracePlatform.clearUserName());
-        verifyNever(() => embracePlatform.clearUserEmail());
         verifyNever(() => embracePlatform.clearAllUserPersonas());
       });
 

@@ -22,13 +22,9 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let TriggerSignalMethodName = "triggerRaisedSignal"
     static let TriggerChannelErrorMethodName = "triggerMethodChannelError"
     static let SetUserIdentifierMethodName = "setUserIdentifier"
-    static let SetUserNameMethodName = "setUserName"
-    static let SetUserEmailMethodName = "setUserEmail"
     static let SetUserAsPayerMethodName = "setUserAsPayer"
     static let AddUserPersonaMethodName = "addUserPersona"
     static let ClearUserIdentifierMethodName = "clearUserIdentifier"
-    static let ClearUserNameMethodName = "clearUserName"
-    static let ClearUserEmailMethodName = "clearUserEmail"
     static let ClearUserAsPayerMethodName = "clearUserAsPayer"
     static let ClearUserPersonaMethodName = "clearUserPersona"
     static let ClearAllUserPersonasMethodName = "clearAllUserPersonas"
@@ -57,8 +53,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     static let MessageArgName = "message"
     static let IdentifierArgName = "identifier"
     static let UserIdentifierArgName = "identifier"
-    static let UserNameArgName = "name"
-    static let UserEmailArgName = "email"
     static let UserPersonaArgName = "persona"
     static let UrlArgName = "url"
     static let HttpMethodArgName = "httpMethod"
@@ -161,14 +155,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
                 handleSetUserIdentifierCall(call, result: result)
             case EmbracePlugin.ClearUserIdentifierMethodName:
                 handleClearUserIdentifierCall(call, result: result)
-            case EmbracePlugin.SetUserNameMethodName:
-                handleSetUserNameCall(call, result: result)
-            case EmbracePlugin.ClearUserNameMethodName:
-                handleClearUserNameCall(call, result: result)
-            case EmbracePlugin.SetUserEmailMethodName:
-                handleSetUserEmailCall(call, result: result)
-            case EmbracePlugin.ClearUserEmailMethodName:
-                handleClearUserEmailCall(call, result: result)
             case EmbracePlugin.SetUserAsPayerMethodName:
                 handleSetUserAsPayerCall(call, result: result)
             case EmbracePlugin.ClearUserAsPayerMethodName:
@@ -438,40 +424,6 @@ public class EmbracePlugin: NSObject, FlutterPlugin {
     private func handleClearUserIdentifierCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         callAppleSdk { client in
             client.metadata.userIdentifier = nil
-            result(nil)
-        }
-    }
-
-    private func handleSetUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            if let args = call.arguments as? [String: Any],
-                let userName = args[EmbracePlugin.UserNameArgName] as? String {
-                    client.metadata.userName = userName
-                }
-            result(nil)
-        }
-    }
-
-    private func handleClearUserNameCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            client.metadata.userName = nil
-            result(nil)
-        }
-    }
-
-    private func handleSetUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            if let args = call.arguments as? [String: Any],
-                let userEmail = args[EmbracePlugin.UserEmailArgName] as? String {
-                    client.metadata.userEmail = userEmail
-                }
-            result(nil)
-        }
-    }
-
-    private func handleClearUserEmailCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        callAppleSdk { client in
-            client.metadata.userEmail = nil
             result(nil)
         }
     }

@@ -316,8 +316,8 @@ abstract class SessionApi {
   /// Only call this method if you have an application that will stay in the
   /// foreground for an extended time, such as a point-of-sale app.
   ///
-  /// If [clearUserInfo] is true, it clears any username, user ID, and email
-  /// values set when ending the session.
+  /// If [clearUserInfo] is true, it clears any user ID and user personas
+  /// set when ending the session.
   @Deprecated('Use endUserSession instead')
   void endSession({bool clearUserInfo = true});
 
@@ -377,16 +377,42 @@ abstract class UserApi {
   /// Clears the currently set user identifier.
   void clearUserIdentifier();
 
-  /// Sets the current user's name.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  ///
+  /// Use [setUserIdentifier], user personas, or user session properties
+  /// instead.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserName(String name);
 
-  /// Clear the currently set user name.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User name is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserName();
 
-  /// Sets the current user's email.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  ///
+  /// Use [setUserIdentifier], user personas, or user session properties
+  /// instead.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void setUserEmail(String email);
 
-  /// Clear the currently set user email.
+  /// This method no longer has any effect and will be removed in a future
+  /// release. User email is not supported by the Embrace SDKs.
+  @Deprecated(
+    'This method no longer has any effect and will be removed in a future '
+    'release. User name and email are not supported by the Embrace SDKs.',
+  )
   void clearUserEmail();
 
   /// Sets this user as a paying user.
